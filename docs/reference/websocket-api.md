@@ -143,6 +143,12 @@ configuration. The result has `presets`, a list ordered by name. Each preset has
 `frost_away_temp`), `entity_id`, `value`, `min`, `max`, `step` and `unit`. A thermostat that uses the central presets has none. The error
 `not_found` means that the entry does not exist.
 
+### `vtherm_dashboard/get_humidity_suggestion`
+
+Suggests a humidity sensor for a temperature sensor. Request: `temperature_sensor`. The result is `{"entity_id": "..."}`, the humidity
+sensor that Versatile Thermostat detects on the device of the temperature sensor, or `{"entity_id": null}` when it finds none. The
+detection is the one of the config flow of Versatile Thermostat.
+
 ### `vtherm_dashboard/save_config`
 
 Saves the draft of a configuration.

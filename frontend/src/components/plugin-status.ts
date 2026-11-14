@@ -5,6 +5,7 @@ import type { EngineIssue } from "@vtherm/dashboard-sdk";
 
 import type { PluginStatus } from "../loader.ts";
 import { t } from "../shell-translations.ts";
+import { defineElement } from "./define.ts";
 
 /** Translate a key whose name is built from a state or a reason. The catalog is complete for the ones that exist. */
 const translate = t as (key: string, params?: Readonly<Record<string, string | number>>) => string;
@@ -171,4 +172,4 @@ export class VThermPluginStatus extends LitElement {
   }
 }
 
-customElements.define("vtherm-plugin-status", VThermPluginStatus);
+defineElement("vtherm-plugin-status", VThermPluginStatus);

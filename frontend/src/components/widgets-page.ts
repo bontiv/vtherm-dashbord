@@ -5,6 +5,7 @@ import type { ConfigValues, Hass, ThermostatType } from "@vtherm/dashboard-sdk";
 
 import type { DashboardRegistry } from "../registry.ts";
 import "./widgets.ts";
+import { defineElement } from "./define.ts";
 
 /** The registry that the dashboard put in the page, or undefined before the plugins are loaded. */
 function installedRegistry(): DashboardRegistry | undefined {
@@ -66,4 +67,4 @@ export class VThermWidgetsPage extends LitElement {
   }
 }
 
-customElements.define("vtherm-widgets-page", VThermWidgetsPage);
+defineElement("vtherm-widgets-page", VThermWidgetsPage);

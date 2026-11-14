@@ -4,6 +4,14 @@ import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
 import { bootstrap } from "./bootstrap.ts";
+import "./components/create-wizard.ts";
+import { CANCELLED_EVENT, CREATED_EVENT } from "./components/create-wizard.ts";
+import { createConfigApi } from "./config/api.ts";
+import { ConfigSession } from "./config/config-session.ts";
+import type { OpenConfig } from "./config/config-session.ts";
+import { PRESET_PREFIX } from "./config/draft.ts";
+import { NEW_THERMOSTAT } from "./native/core-pages.ts";
+import { definitionOfContribution } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
 import "./components/contribution-host.ts";
@@ -19,11 +27,13 @@ import type { DevelopmentEntry } from "./plugin-list.ts";
 import type { PluginStatus } from "./loader.ts";
 import { resolveNavigation, routeForThermostat } from "./navigation.ts";
 import type { NavigationInput, NavigationModel, ThermostatInfo } from "./navigation.ts";
-import { PANEL_PATH, parseRoute } from "./router.ts";
+import { PANEL_PATH, buildPath, parseRoute } from "./router.ts";
 import { publishState } from "./state.ts";
 import type { Route } from "./router.ts";
 import { shell, t } from "./shell-translations.ts";
+import { translateErrorCode } from "./i18n.ts";
 import { DASHBOARD_VERSION } from "./version.ts";
+import { defineElement } from "./components/define.ts";
 
 /** The tag name of the panel. The integration registers the panel with this name. */
 export const PANEL_ELEMENT = "vtherm-dashboard-panel";
@@ -50,6 +60,9 @@ export class VThermDashboardPanel extends LitElement {
     thermostats: { state: true },
     failure: { state: true },
     languageVersion: { state: true },
+    saving: { state: true },
+    savedMessage: { state: true },
+    configRevision: { state: true },
   };
 
   static override styles = css`
@@ -134,6 +147,45 @@ export class VThermDashboardPanel extends LitElement {
     .message.error {
       color: var(--error-color);
     }
+    .savebar {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 16px;
+      padding: 8px 16px;
+      background-color: var(--card-background-color);
+      border-top: 1px solid var(--divider-color);
+    }
+    .savebar .text {
+      flex: 1 1 auto;
+    }
+    .savebar .error {
+      color: var(--error-color);
+    }
+    .savebar button {
+      padding: 6px 16px;
+      font: inherit;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .savebar .save {
+      color: var(--text-primary-color);
+      background-color: var(--primary-color);
+      border: 0;
+    }
+    .savebar .discard {
+      color: var(--primary-color);
+      background: none;
+      border: 1px solid var(--primary-color);
+    }
+    .readonly {
+      margin: 16px 16px 0;
+      padding: 8px 12px;
+      border: 1px solid var(--warning-color);
+      border-radius: 4px;
+    }
   `;
 
   /** The state of Home Assistant, set by Home Assistant. */
@@ -175,6 +227,18 @@ export class VThermDashboardPanel extends LitElement {
   /** Changes each time the language was applied, so that every component draws its texts again. */
   declare languageVersion: number;
 
+  /** Whether a save is running. */
+  declare saving: boolean;
+
+  /** The message of the last save, shown in the save bar. */
+  declare savedMessage: string;
+
+  /** Changes each time a configuration or a draft changes, so that the panel draws again. */
+  declare configRevision: number;
+
+  /** The configurations and their drafts, once the panel started. */
+  session: ConfigSession | undefined;
+
   /** The `hass` given to the pages. It is a new object after a change of language, so that the components of the plugins draw again. */
   private pluginHass: Hass | undefined;
 
@@ -192,7 +256,7 @@ export class VThermDashboardPanel extends LitElement {
     super();
     this.hass = undefined;
     this.narrow = false;
-    this.thermostatProvider = async () => [];
+    this.thermostatProvider = async () => ((await this.session?.refreshList())?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
     this.developmentEntries = [];
     this.importModule = undefined;
     this.phase = "loading";
@@ -203,6 +267,9 @@ export class VThermDashboardPanel extends LitElement {
     this.thermostats = [];
     this.failure = "";
     this.languageVersion = 0;
+    this.saving = false;
+    this.savedMessage = "";
+    this.configRevision = 0;
     this.language = createLanguageController(
       () => [shell, ...(this.loaded?.registry.translations() ?? [])],
       () => {
@@ -222,6 +289,9 @@ export class VThermDashboardPanel extends LitElement {
     window.addEventListener("location-changed", this.readLocation);
     this.addEventListener(NAVIGATE_EVENT, this.onNavigate as EventListener);
     this.addEventListener(THERMOSTAT_SELECTED_EVENT, this.onThermostatSelected as EventListener);
+    this.addEventListener(CREATED_EVENT, this.onCreated as EventListener);
+    this.addEventListener(CANCELLED_EVENT, this.onCancelled as EventListener);
+    window.addEventListener("beforeunload", this.onBeforeUnload);
     this.query = window.matchMedia(NARROW_QUERY);
     this.compact = this.query.matches;
     this.query.addEventListener("change", this.onWidthChange);
@@ -231,6 +301,7 @@ export class VThermDashboardPanel extends LitElement {
   override disconnectedCallback(): void {
     window.removeEventListener("popstate", this.readLocation);
     window.removeEventListener("location-changed", this.readLocation);
+    window.removeEventListener("beforeunload", this.onBeforeUnload);
     this.query?.removeEventListener("change", this.onWidthChange);
     super.disconnectedCallback();
   }
@@ -238,6 +309,11 @@ export class VThermDashboardPanel extends LitElement {
   /** Show the page of the address again. */
   private readonly readLocation = (): void => {
     const route = parseRoute(window.location.pathname, CORE_TOP_TABS.thermostats);
+    if (!this.confirmLeave(route)) {
+      // The user stays: the address of the page that is shown comes back.
+      window.history.pushState(null, "", buildPath(this.route));
+      return;
+    }
     if (route !== this.route) {
       this.route = route;
       this.noticeDismissed = false;
@@ -252,6 +328,9 @@ export class VThermDashboardPanel extends LitElement {
 
   private readonly onNavigate = (event: CustomEvent<NavigateDetail>): void => {
     event.stopPropagation();
+    if (!this.confirmLeave(parseRoute(event.detail.path, CORE_TOP_TABS.thermostats))) {
+      return;
+    }
     window.history.pushState(null, "", event.detail.path);
     window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
     this.readLocation();
@@ -269,6 +348,85 @@ export class VThermDashboardPanel extends LitElement {
     const target = routeForThermostat(this.navigationInput(this.route), event.detail);
     this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: this.pathOf(target) } }));
   };
+
+  /** The configuration that a route edits: the thermostat of the Thermostats tab, or the central configuration of the Configuration tab. */
+  private entryOf(route: Route): string | null {
+    if (route.tab === CORE_TOP_TABS.thermostats && route.thermostat !== undefined && route.thermostat !== NEW_THERMOSTAT) {
+      return route.thermostat;
+    }
+    if (route.tab === CORE_TOP_TABS.configuration) {
+      return this.session?.centralId ?? null;
+    }
+    return null;
+  }
+
+  /**
+   * Ask before leaving a configuration whose draft has changes. Going from a section to another of the same configuration does not ask.
+   *
+   * @returns Whether the panel can go to the route. When the user leaves, the draft is dropped.
+   */
+  private confirmLeave(target: Route): boolean {
+    const current = this.entryOf(this.route);
+    const draft = this.session?.get(current)?.draft;
+    if (current === null || draft === undefined || !draft.dirty || this.entryOf(target) === current) {
+      return true;
+    }
+    if (!window.confirm(t("draft.leave"))) {
+      return false;
+    }
+    this.session?.close(current);
+    return true;
+  }
+
+  private readonly onBeforeUnload = (event: BeforeUnloadEvent): void => {
+    if ((this.session?.dirtyDrafts().length ?? 0) > 0) {
+      event.preventDefault();
+    }
+  };
+
+  private readonly onCreated = (event: CustomEvent<string>): void => {
+    event.stopPropagation();
+    void (async () => {
+      const list = await this.session?.refreshList();
+      this.thermostats = (list?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
+      const central = list?.central_config_id === event.detail;
+      this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: central ? buildPath({ tab: CORE_TOP_TABS.configuration, rest: [] }) : buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: event.detail, rest: [] }) } }));
+    })();
+  };
+
+  private readonly onCancelled = (event: Event): void => {
+    event.stopPropagation();
+    window.history.back();
+  };
+
+  /** The configuration of an entry, read when it is needed. */
+  private config(entryId: string | null): OpenConfig | undefined {
+    if (entryId === null || this.session === undefined) {
+      return undefined;
+    }
+    const opened = this.session.get(entryId);
+    if (opened === undefined) {
+      this.session.load(entryId).catch((error: unknown) => {
+        this.failure = error instanceof Error ? error.message : String(error);
+      });
+    }
+    return opened;
+  }
+
+  private async save(entryId: string): Promise<void> {
+    if (this.session === undefined) {
+      return;
+    }
+    this.saving = true;
+    this.savedMessage = "";
+    try {
+      const outcome = await this.session.save(entryId);
+      this.thermostats = (this.session.list?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
+      this.savedMessage = outcome.ok ? t("draft.saved") : outcome.configSaved ? t("draft.config_saved_presets_failed") : "";
+    } finally {
+      this.saving = false;
+    }
+  }
 
   private pathOf(route: Route): string {
     return [PANEL_PATH, ...[route.tab, route.thermostat, route.entry, ...route.rest].filter((segment): segment is string => segment !== undefined).map(encodeURIComponent)].join("/");
@@ -304,6 +462,11 @@ export class VThermDashboardPanel extends LitElement {
         // After an update, the browser can keep the previous bundle in its cache.
         console.warn(`The dashboard frontend is ${DASHBOARD_VERSION} but the server is ${this.loaded.list.dashboard_version}. Reload the page without cache.`);
       }
+      this.session = new ConfigSession(createConfigApi(hass));
+      this.session.subscribe(() => {
+        this.configRevision += 1;
+      });
+      await this.session.refreshList().catch(() => undefined);
       this.thermostats = await this.thermostatProvider(hass);
       await this.language.update(hass);
       this.phase = "ready";
@@ -313,12 +476,23 @@ export class VThermDashboardPanel extends LitElement {
     }
   }
 
+  /** The values of the draft of a configuration, with the temperatures of its presets under `preset:<name>`. */
+  private valuesOf(entryId: string | null): Readonly<Record<string, unknown>> {
+    const draft = this.session?.get(entryId)?.draft;
+    if (draft === undefined) {
+      return {};
+    }
+    const presets = Object.fromEntries(Object.entries(draft.presets()).map(([preset, value]) => [`${PRESET_PREFIX}${preset}`, value]));
+    return { ...draft.values(), ...presets };
+  }
+
   private contextOf = (entry: PlacedEntry, thermostat: ThermostatInfo | undefined): VisibilityContext<HookName> => {
     const hass = this.hass as Hass;
+    const central = this.valuesOf(this.session?.centralId ?? null);
     if (entry.hook === "thermostat_config" || entry.hook === "thermostat_widget") {
-      return { hass, thermostatId: thermostat?.id ?? "", thermostatType: thermostat?.type ?? "over_switch", values: {}, centralValues: {} };
+      return { hass, thermostatId: thermostat?.id ?? "", thermostatType: thermostat?.type ?? "over_switch", values: this.valuesOf(thermostat?.id ?? null), centralValues: central };
     }
-    return entry.hook === "general_config" ? { hass, values: {} } : { hass };
+    return entry.hook === "general_config" ? { hass, values: central } : { hass };
   };
 
   private navigationInput(route: Route): NavigationInput {
@@ -339,16 +513,52 @@ export class VThermDashboardPanel extends LitElement {
   /** The properties that the dashboard gives to the component of a page. */
   private propsOf(entry: PlacedEntry, thermostat: ThermostatInfo | undefined): Readonly<Record<string, unknown>> {
     const hass = this.pluginHass ?? this.hass;
-    if (entry.hook === "thermostat_config") {
-      return { hass, thermostatId: thermostat?.id, values: {}, centralValues: {}, errors: {}, proposeChanges: () => undefined };
+    if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
+      return { hass, narrow: this.compact };
     }
-    if (entry.hook === "general_config") {
-      return { hass, values: {}, errors: {}, proposeChanges: () => undefined };
+    const entryId = entry.hook === "thermostat_config" ? (thermostat?.id ?? null) : (this.session?.centralId ?? null);
+    const draft = this.session?.get(entryId)?.draft;
+    // A native tab saves into a step of the flow. The configuration of a third-party plugin has no place to be saved yet.
+    const tab = definitionOfContribution(entry.id)?.definition.tab;
+    const proposeChanges = (changes: Readonly<Record<string, unknown>>) => {
+      if (draft === undefined || tab === undefined) {
+        console.warn(`The contribution ${entry.id} proposed changes that the dashboard cannot save`, changes);
+        return;
+      }
+      draft.propose(tab, changes);
+    };
+    const common = { hass, values: this.valuesOf(entryId), errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab), proposeChanges };
+    return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
+  }
+
+  private renderSaveBar(entryId: string): TemplateResult | undefined {
+    const draft = this.session?.get(entryId)?.draft;
+    if (draft === undefined || (!draft.dirty && draft.allErrors().length === 0 && this.savedMessage === "")) {
+      return undefined;
     }
-    return { hass, narrow: this.compact };
+    const general = draft.generalErrors();
+    return html`<div class="savebar" role="region" aria-label=${t("draft.unsaved")}>
+      <span class="text">${draft.dirty ? t("draft.unsaved") : this.savedMessage}</span>
+      ${general.map((error) => html`<span class="error" role="alert">${translateErrorCode(shell, error.code)}</span>`)}
+      ${draft.dirty
+        ? html`<button class="discard" ?disabled=${this.saving} @click=${() => draft.discard()}>${t("draft.discard")}</button>
+            <button class="save" ?disabled=${this.saving} @click=${() => void this.save(entryId)}>${t(this.saving ? "draft.saving" : "draft.save")}</button>`
+        : undefined}
+    </div>`;
   }
 
   private renderBody(model: NavigationModel): TemplateResult {
+    if (this.route.tab === CORE_TOP_TABS.thermostats && this.route.thermostat === NEW_THERMOSTAT) {
+      const central = this.route.entry === "central";
+      return html`<vtherm-create-wizard
+        .hass=${this.pluginHass ?? this.hass}
+        .api=${this.session?.api}
+        .central=${central}
+        .hasCentral=${this.session?.centralId !== null && this.session?.centralId !== undefined}
+        .centralValues=${this.valuesOf(this.session?.centralId ?? null)}
+        .language=${String(this.languageVersion)}
+      ></vtherm-create-wizard>`;
+    }
     if (model.mode === "list") {
       return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
     }
@@ -356,12 +566,22 @@ export class VThermDashboardPanel extends LitElement {
       return html`<div class="message" role="status">${t("shell.page.empty")}</div>`;
     }
     const entry = model.current.entry;
-    return html`<vtherm-contribution
-      .tag=${(entry.contribution as { component: string }).component}
-      .contributionId=${entry.id}
-      .props=${this.propsOf(entry, model.thermostat)}
-      .language=${String(this.languageVersion)}
-    ></vtherm-contribution>`;
+    const isConfig = entry.hook === "thermostat_config" || entry.hook === "general_config";
+    const entryId = isConfig ? this.entryOf(this.route) : null;
+    const opened = this.config(entryId);
+    if (entryId !== null && opened === undefined) {
+      return html`<div class="message" role="status">${t("config.loading")}</div>`;
+    }
+    const readOnly = opened?.data.read_only === true;
+    return html`${readOnly ? html`<div class="readonly" role="status">${t("config.read_only")}</div>` : undefined}
+      <vtherm-contribution
+        ?inert=${readOnly}
+        .tag=${(entry.contribution as { component: string }).component}
+        .contributionId=${entry.id}
+        .props=${this.propsOf(entry, model.thermostat)}
+        .language=${String(this.languageVersion)}
+      ></vtherm-contribution>
+      ${entryId === null || readOnly ? undefined : this.renderSaveBar(entryId)}`;
   }
 
   private renderMenu(model: NavigationModel): TemplateResult {
@@ -382,8 +602,16 @@ export class VThermDashboardPanel extends LitElement {
     if (this.phase === "error") {
       return html`<div class="message error" role="alert">${t("shell.plugins_error", { message: this.failure })}</div>`;
     }
-    const model = this.navigationModel(this.route);
-    const hasMenu = model.mode === "page" && (model.sections.length > 0 || model.thermostat !== undefined);
+    const creating = this.route.tab === CORE_TOP_TABS.thermostats && this.route.thermostat === NEW_THERMOSTAT;
+    // The assistant has its own page in the Thermostats tab: the navigation is the one of the tab.
+    const model = this.navigationModel(creating ? { tab: CORE_TOP_TABS.thermostats, rest: [] } : this.route);
+    if (creating) {
+      (model as { breadcrumb: unknown }).breadcrumb = [
+        { label: model.activeTab?.title ?? "", path: buildPath({ tab: CORE_TOP_TABS.thermostats, rest: [] }) },
+        { label: t(this.route.entry === "central" ? "wizard.title_central" : "wizard.title"), path: undefined },
+      ];
+    }
+    const hasMenu = !creating && model.mode === "page" && (model.sections.length > 0 || model.thermostat !== undefined);
     return html`<vtherm-top-bar .tabs=${model.tabs} .heading=${t("shell.title")}></vtherm-top-bar>
       <div class="toolbar">
         ${this.compact && hasMenu
@@ -410,4 +638,4 @@ export class VThermDashboardPanel extends LitElement {
   }
 }
 
-customElements.define(PANEL_ELEMENT, VThermDashboardPanel);
+defineElement(PANEL_ELEMENT, VThermDashboardPanel);

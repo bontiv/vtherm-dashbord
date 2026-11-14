@@ -7,7 +7,9 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | Page | Audience | Content |
 | --- | --- | --- |
 | [Using the dashboard](user/dashboard.md) | User | Open the dashboard, the tabs, the menu and the breadcrumb, a phone, and the status of the plugins. |
+| [Configuring thermostats](user/configuration.md) | User | The draft and its save bar, the central configuration, creating a thermostat, and each section of the configuration. |
 | [Python API for UI plugins](plugins/python-api.md) | Plugin author | Declare a UI plugin with `register_ui_plugin`, its parameters, its errors and what the dashboard checks later. |
+| [Native plugins](plugins/native-plugins.md) | Plugin author | The 15 native plugins, their load order, and the identifiers of their contributions that a plugin can use as a position. |
 | [Loading and dependencies](plugins/loading-and-dependencies.md) | Plugin author | `requires`, `load_after` and `load_before`, the load order and the status of a plugin. |
 | [Version constraints](plugins/version-constraints.md) | Plugin author | The grammar of `dashboard_version`, pre-releases and how to support a new major version. |
 | [Translations](plugins/internationalization.md) | Plugin author | The English catalog, typed keys, language resolution and fallback, titles as keys, parameters, plurals and catalogs loaded on demand. |

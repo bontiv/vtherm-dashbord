@@ -3,6 +3,7 @@ import type { TemplateResult } from "lit";
 
 import { STATE_CHANGED_EVENT, currentState } from "../state.ts";
 import "./plugin-status.ts";
+import { defineElement } from "./define.ts";
 
 /** The plugin status page: it reads the state that the panel published and draws again when it changes. The native page "Plugins" is made with it. */
 export class VThermPluginStatusPage extends LitElement {
@@ -36,4 +37,4 @@ export class VThermPluginStatusPage extends LitElement {
   }
 }
 
-customElements.define("vtherm-plugin-status-page", VThermPluginStatusPage);
+defineElement("vtherm-plugin-status-page", VThermPluginStatusPage);

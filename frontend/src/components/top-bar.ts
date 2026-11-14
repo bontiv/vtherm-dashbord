@@ -4,6 +4,7 @@ import type { TemplateResult } from "lit";
 import type { NavTab } from "../navigation.ts";
 import { renderIcon } from "./icon.ts";
 import { followLink } from "./events.ts";
+import { defineElement } from "./define.ts";
 
 /**
  * The tabs of the top bar.
@@ -103,4 +104,4 @@ export class VThermTopBar extends LitElement {
   }
 }
 
-customElements.define("vtherm-top-bar", VThermTopBar);
+defineElement("vtherm-top-bar", VThermTopBar);

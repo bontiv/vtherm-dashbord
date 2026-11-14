@@ -6,6 +6,7 @@ import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import type { ThermostatInfo } from "../navigation.ts";
 import { t } from "../shell-translations.ts";
 import { followLink } from "./events.ts";
+import { defineElement } from "./define.ts";
 
 /** The list of the thermostats, shown in full width in the Thermostats tab, with a message when there is none. */
 export class VThermThermostatList extends LitElement {
@@ -49,6 +50,13 @@ export class VThermThermostatList extends LitElement {
       margin-top: 4px;
       color: var(--secondary-text-color);
     }
+    a.create {
+      display: inline-block;
+      padding: 8px 16px;
+      color: var(--text-primary-color);
+      background-color: var(--primary-color);
+      border: 0;
+    }
     .empty {
       padding: 32px 16px;
       text-align: center;
@@ -68,11 +76,16 @@ export class VThermThermostatList extends LitElement {
     this.thermostats = [];
   }
 
+  private renderCreate(): TemplateResult {
+    const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: "new", rest: [] });
+    return html`<p><a class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("wizard.create_thermostat")}</a></p>`;
+  }
+
   protected override render(): TemplateResult {
     if (this.thermostats.length === 0) {
-      return html`<div class="empty" role="status">${t("shell.thermostats.empty")}</div>`;
+      return html`${this.renderCreate()}<div class="empty" role="status">${t("shell.thermostats.empty")}</div>`;
     }
-    return html`<ul>
+    return html`${this.renderCreate()}<ul>
       ${this.thermostats.map((thermostat) => {
         const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: thermostat.id, rest: [] });
         return html`<li>
@@ -86,4 +99,4 @@ export class VThermThermostatList extends LitElement {
   }
 }
 
-customElements.define("vtherm-thermostat-list", VThermThermostatList);
+defineElement("vtherm-thermostat-list", VThermThermostatList);

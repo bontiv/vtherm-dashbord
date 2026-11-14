@@ -3,6 +3,7 @@ import type { TemplateResult } from "lit";
 
 import type { Crumb } from "../navigation.ts";
 import { followLink } from "./events.ts";
+import { defineElement } from "./define.ts";
 
 /** The number of segments that the breadcrumb keeps on a narrow screen. */
 export const NARROW_SEGMENTS = 2;
@@ -77,4 +78,4 @@ export class VThermBreadcrumb extends LitElement {
   }
 }
 
-customElements.define("vtherm-breadcrumb", VThermBreadcrumb);
+defineElement("vtherm-breadcrumb", VThermBreadcrumb);

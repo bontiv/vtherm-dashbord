@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
 import { t } from "../shell-translations.ts";
+import { defineElement } from "./define.ts";
 
 /**
  * Shows the custom element of a contribution and gives it its properties.
@@ -84,4 +85,4 @@ export class VThermContributionHost extends LitElement {
   }
 }
 
-customElements.define("vtherm-contribution", VThermContributionHost);
+defineElement("vtherm-contribution", VThermContributionHost);

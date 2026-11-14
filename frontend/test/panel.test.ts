@@ -3,6 +3,7 @@ import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { cleanup, find, findAll, mountPanel, nativePlugins, page, plugin, thermostats } from "./support/dashboard-harness.ts";
+import { settle } from "./support/dashboard-harness.ts";
 import type { TestPlugin } from "./support/dashboard-harness.ts";
 
 afterEach(() => {
@@ -55,7 +56,7 @@ describe("the routes", () => {
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
     const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => anchor.textContent?.trim() === "core.page.plugins") as HTMLAnchorElement;
     link.click();
-    await panel.updateComplete;
+    await settle(panel);
     expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-plugins-el")).not.toBeNull();
     expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Configuration", "core.page.plugins"]);
@@ -65,10 +66,10 @@ describe("the routes", () => {
     const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
     findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a")[1]?.click();
-    await panel.updateComplete;
+    await settle(panel);
     window.history.replaceState(null, "", `/home-confort/${CORE_TOP_TABS.configuration}/core.general.main`);
     window.dispatchEvent(new PopStateEvent("popstate"));
-    await panel.updateComplete;
+    await settle(panel);
     expect(find(panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
   });
 
@@ -86,7 +87,7 @@ describe("the routes", () => {
     expect(notice.textContent).toContain("does not exist");
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-overview-el")).not.toBeNull();
     find(notice, "button")?.click();
-    await panel.updateComplete;
+    await settle(panel);
     expect(find(panel.shadowRoot as ShadowRoot, ".notice")).toBeNull();
   });
 
@@ -96,7 +97,7 @@ describe("the routes", () => {
     const select = find<HTMLSelectElement>(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select") as HTMLSelectElement;
     select.value = "climate.chambre";
     select.dispatchEvent(new Event("change", { bubbles: true }));
-    await panel.updateComplete;
+    await settle(panel);
     expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.thermostats}/climate.chambre`);
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-thermostat_overview-el")).not.toBeNull();
   });
@@ -119,8 +120,8 @@ describe("the thermostats tab", () => {
   it("opens a thermostat from the list with a selector first in its menu, and its overview", async () => {
     const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
-    findAll<HTMLAnchorElement>(list.shadowRoot as ShadowRoot, "a")[0]?.click();
-    await panel.updateComplete;
+    findAll<HTMLAnchorElement>(list.shadowRoot as ShadowRoot, "li a")[0]?.click();
+    await settle(panel);
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
     expect((menu.shadowRoot as ShadowRoot).querySelector("nav")?.firstElementChild?.tagName).toBe("SELECT");
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-thermostat_overview-el")).not.toBeNull();

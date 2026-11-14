@@ -5,6 +5,7 @@ import type { NavSection, ThermostatInfo } from "../navigation.ts";
 import { t } from "../shell-translations.ts";
 import { followLink } from "./events.ts";
 import { renderIcon } from "./icon.ts";
+import { defineElement } from "./define.ts";
 
 /** The event sent when the user chooses another thermostat in the selector. Its detail is the identifier of the thermostat. */
 export const THERMOSTAT_SELECTED_EVENT = "vtherm-thermostat-selected";
@@ -134,4 +135,4 @@ export class VThermSideMenu extends LitElement {
   }
 }
 
-customElements.define("vtherm-side-menu", VThermSideMenu);
+defineElement("vtherm-side-menu", VThermSideMenu);

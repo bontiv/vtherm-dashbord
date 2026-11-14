@@ -20,6 +20,7 @@
         "auto_start_stop_medium",
         "auto_start_stop_fast"
       ],
+      "translation_key": "auto_start_stop",
       "multiple": false
     }
   ],
@@ -41,6 +42,7 @@
         "discovery",
         "fine_tuning"
       ],
+      "translation_key": "auto_tpi_learning_type",
       "multiple": false
     },
     {
@@ -292,8 +294,8 @@
         "sensor",
         "input_number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "temp_min",
@@ -338,6 +340,7 @@
         "comfort",
         "boost"
       ],
+      "translation_key": "presets",
       "multiple": false
     },
     {
@@ -351,6 +354,7 @@
         "comfort",
         "boost"
       ],
+      "translation_key": "presets",
       "multiple": false
     }
   ],
@@ -364,8 +368,8 @@
         "sensor",
         "input_number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "max_power_sensor_entity_id",
@@ -376,8 +380,8 @@
         "sensor",
         "input_number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "power_unit",
@@ -389,6 +393,7 @@
         "kw",
         "auto"
       ],
+      "translation_key": "central_power_unit",
       "multiple": false
     },
     {
@@ -409,8 +414,8 @@
         "binary_sensor",
         "input_boolean"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     }
   ],
   "STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA": [
@@ -423,8 +428,8 @@
         "sensor",
         "input_number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "temp_min",
@@ -593,6 +598,7 @@
         "window_frost_temp",
         "window_eco_temp"
       ],
+      "translation_key": "window_action",
       "multiple": false
     }
   ],
@@ -620,6 +626,7 @@
         "window_frost_temp",
         "window_eco_temp"
       ],
+      "translation_key": "window_action",
       "multiple": false
     }
   ],
@@ -744,8 +751,8 @@
         "input_number",
         "number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     }
   ],
   "STEP_LOCK_DATA_SCHEMA": [
@@ -773,8 +780,8 @@
         "input_number",
         "number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "last_seen_temperature_sensor_entity_id",
@@ -786,8 +793,8 @@
         "input_datetime",
         "number"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "cycle_min",
@@ -813,6 +820,7 @@
         "w",
         "kw"
       ],
+      "translation_key": "power_unit",
       "multiple": false
     },
     {
@@ -844,8 +852,8 @@
         "binary_sensor",
         "input_boolean"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "use_motion_central_config",
@@ -944,6 +952,7 @@
         "auto_regulation_slow",
         "auto_regulation_expert"
       ],
+      "translation_key": "auto_regulation_mode",
       "multiple": false
     },
     {
@@ -970,6 +979,7 @@
         "auto_fan_high",
         "auto_fan_turbo"
       ],
+      "translation_key": "auto_fan_mode",
       "multiple": false
     },
     {
@@ -1144,6 +1154,7 @@
         "thermostat_over_climate",
         "thermostat_over_valve"
       ],
+      "translation_key": "thermostat_type",
       "multiple": false
     }
   ],
@@ -1220,8 +1231,8 @@
         "binary_sensor",
         "input_boolean"
       ],
-      "multiple": false,
-      "reorder": false
+      "reorder": false,
+      "multiple": false
     },
     {
       "key": "use_window_central_config",

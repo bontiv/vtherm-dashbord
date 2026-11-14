@@ -9,6 +9,8 @@ import pytest
 from homeassistant.core import HomeAssistant
 from vtherm_api import VThermAPI
 
+from custom_components.vtherm_dashboard.native_plugins import unregister_native_plugins
+
 MANIFEST = json.loads((Path(__file__).resolve().parent.parent / "custom_components" / "vtherm_dashboard" / "manifest.json").read_text(encoding="utf-8"))
 COMMAND = "vtherm_dashboard/get_ui_plugins"
 DEV_ENTRY = {"id": "mine", "js_url": "http://localhost:5173/ui.js", "dashboard_version": ">=0.1,<1.0"}
@@ -18,6 +20,8 @@ DEV_ENTRY = {"id": "mine", "js_url": "http://localhost:5173/ui.js", "dashboard_v
 async def api_fixture(hass: HomeAssistant, setup_dashboard):
     """Set up the dashboard and return the VTherm API of the instance."""
     await setup_dashboard()
+    # These tests check the list with their own plugins only.
+    unregister_native_plugins(hass)
     yield VThermAPI.get_vtherm_api(hass)
     VThermAPI.reset_vtherm_api()
 

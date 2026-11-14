@@ -55,7 +55,7 @@ def describe_validator(validator: Any) -> dict[str, Any]:
                 description = {**describe_validator(part), **description}
         return description
     if isinstance(validator, selector.Selector):
-        config = {key: value for key, value in validator.config.items() if key not in ("translation_key", "mode", "sort", "custom_value")}
+        config = {key: value for key, value in validator.config.items() if key not in ("mode", "sort", "custom_value")}
         kind = {"entity": "entity", "number": "number", "select": "select", "text": "text", "boolean": "boolean", "template": "template"}.get(
             validator.selector_type, validator.selector_type
         )

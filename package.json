@@ -24,9 +24,11 @@
     "docs:sync": "node scripts/sync-doc-examples.ts",
     "docs:reference": "typedoc",
     "check:reference": "node scripts/check-sdk-reference.ts",
+    "catalogs:generate": "node scripts/generate-native-catalogs.ts",
+    "check:catalogs": "node scripts/generate-native-catalogs.ts --check",
     "check:sdk-package": "node scripts/check-sdk-package.ts",
     "check:python": "bash scripts/check-python.sh",
-    "check": "npm run typecheck && npm run lint && npm run check:js && npm run check:docs && npm run check:reference && npm run check:python",
+    "check": "npm run typecheck && npm run lint && npm run check:js && npm run check:docs && npm run check:reference && npm run check:catalogs && npm run check:python",
     "test": "vitest run",
     "test:python": "pytest"
   },

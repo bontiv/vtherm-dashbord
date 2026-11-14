@@ -4,6 +4,7 @@ import type { TemplateResult } from "lit";
 import type { Hass, PlacedEntry } from "@vtherm/dashboard-sdk";
 
 import "./contribution-host.ts";
+import { defineElement } from "./define.ts";
 
 /** A grid of widgets: the contributions of the hook `global_widget` or `thermostat_widget`, each shown with its properties. */
 export class VThermWidgets extends LitElement {
@@ -53,4 +54,4 @@ export class VThermWidgets extends LitElement {
   }
 }
 
-customElements.define("vtherm-widgets", VThermWidgets);
+defineElement("vtherm-widgets", VThermWidgets);

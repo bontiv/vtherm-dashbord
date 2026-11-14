@@ -174,3 +174,9 @@ async def test_unknown_entry_for_the_presets(client) -> None:
     """An identifier that does not exist is an error."""
     await client.send_json_auto_id({"type": "vtherm_dashboard/get_presets", "entry_id": "nope"})
     assert (await client.receive_json())["error"]["code"] == "not_found"
+
+
+async def test_suggest_the_humidity_sensor_of_the_device_of_the_temperature_sensor(hass: HomeAssistant, writer: ConfigWriter, client) -> None:  # pylint: disable=unused-argument
+    """The suggestion is the one of Versatile Thermostat: nothing for a sensor without a humidity sensor next to it."""
+    await client.send_json_auto_id({"type": "vtherm_dashboard/get_humidity_suggestion", "temperature_sensor": "sensor.indoor"})
+    assert (await client.receive_json())["result"] == {"entity_id": None}

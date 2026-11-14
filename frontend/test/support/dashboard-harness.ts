@@ -107,15 +107,80 @@ export function serverAnswer(plugins: readonly TestPlugin[]) {
   };
 }
 
-/** A fake `hass` for the panel. */
-export function createHass(language = "en", answer?: unknown) {
+/** The configurations that the fake server knows, by entry. */
+export type FakeConfigs = Record<string, { name: string; type: "central" | "over_switch" | "over_climate" | "over_valve"; values: Record<string, unknown>; read_only?: boolean }>;
+
+/** How the fake server answers the creation of a configuration. */
+export interface FakeServerOptions {
+  /** The errors that the flow gives for every creation. Without errors, the creation succeeds. */
+  readonly createErrors?: readonly { readonly tab: string | null; readonly field: string | null; readonly code: string }[];
+}
+const TYPES: Readonly<Record<string, FakeConfigs[string]["type"]>> = {
+  thermostat_central_config: "central",
+  thermostat_over_switch: "over_switch",
+  thermostat_over_climate: "over_climate",
+  thermostat_over_valve: "over_valve",
+};
+/**
+ * A fake `hass` for the panel: it answers the commands of the dashboard. A save writes the changes into `configs`, and a creation adds
+ * an entry `created_<n>` to `configs`.
+ */
+export function createHass(language = "en", answer?: unknown, configs: FakeConfigs = {}, server: FakeServerOptions = {}) {
+  let created = 0;
+  const centralOf = () => Object.entries(configs).find(([, config]) => config.type === "central")?.[0] ?? null;
+  const merged = (changes: unknown) => Object.assign({}, ...Object.values((changes ?? {}) as Record<string, Record<string, unknown>>)) as Record<string, unknown>;
+  const handle = async (message: Record<string, unknown>): Promise<unknown> => {
+    switch (message["type"]) {
+      case "vtherm_dashboard/get_ui_plugins":
+        return answer;
+      case "vtherm_dashboard/get_thermostats": {
+        const centralId = centralOf();
+        return {
+          thermostats: Object.entries(configs)
+            .filter(([, config]) => config.type !== "central")
+            .map(([id, config]) => ({ id, name: config.name, type: config.type, read_only: config.read_only === true })),
+          has_central_config: centralId !== null,
+          central_config_id: centralId,
+          supported_config_version: [2, 4],
+        };
+      }
+      case "vtherm_dashboard/get_config": {
+        const config = configs[message["entry_id"] as string];
+        if (config === undefined) {
+          throw new Error("not_found");
+        }
+        return { id: message["entry_id"], name: config.name, type: config.type, values: config.values, version: 2, minor_version: 4, read_only: config.read_only === true, read_only_reason: config.read_only === true ? "config_version_newer" : null };
+      }
+      case "vtherm_dashboard/get_presets":
+        return { presets: [] };
+      case "vtherm_dashboard/save_config": {
+        const config = configs[message["entry_id"] as string];
+        if (config !== undefined) {
+          config.values = { ...config.values, ...merged(message["changes"]) };
+        }
+        return { ok: true, config_saved: true, entry_id: message["entry_id"], errors: [], preset_errors: [] };
+      }
+      case "vtherm_dashboard/create_config": {
+        if ((server.createErrors ?? []).length > 0) {
+          return { ok: false, entry_id: null, errors: server.createErrors };
+        }
+        created += 1;
+        const entryId = `created_${created}`;
+        const values: Record<string, unknown> = { ...merged(message["changes"]), thermostat_type: message["thermostat_type"] };
+        configs[entryId] = { name: String(values["name"] ?? entryId), type: TYPES[message["thermostat_type"] as string] ?? "over_switch", values };
+        return { ok: true, entry_id: entryId, errors: [] };
+      }
+      default:
+        return answer;
+    }
+  };
   return {
     language,
     locale: { language },
     states: {},
     user: { is_admin: true },
     callService: vi.fn(),
-    callWS: vi.fn().mockResolvedValue(answer),
+    callWS: vi.fn(handle),
   };
 }
 
@@ -128,6 +193,12 @@ export interface MountOptions {
   readonly failing?: Readonly<Record<string, Error>>;
   /** The address to open, which the test sets before mounting. */
   readonly path?: string;
+  /** The configurations of Versatile Thermostat that the fake server knows. */
+  readonly configs?: FakeConfigs;
+  /** Give the thermostats from the fake server instead of `thermostats`. */
+  readonly realThermostats?: boolean;
+  /** How the fake server answers a creation. */
+  readonly server?: FakeServerOptions;
 }
 
 /** Mount the panel with plugins and wait for it to be ready. */
@@ -137,7 +208,11 @@ export async function mountPanel(options: MountOptions = {}) {
   window.history.replaceState(null, "", options.path ?? "/home-confort");
   const byUrl = new Map(plugins.map((item) => [`/${item.definition.id}/ui.js`, item.definition]));
   const panel = document.createElement("vtherm-dashboard-panel") as VThermDashboardPanel;
-  const hass = createHass(options.language ?? "en", serverAnswer(plugins));
+  // Without configurations, each thermostat of the test has one, of its type.
+  const configs: FakeConfigs =
+    options.configs ??
+    Object.fromEntries((options.thermostats ?? thermostats).map((item) => [item.id, { name: item.name, type: item.type, values: { thermostat_type: `thermostat_${item.type}`, name: item.name } }]));
+  const hass = createHass(options.language ?? "en", serverAnswer(plugins), configs, options.server);
   panel.importModule = async (url) => {
     const failure = options.failing?.[url.split("/")[1] as string];
     if (failure !== undefined) {
@@ -145,7 +220,9 @@ export async function mountPanel(options: MountOptions = {}) {
     }
     registerUiPlugin(byUrl.get(url) as UiPluginDefinition);
   };
-  panel.thermostatProvider = async () => options.thermostats ?? thermostats;
+  if (options.realThermostats !== true) {
+    panel.thermostatProvider = async () => options.thermostats ?? thermostats;
+  }
   panel.hass = hass as never;
   document.body.append(panel);
   await vi.waitFor(() => {
@@ -153,8 +230,20 @@ export async function mountPanel(options: MountOptions = {}) {
       throw new Error("still loading");
     }
   });
-  await panel.updateComplete;
+  await settle(panel);
   return { panel, hass };
+}
+
+/** Wait until the panel shows its page: the configuration of the page is read, and the drawing is done. */
+export async function settle(panel: VThermDashboardPanel): Promise<void> {
+  await panel.updateComplete;
+  await vi.waitFor(() => {
+    const message = panel.shadowRoot?.querySelector(".message")?.textContent ?? "";
+    if (message.includes("Loading the configuration") || message.includes("Chargement de la configuration") || message.includes("Konfiguration wird geladen")) {
+      throw new Error("still loading the configuration");
+    }
+  });
+  await panel.updateComplete;
 }
 
 /** Remove the panel and the registry from the page. */
@@ -165,7 +254,7 @@ export function cleanup(): void {
 }
 
 /** Whether the selector is only the name of an element, which happy-dom cannot parse when it has an underscore. */
-const isTagName = (selector: string): boolean => /^[a-z][a-z0-9_.-]*$/.test(selector);
+const isTagName = (selector: string): boolean => /^[a-z][a-z0-9_-]*$/.test(selector);
 
 function matches(element: Element, selector: string): boolean {
   return isTagName(selector) ? element.localName === selector : element.matches(selector);

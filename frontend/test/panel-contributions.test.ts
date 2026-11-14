@@ -3,6 +3,7 @@ import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TestElement, cleanup, find, findAll, mountPanel, nativePlugins, page, plugin, widget } from "./support/dashboard-harness.ts";
+import { settle } from "./support/dashboard-harness.ts";
 import type { TestPlugin } from "./support/dashboard-harness.ts";
 
 afterEach(() => {
@@ -138,11 +139,11 @@ describe("a narrow screen", () => {
     const button = find<HTMLButtonElement>(root(panel), ".menu-button") as HTMLButtonElement;
     expect(button.getAttribute("aria-expanded")).toBe("false");
     button.click();
-    await panel.updateComplete;
+    await settle(panel);
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
     expect(menu).not.toBeNull();
     findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a")[1]?.click();
-    await panel.updateComplete;
+    await settle(panel);
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
   });
@@ -170,7 +171,7 @@ describe("a narrow screen", () => {
     const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     change(false);
-    await panel.updateComplete;
+    await settle(panel);
     expect(find(root(panel), "vtherm-side-menu")).not.toBeNull();
   });
 });

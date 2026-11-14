@@ -38,6 +38,9 @@ WS_SAVE_CONFIG = f"{DOMAIN}/save_config"
 WS_CREATE_CONFIG = f"{DOMAIN}/create_config"
 """The type of the command that creates a thermostat or the central configuration."""
 
+WS_GET_HUMIDITY_SUGGESTION = f"{DOMAIN}/get_humidity_suggestion"
+"""The type of the command that suggests a humidity sensor for a temperature sensor."""
+
 CHANGES_SCHEMA = vol.Schema({str: dict})
 PRESETS_SCHEMA = vol.Schema({str: vol.Coerce(float)})
 
@@ -52,6 +55,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_presets)
     websocket_api.async_register_command(hass, ws_save_config)
     websocket_api.async_register_command(hass, ws_create_config)
+    websocket_api.async_register_command(hass, ws_get_humidity_suggestion)
 
 
 @websocket_api.websocket_command(
@@ -162,3 +166,21 @@ async def ws_create_config(hass: HomeAssistant, connection: websocket_api.Active
     """Create a thermostat or the central configuration through the flow of Versatile Thermostat."""
     result: SaveResult = await FlowConfigWriter(hass).async_create(msg["thermostat_type"], msg["changes"])
     connection.send_result(msg["id"], result.as_dict())
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_HUMIDITY_SUGGESTION, vol.Required("temperature_sensor"): str})
+@callback
+def ws_get_humidity_suggestion(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Suggest the humidity sensor that Versatile Thermostat detects for a temperature sensor, as its own config flow does.
+
+    The result is `{"entity_id": null}` when there is no candidate, or when the version of Versatile Thermostat has no detection.
+    """
+    try:
+        # pylint: disable-next=import-outside-toplevel,import-error,no-name-in-module
+        from custom_components.versatile_thermostat.humidity import find_humidity_sensor_candidates
+    except ImportError:
+        connection.send_result(msg["id"], {"entity_id": None})
+        return
+    candidates = find_humidity_sensor_candidates(hass, msg["temperature_sensor"])
+    connection.send_result(msg["id"], {"entity_id": candidates[0] if candidates else None})
