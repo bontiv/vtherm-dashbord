@@ -10,7 +10,7 @@ Permettre aux plugins Versatile Thermostat de déclarer côté Python qu'ils fou
 L'API Python `vtherm_api` SHALL fournir `register_ui_plugin` pour déclarer un plugin UI avec un identifiant unique, l'URL de son module JavaScript et ses métadonnées de dépendance de chargement.
 
 #### Scenario: Enregistrement valide
-- **WHEN** un plugin appelle `register_ui_plugin` avec un `id` et un `js_url`
+- **WHEN** un plugin appelle `register_ui_plugin` avec un `id`, un `js_url` et un `dashboard_version`
 - **THEN** le plugin apparaît dans le résultat de `get_ui_plugins`
 
 #### Scenario: Identifiant déjà utilisé
@@ -45,6 +45,21 @@ Les métadonnées d'un plugin UI SHALL pouvoir contenir `requires`, `load_after`
 #### Scenario: Dépendances omises
 - **WHEN** un plugin est enregistré sans `requires`, `load_after` ni `load_before`
 - **THEN** il est enregistré sans dépendance
+
+### Requirement: Contrainte de version du dashboard
+Les métadonnées d'un plugin UI SHALL contenir `dashboard_version`, la contrainte sur la version du dashboard que le plugin supporte. Ce champ est obligatoire et SHALL figurer dans le résultat de `get_ui_plugins`. Une contrainte est une liste de comparateurs séparés par des virgules, tous à satisfaire. Les opérateurs sont `>=`, `>`, `<=`, `<` et `==`, appliqués à une version semver (`1.0` équivaut à `1.0.0`).
+
+#### Scenario: Contrainte valide
+- **WHEN** un plugin appelle `register_ui_plugin` avec `dashboard_version=">=1.0,<2.0"`
+- **THEN** `get_ui_plugins` retourne cette contrainte pour le plugin
+
+#### Scenario: Champ absent
+- **WHEN** `dashboard_version` est absent
+- **THEN** l'appel est refusé avec une erreur explicite
+
+#### Scenario: Contrainte invalide
+- **WHEN** `dashboard_version` contient un opérateur non supporté (par exemple `^1.0`) ou une version qui n'est pas un semver
+- **THEN** l'appel est refusé avec une erreur explicite qui cite la partie fautive
 
 ### Requirement: Commande WebSocket de découverte
 L'extension SHALL exposer la commande WebSocket `vtherm_dashboard/get_ui_plugins`, qui retourne la même liste que `get_ui_plugins`. Seuls les utilisateurs authentifiés de Home Assistant SHALL pouvoir l'utiliser.

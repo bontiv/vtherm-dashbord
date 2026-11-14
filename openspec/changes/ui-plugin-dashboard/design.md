@@ -39,9 +39,9 @@ Chaque niveau a ainsi un seul rôle et se valide séparément.
 ### 5. Algorithme de chargement
 1. Récupérer la liste via WS.
 2. Construire un graphe : `requires` et `load_after` donnent l'arête cible → plugin, `load_before` donne plugin → cible. Les cibles absentes sont ignorées pour les liens souples.
-3. Écarter les plugins avec `requires` manquant (propagation jusqu'à stabilité).
+3. Écarter les plugins dont la contrainte `dashboard_version` n'est pas satisfaite par la version du dashboard (état "dashboard incompatible"), puis ceux avec `requires` manquant (propagation jusqu'à stabilité).
 4. Tri topologique de Kahn. Départage des ex æquo par `id` alphabétique, pour un ordre déterministe. Les plugins restants non triés forment des cycles et sont exclus.
-5. Importer les modules dans cet ordre (`import()` dynamique, attente de chaque enregistrement). Chaque module appelle `register(...)` ; l'application des contributions se fait à ce moment.
+5. Importer les modules dans cet ordre (`import()` dynamique, attente de chaque enregistrement). Chaque module appelle `registerUiPlugin(...)` du SDK, qui délègue au registre ; le registre vérifie que l'`id` correspond au plugin en cours d'import (connu côté Python), puis les contributions sont appliquées à ce moment.
 
 ### 6. Résolution des positions à l'ajout
 Chaque hook maintient une liste ordonnée d'éléments. Pour chaque contribution, au chargement de son plugin :
@@ -54,16 +54,64 @@ Chaque hook maintient une liste ordonnée d'éléments. Pour chaque contribution
 Un `replace` ou `remove` sur la contribution d'un plugin non ordonné avant lui est détecté par comparaison avec l'ordre de chargement : avertissement.
 
 ### 7. Contrat de contribution
-Une contribution est un objet `{ id, component, placement?, on_missing? }` où `component` est le nom d'un custom element (Web Component) enregistré par le plugin. Le dashboard instancie l'élément et lui affecte `hass` et, selon le hook, `thermostatId`. Les Web Components sont retenus car HA les utilise déjà, ce qui évite d'imposer un framework aux plugins.
+Une contribution est un objet `{ id, component, placement?, on_missing? }` (type exporté par `@vtherm/dashboard-sdk`) où `component` est le nom d'un custom element (Web Component) enregistré par le plugin. Le dashboard instancie l'élément et lui affecte `hass` et, selon le hook, `thermostatId`. Les Web Components sont retenus car HA les utilise déjà, ce qui évite d'imposer un framework aux plugins.
 - *Alternative : fonctions de rendu* : couplées à un framework précis. Rejetée.
 
-### 8. Thème
+### 8. Package npm `@vtherm/dashboard-sdk` et monorepo
+Le dépôt devient un monorepo npm (workspaces) : `packages/sdk` (publié sous `@vtherm/dashboard-sdk`) et `frontend/` (le dashboard). Le dashboard importe les types du SDK, qui est ainsi la source unique du contrat plugin/dashboard.
+- Le SDK ne contient pas de registre : `registerUiPlugin` valide la définition puis appelle `window.VThermUiPluginRegistry.register`. Le dashboard pose ce global avant d'importer les modules plugins. Plusieurs copies du SDK dans des bundles différents partagent donc le même registre.
+- Si le global est absent, `registerUiPlugin` lève une erreur claire (module chargé hors dashboard).
+- La validation (hook connu, préfixe d'identifiant, forme de position) et la résolution des positions vivent dans le SDK et sont réutilisées par le dashboard et par le harnais de test, pour garantir les mêmes règles partout.
+- Le SDK est versionné et publié avec le dashboard, depuis le même dépôt. Le scope `@vtherm` appartient au projet.
+- *Alternative : types dans un dépôt séparé* : plus de découplage, mais deux dépôts à synchroniser à chaque évolution du contrat. Rejetée pour la première version.
+
+### 9. Compatibilité par contrainte de version du dashboard
+Chaque plugin déclare une seule fois, dans `register_ui_plugin`, une contrainte `dashboard_version` (par exemple `>=1.0,<2.0`). Le dashboard l'évalue avant de télécharger le module : un plugin incompatible n'est jamais exécuté. L'état "dashboard incompatible" indique la contrainte, la version courante et le motif (trop ancien ou trop récent).
+- **Une seule déclaration, côté Python.** Le dashboard et le SDK sont publiés avec le même numéro de version, donc une déclaration côté JavaScript n'apporterait qu'un risque de désaccord entre deux copies. Le SDK n'a pas de champ de version dans `registerUiPlugin`.
+- **Grammaire minimale** : comparateurs `>=`, `>`, `<=`, `<`, `==` séparés par des virgules (ET), versions semver, `1.0` équivaut à `1.0.0`. Pas de `^`, `~`, `||` ni de jokers en v1.
+- **Parseur écrit à la main** en Python (validation à l'enregistrement) et en TypeScript (évaluation dans le dashboard), sans dépendance externe. Les deux passent la même table de cas, ce qui évite les écarts de comportement entre `packaging` (PEP 440) et `semver` (npm), notamment sur les préversions.
+- La version du dashboard est celle de son `manifest.json`, injectée dans le bundle au build. Le SDK l'expose en lecture seule.
+- **Alternative : version minimale seule** : ne protège pas contre un dashboard plus récent qui change le contrat. Rejetée.
+- **Alternative : numéro de version de contrat distinct** : une deuxième numérotation à maintenir. Rejetée.
+- **Alternative : syntaxe npm ou PEP 440 complète** : plus expressive, mais une implémentation différente par langage. Rejetée pour la v1.
+- Les auteurs alignent la plage de leur dépendance `@vtherm/dashboard-sdk` sur leur `dashboard_version` (à documenter dans le guide).
+
+### 10. Mode développement côté navigateur
+Les entrées de développement sont stockées dans le `localStorage` du navigateur, lues par le chargeur du dashboard avant le tri des plugins. Rien n'est écrit côté Home Assistant.
+- Une entrée avec un `id` installé remplace seulement le `js_url` ; ses métadonnées restent celles du registre Python.
+- Une entrée avec un `id` inconnu contient ses propres métadonnées (`dashboard_version` obligatoire) et tient lieu de déclaration Python. Le contrôle "id connu" du registre JS accepte les deux sources.
+- Le chargeur fusionne les entrées avec la liste reçue du WebSocket, puis suit le même algorithme (décision 5) : aucun chemin de code distinct pour les plugins en développement, sauf la source de l'URL.
+- Le mode est réservé aux administrateurs, comme le panel, et un bandeau le signale.
+- Le rechargement se fait par rafraîchissement de la page. Un rechargement à chaud automatique est hors périmètre.
+- Prérequis côté développeur : le serveur de développement doit envoyer `Access-Control-Allow-Origin` (import de module depuis une autre origine). Le guide donne la configuration Rollup et Vite. `http://localhost` depuis une page HTTPS fonctionne sur Chrome et Firefox, pas sur Safari.
+- *Alternative : autoriser des `js_url` externes côté Python avec une option de l'intégration* : exige un redémarrage ou une configuration de Home Assistant, et ouvre une porte côté serveur pour tous les utilisateurs. Rejetée.
+- *Alternative : paramètre d'URL `?dev_plugin=...`* : plus fragile (perdu à la navigation) et visible dans l'historique. Rejetée.
+
+### 11. Harnais de test dans le SDK
+`@vtherm/dashboard-sdk/testing` est un point d'entrée distinct (champ `exports` du `package.json`), qui expose un faux hôte. Il réutilise le même code de validation et de résolution des positions que le dashboard (module partagé du SDK), donc il ne peut pas diverger. Un faux `hass` permet de fixer des états et de rendre un composant de contribution avec ses propriétés. Le point d'entrée principal n'importe jamais ce module, ce qui garde les bundles de production exempts du harnais.
+- Conséquence : le moteur de résolution des positions vit dans le SDK (et non dans `frontend/`), importé par le dashboard et par le harnais.
+- *Alternative : harnais dans un package séparé* : un deuxième package à publier et à aligner. Rejetée.
+
+### 12. Thème
 Le dashboard n'embarque aucune couleur fixe. Il utilise uniquement les variables CSS de HA (`--primary-color`, `--card-background-color`, `--primary-text-color`, etc.) et les composants natifs de HA quand c'est possible. Les custom properties CSS traversent le Shadow DOM, donc le changement de thème s'applique sans code spécifique. Les plugins sont invités à faire de même.
 
-### 9. Panel et sécurité côté Python
+### 13. Panel et sécurité côté Python
 - Panel enregistré en `require_admin=True` via `panel_custom`, avec un module JS servi en chemin statique.
 - La commande WS est enregistrée avec `websocket_api.async_response` et exige l'authentification standard de HA.
-- `register_ui_plugin` valide `id`, `js_url` local (chemin absolu commençant par `/`) et unicité.
+- `register_ui_plugin` valide `id`, `js_url` local (chemin absolu commençant par `/`), `dashboard_version` (grammaire de la décision 9) et unicité.
+
+### 14. Documentation dans `docs/`, vérifiée par l'intégration continue
+Principe : ce qui peut être dérivé du code l'est, ce qui est rédigé est vérifié.
+- **Arborescence** : `docs/README.md` (index avec public visé), `docs/user/` (utilisateur), `docs/plugins/` (auteur de plugin : procédure `plugin-development.md`, chargement et dépendances, hooks et positions, mode développement, tests, thème), `docs/reference/` (références générées et grammaire des contraintes), `docs/contributing/` (architecture, environnement, publication) et `CHANGELOG.md` à la racine avec une section "Pour les auteurs de plugins" par version.
+- **Référence générée** : TypeDoc (avec sortie Markdown) pour le SDK, génération depuis les docstrings pour Python. Les fichiers générés sont enregistrés dans `docs/reference/` ; un contrôle recompile la référence et échoue en cas de différence. Un contrôle échoue aussi pour un export public sans commentaire.
+- **Exemples** : la source de vérité est un fichier réel sous `docs/examples/`, compilé ou exécuté par les tests. Un script copie les extraits dans les pages Markdown à des marqueurs ; le contrôle échoue si une page diffère de sa source. Les exemples ne peuvent donc pas devenir obsolètes sans casser les tests.
+- **Liens et index** : un script vérifie les liens relatifs, les ancres et la présence de chaque page dans `docs/README.md`.
+- **Process** : un modèle de demande de fusion contient une case de mise à jour de la documentation, et `openspec/config.yaml` impose, dans les règles des tâches, qu'une tâche qui change un comportement public mette à jour `docs/` dans le même groupe.
+- **La prose rédigée ne peut pas être vérifiée automatiquement** : c'est le rôle de la revue et de la case du modèle de demande de fusion, mais les contrôles ci-dessus couvrent les dérives les plus fréquentes (référence, exemples, liens).
+- **Langue** : français, noms de code non traduits.
+- **Documentation de `vtherm_api`** : la référence de l'API Python d'enregistrement est générée dans ce dépôt ; la documentation du dépôt `vtherm_api` renvoie vers elle, pour éviter deux sources à maintenir.
+- *Alternative : site de documentation publié (MkDocs, Docusaurus)* : utile plus tard, mais hors de la première version. Les pages Markdown restent lisibles sur GitHub.
+- *Alternative : documentation écrite à la main uniquement* : dérive inévitable à mesure que les API évoluent. Rejetée.
 
 ## Risks / Trade-offs
 
@@ -72,4 +120,5 @@ Le dashboard n'embarque aucune couleur fixe. Il utilise uniquement les variables
 - [Plugin enregistré après l'ouverture du panel] → Non visible avant rechargement de la page. Acceptable en première version (non-objectif : rechargement à chaud).
 - [Position résolue à l'ajout : dépend de l'ordre de chargement] → Mitigé par l'ordre déterministe et par l'avertissement quand un `replace`/`remove` n'a pas de dépendance déclarée.
 - [Nécessite une évolution du package `vtherm_api`] → À coordonner avec ses mainteneurs. Le registre est petit et isolé, pour limiter le risque.
-- [Pas de version de contrat entre dashboard et plugins] → Hors périmètre de cette première version. Un champ de version pourra être ajouté à `register_ui_plugin` sans casser les plugins existants, car les champs sont optionnels.
+- [Les plugins doivent élargir leur borne haute à chaque version majeure du dashboard] → Voulu : un plugin non testé sur la nouvelle majeure n'est pas chargé silencieusement. Le dashboard affiche un motif explicite, et le guide des auteurs décrit la démarche.
+- [Publication npm : le package et le dashboard doivent rester alignés] → Même dépôt, même numéro de version, publication par la même chaîne d'intégration continue.

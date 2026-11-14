@@ -43,6 +43,21 @@ Si un plugin déclare `requires` vers un plugin absent ou en échec, le dashboar
 - **WHEN** C requiert B et que B est en état "dépendance manquante"
 - **THEN** C est aussi en état "dépendance manquante"
 
+### Requirement: Compatibilité avec la version du dashboard
+Le dashboard SHALL évaluer la contrainte `dashboard_version` de chaque plugin avant de télécharger son module. Un plugin dont la contrainte n'est pas satisfaite par la version du dashboard SHALL ne pas être chargé et SHALL passer à l'état "dashboard incompatible", avec la contrainte déclarée, la version courante et le motif (dashboard trop ancien ou trop récent). Les plugins qui le requièrent passent en "dépendance manquante".
+
+#### Scenario: Dashboard trop ancien
+- **WHEN** un plugin déclare `>=2.0` et que le dashboard est en `1.4.0`
+- **THEN** le module du plugin n'est pas téléchargé et l'état indique la contrainte `>=2.0`, la version `1.4.0` et le motif "dashboard trop ancien"
+
+#### Scenario: Dashboard trop récent
+- **WHEN** un plugin déclare `>=1.0,<2.0` et que le dashboard est en `2.1.0`
+- **THEN** le module du plugin n'est pas téléchargé et l'état indique le motif "dashboard trop récent"
+
+#### Scenario: Contrainte satisfaite
+- **WHEN** un plugin déclare `>=1.2,<2.0` et que le dashboard est en `1.4.0`
+- **THEN** le plugin est chargé normalement
+
 ### Requirement: Détection des cycles
 Si les dépendances de chargement forment un cycle, le dashboard SHALL exclure les plugins du cycle, signaler l'erreur avec la liste de ces plugins, et SHALL continuer à charger les autres.
 
@@ -58,7 +73,7 @@ Une erreur de téléchargement ou d'exécution du module JS d'un plugin SHALL ne
 - **THEN** le plugin est marqué en échec avec la raison, et les plugins qui le requièrent passent en "dépendance manquante"
 
 ### Requirement: Visibilité de l'état des plugins
-Le dashboard SHALL permettre à l'utilisateur de consulter, pour chaque plugin UI, son état (chargé, dépendance manquante, cycle, échec) et le motif.
+Le dashboard SHALL permettre à l'utilisateur de consulter, pour chaque plugin UI, son état (chargé, dépendance manquante, dashboard incompatible, cycle, échec), le motif et sa source (installé, ou en développement avec l'URL utilisée).
 
 #### Scenario: Consultation
 - **WHEN** l'utilisateur ouvre la vue d'état des plugins
