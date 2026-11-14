@@ -1,5 +1,5 @@
-# Configuration minimale de développement, copiée dans config/ à la création du conteneur.
-# Une fois copiée, config/configuration.yaml peut être modifiée librement (ignorée par git).
+# Minimal development configuration, copied into config/ when the container is created.
+# Once copied, config/configuration.yaml can be edited freely (it is ignored by git).
 
 homeassistant:
   name: VTherm Dashboard Dev
@@ -14,14 +14,14 @@ history:
 logbook:
 http:
 
-# Entités de base pour créer des VTherm sans matériel
+# Basic entities to create VTherm thermostats without hardware
 input_boolean:
   dev_switch:
-    name: Interrupteur de test
+    name: Test switch
 
 input_number:
   dev_temperature:
-    name: Température de test
+    name: Test temperature
     min: 0
     max: 40
     step: 0.1

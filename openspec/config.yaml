@@ -4,20 +4,27 @@ schema: spec-driven
 # Add only constraints that should guide OpenSpec artifacts and workflows.
 # Include constraints an agent cannot infer by reading the code.
 # Keep general project documentation and discoverable codebase facts out.
-# Example:
-#   context: |
-#     Designs and tasks must cover Windows, macOS, and Linux
-#     Write all artifacts in Spanish
+context: |
+  Project conventions (see the code-conventions spec):
+  - Language: every file header, code comment, docstring, commit message and piece of
+    documentation (docs/, READMEs, changelog) is written in English exclusively.
+    User-facing dashboard strings are the only exception: they are translated through the
+    translation files (French and English are provided).
+  - Write the project's JavaScript code in TypeScript: frontend, SDK, tests, scripts,
+    examples and tool configuration files when the tool accepts TypeScript.
+    Avoid .js, .mjs and .cjs files in the sources.
+  - Python code follows the principles and rules of Versatile Thermostat: Black formatting
+    with a line length of 180, pylint with max-line-length=180, LF line endings,
+    pytest with asyncio_mode = auto.
+  - Code identifiers, API names, paths and commands are never translated.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always state what is out of scope
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  tasks:
+    - Any task that creates frontend, SDK, script or test code writes it in TypeScript, not JavaScript
+    - Any task that creates Python code applies Black (180 columns) and pylint, as Versatile Thermostat does
+    - Any task that creates a file, comment, docstring or documentation page writes it in English
 
 # Per-operation guidance (optional)
 # Add advisory guidance for how apply and archive work should be conducted.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Démarre Home Assistant avec Versatile Thermostat et le dashboard liés dans config/custom_components.
+# Start Home Assistant with Versatile Thermostat and the dashboard linked into config/custom_components.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -12,12 +12,12 @@ link() {
     if [ -d "$source" ]; then
         ln -sfn "$source" "$target"
     else
-        echo "Ignoré (absent) : $source"
+        echo "Skipped (missing): $source"
     fi
 }
 
 link "$ROOT/external/versatile_thermostat/custom_components/versatile_thermostat" config/custom_components/versatile_thermostat
-# Notre intégration, quand elle existe.
+# Our integration, once it exists.
 link "$ROOT/custom_components/vtherm_dashboard" config/custom_components/vtherm_dashboard
 
 exec hass --config "$ROOT/config" --debug

@@ -1,5 +1,5 @@
-# Home Assistant (Python 3.14 requis). La version exacte est imposée par
-# pytest-homeassistant-custom-component, ce qui garantit des tests alignés sur le cœur.
+# Home Assistant (Python 3.14 required). The exact version is pinned by
+# pytest-homeassistant-custom-component, which keeps tests aligned with the core.
 homeassistant
 home-assistant-frontend
 
@@ -8,5 +8,6 @@ pytest
 pytest-asyncio
 pytest-homeassistant-custom-component
 
-# Qualité
-ruff
+# Quality (same tools as Versatile Thermostat)
+black
+pylint
