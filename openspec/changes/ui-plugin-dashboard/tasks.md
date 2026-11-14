@@ -55,12 +55,12 @@ Le moteur de résolution vit dans `packages/sdk` (module partagé), importé par
 
 ## 6. Interface du dashboard
 
-- [ ] 6.1 Réaliser le gabarit du dashboard (barre d'onglets supérieurs avec la roue crantée seule à droite et son nom accessible, menu de gauche défilant avec groupes et entrée courante, fil d'ariane cliquable) avec uniquement des variables CSS de Home Assistant ; vérifier visuellement avec un thème clair, un thème sombre et un thème tiers installé
-- [ ] 6.2 Implémenter les itinéraires et liens directs (une URL par page, historique du navigateur, itinéraire inconnu vers la page par défaut avec message) et l'affichage mobile (menu en tiroir, onglets supérieurs défilants avec roue crantée visible, fil d'ariane limité à deux segments) ; vérifier par tests unitaires du routeur et par une vérification visuelle en largeur étroite
-- [ ] 6.3 Afficher les contributions des sept hooks (onglets supérieurs, menus, widgets Overview et de vue d'ensemble d'un thermostat) en leur transmettant `hass` et, selon le hook, `thermostatId` ; vérifier avec un plugin de test contribuant à chaque hook, dont un onglet supérieur avec ses `tab_page`
-- [ ] 6.4 Ajouter la vue d'état des plugins UI (chargé, dépendance manquante, dashboard incompatible, cycle, échec, avertissements, source) ; vérifier avec des plugins de test dans chaque état
-- [ ] 6.5 Gérer les cas sans plugin tiers et sans thermostat ; vérifier que le dashboard s'affiche sans erreur et montre le message prévu
-- [ ] 6.6 Rédiger `docs/user/dashboard.md` (accès, navigation par onglets, menu et fil d'ariane, pages, vue d'état des plugins, effet des thèmes) et `docs/plugins/theming.md` (variables CSS à utiliser par les plugins) ; vérifier que chaque état de la vue d'état est décrit et que les variables citées existent dans le code du dashboard
+- [x] 6.1 Réaliser le gabarit du dashboard (barre d'onglets supérieurs avec la roue crantée seule à droite et son nom accessible, menu de gauche défilant avec groupes et entrée courante, fil d'ariane cliquable) avec uniquement des variables CSS de Home Assistant ; vérifier visuellement avec un thème clair, un thème sombre et un thème tiers installé
+- [x] 6.2 Implémenter les itinéraires et liens directs (une URL par page, historique du navigateur, itinéraire inconnu vers la page par défaut avec message) et l'affichage mobile (menu en tiroir, onglets supérieurs défilants avec roue crantée visible, fil d'ariane limité à deux segments) ; vérifier par tests unitaires du routeur et par une vérification visuelle en largeur étroite
+- [x] 6.3 Afficher les contributions des sept hooks (onglets supérieurs, menus, widgets Overview et de vue d'ensemble d'un thermostat) en leur transmettant `hass` et, selon le hook, `thermostatId` ; vérifier avec un plugin de test contribuant à chaque hook, dont un onglet supérieur avec ses `tab_page`
+- [x] 6.4 Ajouter la vue d'état des plugins UI (chargé, dépendance manquante, dashboard incompatible, cycle, échec, avertissements, source) ; vérifier avec des plugins de test dans chaque état
+- [x] 6.5 Gérer les cas sans plugin tiers et sans thermostat ; vérifier que le dashboard s'affiche sans erreur et montre le message prévu
+- [x] 6.6 Rédiger `docs/user/dashboard.md` (accès, navigation par onglets, menu et fil d'ariane, pages, vue d'état des plugins, effet des thèmes) et `docs/plugins/theming.md` (variables CSS à utiliser par les plugins) ; vérifier que chaque état de la vue d'état est décrit et que les variables citées existent dans le code du dashboard
 
 ## 7. Configuration native : serveur
 

@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "preview": "vite --config preview/vite.config.ts"
   },
   "dependencies": {
     "lit": "^3.3.3"

@@ -5,8 +5,9 @@
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "paths": {
+      "@vtherm/dashboard-sdk/testing": ["../packages/sdk/src/testing.ts"],
       "@vtherm/dashboard-sdk": ["../packages/sdk/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "build/**/*.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "build/**/*.ts", "preview/**/*.ts", "vite.config.ts"]
 }

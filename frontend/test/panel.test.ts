@@ -1,0 +1,164 @@
+// @vitest-environment happy-dom
+import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { cleanup, find, findAll, mountPanel, nativePlugins, page, plugin, thermostats } from "./support/dashboard-harness.ts";
+import type { TestPlugin } from "./support/dashboard-harness.ts";
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+const natives: TestPlugin[] = nativePlugins.map((definition) => ({ definition }));
+const texts = (nodes: readonly HTMLElement[]) => nodes.map((node) => node.textContent?.trim());
+
+describe("the frame", () => {
+  it("shows the tabs of the plugins, the default page, the menu and the breadcrumb", async () => {
+    const { panel } = await mountPanel();
+    const bar = find(panel.shadowRoot as ShadowRoot, "vtherm-top-bar") as HTMLElement;
+    expect(texts(findAll(bar.shadowRoot as ShadowRoot, "nav.start a"))).toEqual(["Dashboard", "Thermostats"]);
+    expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Dashboard", "core.page.overview"]);
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-overview-el")).not.toBeNull();
+  });
+
+  it("shows the configuration gear alone on the right, without text, with an accessible name and a tooltip", async () => {
+    const { panel } = await mountPanel();
+    const bar = find(panel.shadowRoot as ShadowRoot, "vtherm-top-bar") as HTMLElement;
+    const gear = findAll(bar.shadowRoot as ShadowRoot, "nav.end a");
+    expect(gear).toHaveLength(1);
+    expect(gear[0]?.getAttribute("aria-label")).toBe("Configuration");
+    expect(gear[0]?.getAttribute("title")).toBe("Configuration");
+    expect(gear[0]?.textContent?.trim()).toBe("");
+    expect(gear[0]?.querySelector("ha-icon")).not.toBeNull();
+  });
+
+  it("marks the current tab, and the current entry of the menu", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins` });
+    const bar = find(panel.shadowRoot as ShadowRoot, "vtherm-top-bar") as HTMLElement;
+    expect(findAll(bar.shadowRoot as ShadowRoot, 'a[aria-selected="true"]').map((tab) => tab.getAttribute("href"))).toEqual([`/home-confort/${CORE_TOP_TABS.configuration}`]);
+    const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
+    expect(texts(findAll(menu.shadowRoot as ShadowRoot, 'a[aria-current="page"]'))).toEqual(["core.page.plugins"]);
+    expect(texts(findAll(menu.shadowRoot as ShadowRoot, "h2"))).toEqual(["Versatile Thermostat", "Dashboard"]);
+  });
+
+  it("scrolls the menu on its own and stays inside its column", async () => {
+    const { panel } = await mountPanel();
+    const css = String((find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.constructor as { styles?: { cssText: string } }).styles?.cssText);
+    expect(css).toContain("overflow-y: auto");
+  });
+});
+
+describe("the routes", () => {
+  it("opens a page when the user clicks its link, and the address changes", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
+    const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => anchor.textContent?.trim() === "core.page.plugins") as HTMLAnchorElement;
+    link.click();
+    await panel.updateComplete;
+    expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-plugins-el")).not.toBeNull();
+    expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Configuration", "core.page.plugins"]);
+  });
+
+  it("goes back with the history of the browser", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
+    findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a")[1]?.click();
+    await panel.updateComplete;
+    window.history.replaceState(null, "", `/home-confort/${CORE_TOP_TABS.configuration}/core.general.main`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await panel.updateComplete;
+    expect(find(panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
+  });
+
+  it("shows the same page again after a reload", async () => {
+    const path = `/home-confort/${CORE_TOP_TABS.thermostats}/climate.salon/core_tpi.tab.main`;
+    const { panel } = await mountPanel({ path });
+    expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Thermostats", "Salon", "core_tpi.tab.main"]);
+    expect(find(panel.shadowRoot as ShadowRoot, "core_tpi-tab-main-el")).not.toBeNull();
+    expect(window.location.pathname).toBe(path);
+  });
+
+  it("shows the default page with a message for an address that designates nothing, and the message can be closed", async () => {
+    const { panel } = await mountPanel({ path: "/home-confort/nothing.top/gone" });
+    const notice = find(panel.shadowRoot as ShadowRoot, ".notice") as HTMLElement;
+    expect(notice.textContent).toContain("does not exist");
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-overview-el")).not.toBeNull();
+    find(notice, "button")?.click();
+    await panel.updateComplete;
+    expect(find(panel.shadowRoot as ShadowRoot, ".notice")).toBeNull();
+  });
+
+  it("opens the same page of another thermostat when it has it, and the overview when it does not", async () => {
+    const withWindow = plugin("core_window", { thermostat_config: [page("core_window.tab.main", { visible: (context: { thermostatType: string }) => context.thermostatType === "over_switch" })] });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: withWindow }], path: `/home-confort/${CORE_TOP_TABS.thermostats}/climate.salon/core_window.tab.main` });
+    const select = find<HTMLSelectElement>(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select") as HTMLSelectElement;
+    select.value = "climate.chambre";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    await panel.updateComplete;
+    expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.thermostats}/climate.chambre`);
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-thermostat_overview-el")).not.toBeNull();
+  });
+});
+
+describe("the thermostats tab", () => {
+  it("shows the list of the thermostats in full width, without menu", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    expect(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")).toBeNull();
+    const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
+    expect(texts(findAll(list.shadowRoot as ShadowRoot, ".name"))).toEqual(["Salon", "Chambre"]);
+  });
+
+  it("shows a message when there is no thermostat", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}`, thermostats: [] });
+    const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
+    expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("No Versatile Thermostat thermostat is available");
+  });
+
+  it("opens a thermostat from the list with a selector first in its menu, and its overview", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
+    findAll<HTMLAnchorElement>(list.shadowRoot as ShadowRoot, "a")[0]?.click();
+    await panel.updateComplete;
+    const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
+    expect((menu.shadowRoot as ShadowRoot).querySelector("nav")?.firstElementChild?.tagName).toBe("SELECT");
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-thermostat_overview-el")).not.toBeNull();
+    expect(thermostats[0]?.id).toBe("climate.salon");
+  });
+});
+
+describe("the language", () => {
+  it("shows the frame in the language of the user", async () => {
+    const { panel } = await mountPanel({ language: "fr", thermostats: [], path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
+    expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("Aucun thermostat");
+  });
+
+  it("changes the texts when the user changes language, without reloading", async () => {
+    const { panel, hass } = await mountPanel({ thermostats: [], path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
+    expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("No Versatile");
+    panel.hass = { ...hass, language: "de", locale: { language: "de" } } as never;
+    await vi.waitFor(() => expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("Es ist kein"));
+  });
+});
+
+describe("the version", () => {
+  it("shows the version of the frontend on the panel, and warns when the server has another one", async () => {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { panel } = await mountPanel();
+    expect(panel.dataset["version"]).toBe("0.1.0");
+    expect(warning).not.toHaveBeenCalled();
+    cleanup();
+
+    const { hass } = await mountPanel({ plugins: [] });
+    expect(hass).toBeDefined();
+    warning.mockClear();
+    const other = document.createElement("vtherm-dashboard-panel") as typeof panel;
+    const answer = { dashboard_version: "9.9.9", plugins: [] };
+    other.hass = { language: "en", locale: { language: "en" }, states: {}, callWS: vi.fn().mockResolvedValue(answer) } as never;
+    document.body.append(other);
+    await vi.waitFor(() => expect(warning).toHaveBeenCalledWith(expect.stringContaining("9.9.9")));
+  });
+});

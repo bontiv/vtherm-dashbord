@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 import { HOOK_NAMES } from "@vtherm/dashboard-sdk";
 
 import { SERVER_STATES } from "../src/plugin-list.ts";
+import { shell } from "../src/shell-translations.ts";
+import { usedVariables } from "./support/css-variables.ts";
 
 const page = (name: string): string => readFileSync(fileURLToPath(new URL(`../../docs/plugins/${name}`, import.meta.url)), "utf8");
 
@@ -99,6 +101,41 @@ describe("the documentation of the test harness", () => {
   it("describes every member of the fake host and the translation checks", () => {
     for (const name of ["registerPlugin", "resolved", "menu", "visible", "render", "hass", "install", "uninstall", "issues", "createFakeHass", "assertCompleteTranslations", "findTranslationProblems", "knownPlugins", "dashboardVersion"]) {
       expect(testing, name).toContain(name);
+    }
+  });
+});
+
+describe("the documentation of the theme", () => {
+  const theming = page("theming.md");
+
+  it("lists the variables that the dashboard uses, and only variables that its code uses or that are documented as Home Assistant ones", () => {
+    for (const variable of usedVariables()) {
+      expect(theming, variable).toContain(`\`${variable}\``);
+    }
+    const cited = [...theming.matchAll(/\|\s*`(--[a-z0-9_-]+)`/g)].map((match) => match[1]);
+    expect(cited.length).toBeGreaterThan(0);
+    for (const variable of cited) {
+      expect(usedVariables(), `${variable} is in the table but no component uses it`).toContain(variable);
+    }
+  });
+});
+
+describe("the documentation for the user", () => {
+  const user = readFileSync(fileURLToPath(new URL("../../docs/user/dashboard.md", import.meta.url)), "utf8");
+
+  it("describes every state of the plugin status page, with the label that the page shows", () => {
+    for (const state of ["loaded", "ready", "missing_dependency", "dashboard_incompatible", "cycle", "invalid", "failed"]) {
+      const label = shell.resolve("en", `status.state.${state}`);
+      expect(user, label).toContain(`| ${label} |`);
+    }
+    for (const source of ["installed", "native", "development"]) {
+      expect(user.toLowerCase(), source).toContain(source);
+    }
+  });
+
+  it("describes the tabs, the menu, the breadcrumb, the thermostat selector, the phone and the colors", () => {
+    for (const text of ["Dashboard", "Thermostats", "Configuration", "breadcrumb", "selector", "Menu", "phone", "drawer", "theme", "administrators"]) {
+      expect(user, text).toContain(text);
     }
   });
 });

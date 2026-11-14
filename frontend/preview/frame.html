@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Home confort preview in a frame</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      iframe {
+        display: block;
+        height: 100%;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- A browser window has a minimum width. This page shows the preview in a frame of the width asked with ?width=420, to see a narrow screen. -->
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const frame = document.createElement("iframe");
+      frame.style.width = `${params.get("width") ?? "420"}px`;
+      frame.src = `/?${params.get("query") ?? ""}`;
+      document.body.append(frame);
+    </script>
+  </body>
+</html>
