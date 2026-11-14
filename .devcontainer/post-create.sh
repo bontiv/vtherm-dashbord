@@ -9,14 +9,29 @@ VTHERM_REPO="${VTHERM_REPO:-https://github.com/jmcollin78/versatile_thermostat.g
 VTHERM_API_REPO="${VTHERM_API_REPO:-https://github.com/jmcollin78/vtherm_api.git}"
 HACS_REPO="${HACS_REPO:-https://github.com/hacs/integration.git}"
 
+# A branch or a tag to clone, empty for the default branch. The dashboard needs the registry of UI plugins of vtherm_api: until it is
+# merged upstream, set VTHERM_API_REPO (and VTHERM_API_REF) to the fork or the branch that has it.
+VTHERM_REF="${VTHERM_REF:-}"
+VTHERM_API_REF="${VTHERM_API_REF:-}"
+HACS_REF="${HACS_REF:-}"
+clone() {
+    local url="$1" ref="$2" target="$3"
+    if [ -d "$target" ]; then
+        return
+    fi
+    if [ -n "$ref" ]; then
+        git clone --branch "$ref" "$url" "$target"
+    else
+        git clone "$url" "$target"
+    fi
+}
 # External repositories, cloned once into external/ (ignored by git).
-# To use a fork or a branch, change the clone in external/
-# or set VTHERM_REPO / VTHERM_API_REPO before the container is created.
+# To use a fork or a branch, change the clone in external/ or set the variables above before the container is created.
 mkdir -p external
-[ -d external/versatile_thermostat ] || git clone "$VTHERM_REPO" external/versatile_thermostat
-[ -d external/vtherm_api ] || git clone "$VTHERM_API_REPO" external/vtherm_api
-# HACS, to read the commands that the add-ons feature calls (not installed in Home Assistant by this script).
-[ -d external/hacs ] || git clone --depth 1 "$HACS_REPO" external/hacs
+clone "$VTHERM_REPO" "$VTHERM_REF" external/versatile_thermostat
+clone "$VTHERM_API_REPO" "$VTHERM_API_REF" external/vtherm_api
+# HACS, to read the commands that the add-ons feature calls (it is not installed in Home Assistant by this script).
+clone "$HACS_REPO" "$HACS_REF" external/hacs
 
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt

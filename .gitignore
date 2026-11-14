@@ -6,8 +6,8 @@
 .codestudio/
 
 # Home Assistant development environment
-config/
-external/
+/config/
+/external/
 
 # Python
 __pycache__/

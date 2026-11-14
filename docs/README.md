@@ -24,6 +24,9 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [The add-ons feature](contributing/complements.md) | Contributor | The catalog on the server, the adapter of HACS and its fallback, the states, the restart, and the tested versions. |
 | [Format of the catalog](reference/catalog-format.md) | Plugin author, Contributor | The fields of the catalog of add-ons, `hacs_category`, and how descriptions are sanitized. |
 | [Publishing](contributing/publishing.md) | Contributor | The common version, the tag, what the release workflow does, the trusted publisher of npm and how to install a release. |
+| [Architecture](contributing/architecture.md) | Contributor | The Python and TypeScript sides, the registry, the load order, the placement engine, the draft and the driving of the config flow. |
+| [Development environment](contributing/development-environment.md) | Contributor | The dev container, `external/`, running Home Assistant, the tests, the generated files, the preview and hassfest. |
+| [Code conventions](contributing/code-conventions.md) | Contributor | English only, strict TypeScript and the list of JavaScript exceptions, the Python rules of Versatile Thermostat and the check command. |
 | [Driving the config flow](contributing/config-flow-driver.md) | Contributor | How the configuration of Versatile Thermostat is validated and saved, the tabs and steps, the presets, the versions and the evolution planned. |
 
 ## Rules for the documentation
