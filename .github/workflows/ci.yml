@@ -1,0 +1,150 @@
+# Build and test every push and every pull request. The release workflow calls this one, so a release runs the same jobs.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_call:
+
+# A new commit on a reference cancels the run that is still going for it, except on the default branch, whose runs are all kept.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+# Read-only. No job needs more, and a pull request from a fork gets no secret and a read-only token whatever this says.
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.14"
+  NODE_VERSION: "24"
+
+jobs:
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install the dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          # Versatile Thermostat needs these, and vtherm_api comes from its index, at the version that the manifest requires.
+          python -m pip install numpy scipy
+          python -m pip install "$(python -c 'import json; print(next(r for r in json.load(open("custom_components/vtherm_dashboard/manifest.json"))["requirements"] if r.startswith("vtherm_api")))')"
+      - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
+        run: bash scripts/fetch-external.sh
+      - name: Test with coverage
+        run: pytest --cov --cov-report=xml:coverage/python/coverage.xml --cov-report=html:coverage/python/html
+      - name: Write the coverage in the summary
+        if: always()
+        run: |
+          if [ -f .coverage ]; then
+            echo "### Python coverage: $(python -m coverage report --format=total)%" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Python coverage: no data" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Keep the coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-python
+          path: coverage/python
+          if-no-files-found: ignore
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Install the dependencies
+        run: npm ci
+      - name: Build the SDK, the frontend and the sample plugin
+        run: npm run build
+      - name: Test with coverage
+        run: npm test -- --coverage
+      - name: Write the coverage in the summary
+        if: always()
+        run: |
+          if [ -f coverage/typescript/coverage-summary.json ]; then
+            echo "### TypeScript coverage: $(jq -r '.total.lines.pct' coverage/typescript/coverage-summary.json)% of the lines" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### TypeScript coverage: no data" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Keep the coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-typescript
+          path: coverage/typescript
+          if-no-files-found: ignore
+
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Install the dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip install numpy scipy
+          python -m pip install "$(python -c 'import json; print(next(r for r in json.load(open("custom_components/vtherm_dashboard/manifest.json"))["requirements"] if r.startswith("vtherm_api")))')"
+          npm ci
+      - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
+        run: bash scripts/fetch-external.sh
+      # The single command of the developers: types, lint, no JavaScript, documentation, SDK reference, catalogs, Black and pylint.
+      - name: Check the conventions and the documentation
+        run: npm run check
+
+  hassfest:
+    name: hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Validates manifest.json, the translations and the structure of the integration, as Home Assistant does for its own.
+      - uses: home-assistant/actions/hassfest@86d4564712fa02543c808e3a693dd04f9d3f8361 # master
+
+  hacs:
+    name: hacs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
+        with:
+          category: integration
+          # The check "brands" asks for the integration to be in the repository home-assistant/brands. That repository does not accept
+          # custom integrations: the icon is in custom_components/vtherm_dashboard/brand/, in the integration itself.
+          # No other check is ignored: the description, the topics and the issues of the repository are set on GitHub.
+          ignore: brands
+          # The comment on a pull request needs a right to write that this workflow does not have.
+          comment: "false"

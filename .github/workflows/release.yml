@@ -1,0 +1,128 @@
+# Publish a version from a tag `v<major>.<minor>.<patch>[-prerelease]`: validate the tag, run the CI, build the archive of HACS, create the
+# GitHub Release, then publish the SDK on npm. A job that cannot be undone comes after the ones that can fail.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+      on_master: ${{ steps.tag.outputs.on_master }}
+    steps:
+      # The whole history, to tell whether the commit of the tag is in master.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Validate the tag and the versions of the files
+        id: tag
+        env:
+          # The tag goes through the environment and is never written in the script.
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/validate-release-tag.ts
+
+  ci:
+    name: ci
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+
+  package:
+    name: package
+    needs: [validate, ci]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Build the archive of HACS
+        run: bash scripts/package-release.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-archive
+          path: dist/vtherm_dashboard.zip
+          if-no-files-found: error
+
+  publish:
+    name: publish
+    needs: [validate, package]
+    runs-on: ubuntu-latest
+    # The only job that can write in the repository.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-archive
+      - name: Create the GitHub Release, or replace its archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+        run: |
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" vtherm_dashboard.zip --clobber
+          else
+            flags=(--generate-notes --verify-tag)
+            if [ "$PRERELEASE" = "true" ]; then
+              flags+=(--prerelease)
+            fi
+            gh release create "$RELEASE_TAG" vtherm_dashboard.zip --title "$RELEASE_TAG" "${flags[@]}"
+          fi
+
+  publish-npm:
+    name: publish-npm
+    needs: [validate, publish]
+    runs-on: ubuntu-latest
+    # Trusted publishing: npm trusts this workflow through OpenID Connect, so there is no npm token. This file is the one that is declared
+    # on npmjs.com, which is why the job is here and not in ci.yml.
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Publish the SDK on npm, or only try to
+        env:
+          PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+          ON_MASTER: ${{ needs.validate.outputs.on_master }}
+        run: |
+          flags=()
+          if [ "$PRERELEASE" = "true" ]; then
+            # A pre-release must not become the version that `npm install` gives.
+            flags+=(--tag next)
+            if [ "$ON_MASTER" != "true" ]; then
+              # A pre-release outside master is a test tag. A published version cannot be published again, so only try.
+              flags+=(--dry-run)
+            fi
+          fi
+          npm publish --workspace packages/sdk "${flags[@]}"

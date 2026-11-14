@@ -23,6 +23,8 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [SDK reference](reference/sdk/index.md) | Plugin author | Generated reference of `@vtherm/dashboard-sdk`: types, `registerUiPlugin` and validation. Do not edit it, run `npm run docs:reference`. |
 | [The add-ons feature](contributing/complements.md) | Contributor | The catalog on the server, the adapter of HACS and its fallback, the states, the restart, and the tested versions. |
 | [Format of the catalog](reference/catalog-format.md) | Plugin author, Contributor | The fields of the catalog of add-ons, `hacs_category`, and how descriptions are sanitized. |
+| [Continuous integration](contributing/ci.md) | Contributor | The workflows, the jobs, the coverage, the security analysis, the pinned actions and the settings of the repository to make on GitHub. |
+| [Releasing](contributing/releasing.md) | Contributor | The steps to publish a version, the format and the branch of the tag, what the workflow does, and what to do when it fails. |
 | [Publishing](contributing/publishing.md) | Contributor | The common version, the tag, what the release workflow does, the trusted publisher of npm and how to install a release. |
 | [Architecture](contributing/architecture.md) | Contributor | The Python and TypeScript sides, the registry, the load order, the placement engine, the draft and the driving of the config flow. |
 | [Development environment](contributing/development-environment.md) | Contributor | The dev container, `external/`, running Home Assistant, the tests, the generated files, the preview and hassfest. |

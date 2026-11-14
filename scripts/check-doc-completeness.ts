@@ -41,7 +41,9 @@ export const REQUIRED_PAGES: readonly RequiredPage[] = [
   { path: "docs/contributing/architecture.md", reason: "the architecture" },
   { path: "docs/contributing/development-environment.md", reason: "the development environment and the tests" },
   { path: "docs/contributing/code-conventions.md", reason: "the conventions" },
-  { path: "docs/contributing/publishing.md", reason: "the publication" },
+  { path: "docs/contributing/publishing.md", reason: "the publication", contains: ["trusted publisher"] },
+  { path: "docs/contributing/ci.md", reason: "the continuous integration and its settings", contains: ["Branch protection"] },
+  { path: "docs/contributing/releasing.md", reason: "the release procedure", contains: ["When it fails"] },
   { path: "CHANGELOG.md", reason: "the changelog for plugin authors", contains: ["For plugin authors"] },
 ];
 

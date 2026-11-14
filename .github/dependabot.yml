@@ -1,0 +1,7 @@
+# Propose the update of the actions of the workflows, which are pinned by the SHA of a commit.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

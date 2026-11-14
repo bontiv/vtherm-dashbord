@@ -7,3 +7,12 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.coverage.run]
+source = ["custom_components/vtherm_dashboard"]
+branch = true
+# The tests and the generated frontend are not part of the measure.
+omit = ["*/tests/*", "*/www/*"]
+
+[tool.coverage.report]
+show_missing = false

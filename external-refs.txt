@@ -1,0 +1,5 @@
+# The repositories that the integration tests read, in external/, and the exact commit or tag of each.
+# One line for each: name, URL, reference. The continuous integration and .devcontainer/post-create.sh read this file through
+# scripts/fetch-external.sh, so two runs on the same commit test against the same code. Change a reference on purpose, and run the tests.
+versatile_thermostat https://github.com/jmcollin78/versatile_thermostat.git e0b0a2f88b543ec2d68f344542407df2a90a5c46
+hacs https://github.com/hacs/integration.git 8a543828351b963438a1613a6f06332138e4f4d6

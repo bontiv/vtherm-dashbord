@@ -19,6 +19,8 @@ The frontend reads the version of the manifest at build time, and the server sen
 they differ (a browser that kept an old bundle).
 
 ## Release a version
+The procedure is in [Releasing](releasing.md). In short:
+
 1. Change the version in the five files above, and write the section of the version in `CHANGELOG.md`, with its part "For plugin
    authors". Commit.
 2. Merge the commit into `master`. A stable tag must be on the history of `master`.
@@ -65,7 +67,7 @@ Three things to know:
   `publish-npm` only, run the failed job again from the page of the workflow run on GitHub: the Release is already there.
 
 ## Settings of the repository
-The workflows cannot set these. They are listed in the page about continuous integration (`ci.md`, written with the workflows): code scanning, and the branch protection with the
+The workflows cannot set these. They are listed in [Continuous integration](ci.md): code scanning, and the branch protection with the
 required checks `python`, `frontend` and CodeQL. Protect the tags `v*` too, with a ruleset, so that only maintainers can create them.
 
 ## Install a release

@@ -15,9 +15,10 @@ GitHub CLI. Its `postCreateCommand` runs `.devcontainer/post-create.sh`, which:
 4. runs `npm install` for the workspaces;
 5. copies `.devcontainer/configuration.yaml` to `config/configuration.yaml`, the configuration of the development instance.
 
-`vtherm_api` must have the registry of UI plugins. Until it is merged upstream, set `VTHERM_API_REPO` and `VTHERM_API_REF` (a branch
-or a tag) before the container is created. `VTHERM_REPO`, `VTHERM_REF`, `HACS_REPO` and `HACS_REF` work the same way. An existing
-folder of `external/` is never changed, so to use another branch, check it out there.
+Versatile Thermostat and HACS are cloned at the commit of `external-refs.txt`, the one that the continuous integration tests against (`scripts/fetch-external.sh`).
+To use another repository or reference, set `VERSATILE_THERMOSTAT_REPO`, `VERSATILE_THERMOSTAT_REF`, `HACS_REPO` or `HACS_REF` before the container is created.
+`vtherm_api` must have the registry of UI plugins. Until it is published, set `VTHERM_API_REPO` and `VTHERM_API_REF` (a branch or a tag) the same
+way. An existing folder of `external/` is never changed, so to use another branch, check it out there.
 
 ## Without the container
 You need Python 3.14, Node.js 24 or later, git and bash:

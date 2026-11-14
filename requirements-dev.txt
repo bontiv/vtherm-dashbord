@@ -7,6 +7,7 @@ home-assistant-frontend
 pytest
 pytest-asyncio
 pytest-homeassistant-custom-component
+pytest-cov
 
 # Quality (same tools as Versatile Thermostat)
 black
