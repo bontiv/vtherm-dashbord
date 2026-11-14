@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Home confort",
+        "description": "Fügt das Home-confort-Dashboard für Versatile Thermostat zum Seitenmenü von Home Assistant hinzu."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Das Dashboard ist bereits eingerichtet."
+    }
+  }
+}
