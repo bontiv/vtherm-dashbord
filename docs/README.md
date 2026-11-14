@@ -7,6 +7,9 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | Page | Audience | Content |
 | --- | --- | --- |
 | [Python API for UI plugins](plugins/python-api.md) | Plugin author | Declare a UI plugin with `register_ui_plugin`, its parameters, its errors and what the dashboard checks later. |
+| [Loading and dependencies](plugins/loading-and-dependencies.md) | Plugin author | `requires`, `load_after` and `load_before`, the load order and the status of a plugin. |
+| [Version constraints](plugins/version-constraints.md) | Plugin author | The grammar of `dashboard_version`, pre-releases and how to support a new major version. |
+| [Translations](plugins/internationalization.md) | Plugin author | The English catalog, typed keys, language resolution and fallback, titles as keys, parameters, plurals and catalogs loaded on demand. |
 | [WebSocket API](reference/websocket-api.md) | Contributor, Plugin author | The `vtherm_dashboard/get_ui_plugins` command: request, response, plugin states and errors. |
 | [SDK reference](reference/sdk/index.md) | Plugin author | Generated reference of `@vtherm/dashboard-sdk`: types, `registerUiPlugin` and validation. Do not edit it, run `npm run docs:reference`. |
 

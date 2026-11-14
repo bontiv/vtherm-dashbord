@@ -83,6 +83,15 @@ export interface HassUser {
   readonly is_admin: boolean;
 }
 
+/** The configuration of Home Assistant. */
+export interface HassConfig {
+  /** The units of the instance. */
+  readonly unit_system?: {
+    /** The unit of the temperatures, `°C` or `°F`. */
+    readonly temperature?: string;
+  };
+}
+
 /** The subset of the Home Assistant frontend state that the dashboard gives to the plugins. */
 export interface Hass {
   /** The language of the user profile. */
@@ -93,6 +102,8 @@ export interface Hass {
   readonly states: Readonly<Record<string, HassState>>;
   /** The user of the session. */
   readonly user?: HassUser;
+  /** The configuration of Home Assistant, in particular the unit of the temperatures. */
+  readonly config?: HassConfig;
   /** Call a service of Home Assistant. */
   callService(domain: string, service: string, data?: Readonly<Record<string, unknown>>): Promise<unknown>;
   /** Send a WebSocket message to Home Assistant. */

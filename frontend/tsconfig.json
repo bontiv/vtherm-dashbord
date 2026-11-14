@@ -1,4 +1,12 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["src/**/*.ts", "test/**/*.ts"]
+  "compilerOptions": {
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "paths": {
+      "@vtherm/dashboard-sdk": ["../packages/sdk/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "build/**/*.ts", "vite.config.ts"]
 }

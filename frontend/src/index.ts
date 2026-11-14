@@ -1,5 +1,5 @@
 /**
- * Entry point of the dashboard frontend.
+ * Entry point of the dashboard frontend: the module that Home Assistant loads for the panel.
  */
 
-export {};
+import "./panel.ts";

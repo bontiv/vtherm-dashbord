@@ -23,6 +23,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [GlobalPageContribution](interfaces/GlobalPageContribution.md)
 - [GlobalWidgetContribution](interfaces/GlobalWidgetContribution.md)
 - [Hass](interfaces/Hass.md)
+- [HassConfig](interfaces/HassConfig.md)
 - [HassLocale](interfaces/HassLocale.md)
 - [HassState](interfaces/HassState.md)
 - [HassUser](interfaces/HassUser.md)

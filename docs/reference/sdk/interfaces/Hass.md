@@ -8,6 +8,14 @@ The subset of the Home Assistant frontend state that the dashboard gives to the 
 
 ## Properties
 
+### config?
+
+> `readonly` `optional` **config?**: [`HassConfig`](HassConfig.md)
+
+The configuration of Home Assistant, in particular the unit of the temperatures.
+
+***
+
 ### language
 
 > `readonly` **language**: `string`
