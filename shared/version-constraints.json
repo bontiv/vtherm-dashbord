@@ -1,0 +1,320 @@
+{
+  "description": "Shared cases of the dashboard_version constraints. Pre-releases follow semver.org precedence: 1.0.0-rc.1 is lower than 1.0.0. Result is null when the constraint is satisfied, otherwise the reason (too_old or too_new).",
+  "evaluations": [
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "1.4.0",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "2.1.0",
+      "result": "too_new"
+    },
+    {
+      "constraint": ">=2.0",
+      "version": "1.4.0",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.2,<2.0",
+      "version": "1.4.0",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "0.9.9",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "2.0.0",
+      "result": "too_new"
+    },
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "1.0.0",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "1.99.99",
+      "result": null
+    },
+    {
+      "constraint": "==1.0",
+      "version": "1.0.0",
+      "result": null
+    },
+    {
+      "constraint": "==1.0.0",
+      "version": "1.0",
+      "result": null
+    },
+    {
+      "constraint": "==1.0.0",
+      "version": "1.0.1",
+      "result": "too_new"
+    },
+    {
+      "constraint": "==1.0.1",
+      "version": "1.0.0",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.0",
+      "version": "1.0.0",
+      "result": null
+    },
+    {
+      "constraint": ">1.0",
+      "version": "1.0.0",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">1.0",
+      "version": "1.0.1",
+      "result": null
+    },
+    {
+      "constraint": "<=1.0",
+      "version": "1.0.0",
+      "result": null
+    },
+    {
+      "constraint": "<=1.0",
+      "version": "1.0.1",
+      "result": "too_new"
+    },
+    {
+      "constraint": "<1.0",
+      "version": "1.0.0",
+      "result": "too_new"
+    },
+    {
+      "constraint": "<1.0",
+      "version": "0.9.9",
+      "result": null
+    },
+    {
+      "constraint": ">= 1.0 , < 2.0",
+      "version": "1.5.0",
+      "result": null
+    },
+    {
+      "constraint": " >=1.0,<2.0 ",
+      "version": "1.5.0",
+      "result": null
+    },
+    {
+      "constraint": ">=0.1,<1.0",
+      "version": "0.1.1",
+      "result": null
+    },
+    {
+      "constraint": ">=0.1,<1.0",
+      "version": "0.0.9",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.10",
+      "version": "1.9.0",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.10",
+      "version": "1.10.0",
+      "result": null
+    },
+    {
+      "constraint": ">=1.2.3",
+      "version": "1.2.10",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0",
+      "version": "1.0.0-rc.1",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.0.0-rc.1",
+      "version": "1.0.0-rc.2",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0.0-rc.1",
+      "version": "1.0.0",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0.0-rc.2",
+      "version": "1.0.0-rc.1",
+      "result": "too_old"
+    },
+    {
+      "constraint": "<2.0",
+      "version": "2.0.0-rc.1",
+      "result": null
+    },
+    {
+      "constraint": "<2.0.0-rc.1",
+      "version": "2.0.0-rc.1",
+      "result": "too_new"
+    },
+    {
+      "constraint": "<2.0.0",
+      "version": "2.0.0-rc.1",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0.0-alpha.2",
+      "version": "1.0.0-alpha.10",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0.0-alpha",
+      "version": "1.0.0-alpha.1",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0.0-alpha.1",
+      "version": "1.0.0-alpha",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.0.0-beta",
+      "version": "1.0.0-alpha.9",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">1.0.0-1",
+      "version": "1.0.0-alpha",
+      "result": null
+    },
+    {
+      "constraint": ">=1.0.0-alpha",
+      "version": "1.0.0-1",
+      "result": "too_old"
+    },
+    {
+      "constraint": "==1.0.0-rc.1",
+      "version": "1.0.0-rc.1",
+      "result": null
+    },
+    {
+      "constraint": "==1.0.0",
+      "version": "1.0.0-rc.1",
+      "result": "too_old"
+    },
+    {
+      "constraint": ">=1.0,<2.0",
+      "version": "1.5.0",
+      "result": null
+    }
+  ],
+  "invalid_constraints": [
+    {
+      "constraint": "^1.0",
+      "fault": "^1.0"
+    },
+    {
+      "constraint": "~1.0",
+      "fault": "~1.0"
+    },
+    {
+      "constraint": "1.0",
+      "fault": "1.0"
+    },
+    {
+      "constraint": ">=1.0,^2.0",
+      "fault": "^2.0"
+    },
+    {
+      "constraint": ">=1.0 || <0.5",
+      "fault": ">=1.0 || <0.5"
+    },
+    {
+      "constraint": ">=1.0,",
+      "fault": ""
+    },
+    {
+      "constraint": ",>=1.0",
+      "fault": ""
+    },
+    {
+      "constraint": ">=1.x",
+      "fault": ">=1.x"
+    },
+    {
+      "constraint": "!=1.0",
+      "fault": "!=1.0"
+    },
+    {
+      "constraint": ">=v1.0",
+      "fault": ">=v1.0"
+    },
+    {
+      "constraint": ">=1",
+      "fault": ">=1"
+    },
+    {
+      "constraint": "",
+      "fault": ""
+    },
+    {
+      "constraint": "*",
+      "fault": "*"
+    },
+    {
+      "constraint": ">=1.0.0+build",
+      "fault": ">=1.0.0+build"
+    },
+    {
+      "constraint": ">=01.0",
+      "fault": ">=01.0"
+    },
+    {
+      "constraint": ">=1.0,<2.0,>",
+      "fault": ">"
+    },
+    {
+      "constraint": ">=1.0.0.0",
+      "fault": ">=1.0.0.0"
+    },
+    {
+      "constraint": "=>1.0",
+      "fault": "=>1.0"
+    },
+    {
+      "constraint": "=1.0",
+      "fault": "=1.0"
+    },
+    {
+      "constraint": ">=1.0.0-",
+      "fault": ">=1.0.0-"
+    },
+    {
+      "constraint": ">=1.0.0-01",
+      "fault": ">=1.0.0-01"
+    },
+    {
+      "constraint": "latest",
+      "fault": "latest"
+    }
+  ],
+  "invalid_versions": [
+    "",
+    "1",
+    "1.x",
+    "v1.0.0",
+    "01.0.0",
+    "1.0.0+b",
+    "1.0.0-",
+    "1.0.0-01",
+    "1.0.0.0",
+    "latest",
+    "1.0.0-rc..1",
+    "-1.0.0",
+    "1.-1.0"
+  ]
+}
