@@ -11,16 +11,47 @@ from homeassistant.loader import async_get_integration
 from vtherm_api import VThermAPI
 
 from .const import DOMAIN
+from .config_flow_driver import FlowConfigWriter, SaveResult
 from .plugin_list import build_plugin_list
+from .presets import async_set_presets, read_presets
+from .vtherm_config import SUPPORTED_CONFIG_VERSION, ConfigNotFoundError, central_entry, list_thermostats, read_central_config, read_config
 
 WS_GET_UI_PLUGINS = f"{DOMAIN}/get_ui_plugins"
 """The type of the command that returns the UI plugins to load."""
+
+
+WS_GET_THERMOSTATS = f"{DOMAIN}/get_thermostats"
+"""The type of the command that lists the thermostats."""
+
+WS_GET_CONFIG = f"{DOMAIN}/get_config"
+"""The type of the command that reads the configuration of an entry."""
+
+WS_GET_CENTRAL_CONFIG = f"{DOMAIN}/get_central_config"
+"""The type of the command that reads the central configuration."""
+
+WS_GET_PRESETS = f"{DOMAIN}/get_presets"
+"""The type of the command that reads the preset temperatures of an entry."""
+
+WS_SAVE_CONFIG = f"{DOMAIN}/save_config"
+"""The type of the command that saves the draft of a configuration."""
+
+WS_CREATE_CONFIG = f"{DOMAIN}/create_config"
+"""The type of the command that creates a thermostat or the central configuration."""
+
+CHANGES_SCHEMA = vol.Schema({str: dict})
+PRESETS_SCHEMA = vol.Schema({str: vol.Coerce(float)})
 
 
 @callback
 def async_register_commands(hass: HomeAssistant) -> None:
     """Register the WebSocket commands of the dashboard."""
     websocket_api.async_register_command(hass, ws_get_ui_plugins)
+    websocket_api.async_register_command(hass, ws_get_thermostats)
+    websocket_api.async_register_command(hass, ws_get_config)
+    websocket_api.async_register_command(hass, ws_get_central_config)
+    websocket_api.async_register_command(hass, ws_get_presets)
+    websocket_api.async_register_command(hass, ws_save_config)
+    websocket_api.async_register_command(hass, ws_create_config)
 
 
 @websocket_api.websocket_command(
@@ -43,3 +74,91 @@ async def ws_get_ui_plugins(hass: HomeAssistant, connection: websocket_api.Activ
     registered = VThermAPI.get_vtherm_api(hass).get_ui_plugins()
     plugins = build_plugin_list(registered, str(dashboard_version), dev_plugins)
     connection.send_result(msg["id"], {"dashboard_version": str(dashboard_version), "plugins": [plugin.as_dict() for plugin in plugins]})
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_THERMOSTATS})
+@callback
+def ws_get_thermostats(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """List the thermostats of Versatile Thermostat, and tell whether a central configuration exists."""
+    central = central_entry(hass)
+    connection.send_result(
+        msg["id"],
+        {
+            "thermostats": [summary.as_dict() for summary in list_thermostats(hass)],
+            "has_central_config": central is not None,
+            "central_config_id": None if central is None else central.entry_id,
+            "supported_config_version": list(SUPPORTED_CONFIG_VERSION),
+        },
+    )
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_CONFIG, vol.Required("entry_id"): str})
+@callback
+def ws_get_config(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Read the configuration of a thermostat, or of the central configuration, by the identifier of its entry."""
+    try:
+        connection.send_result(msg["id"], read_config(hass, msg["entry_id"]).as_dict())
+    except ConfigNotFoundError:
+        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "No Versatile Thermostat configuration has this identifier")
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_CENTRAL_CONFIG})
+@callback
+def ws_get_central_config(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Read the central configuration. The result is null when there is none."""
+    central = read_central_config(hass)
+    connection.send_result(msg["id"], None if central is None else central.as_dict())
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_PRESETS, vol.Required("entry_id"): str})
+@callback
+def ws_get_presets(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Read the preset temperatures of a thermostat or of the central configuration. The list is empty for a thermostat that uses the central presets."""
+    try:
+        read_config(hass, msg["entry_id"])
+    except ConfigNotFoundError:
+        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "No Versatile Thermostat configuration has this identifier")
+        return
+    connection.send_result(msg["id"], {"presets": [preset.as_dict() for preset in read_presets(hass, msg["entry_id"])]})
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): WS_SAVE_CONFIG,
+        vol.Required("entry_id"): str,
+        vol.Optional("changes", default={}): CHANGES_SCHEMA,
+        vol.Optional("presets", default={}): PRESETS_SCHEMA,
+    }
+)
+@websocket_api.async_response
+async def ws_save_config(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Save the draft of a configuration: the tabs through the flow of Versatile Thermostat, then the preset temperatures.
+
+    The tabs are saved all together or not at all. The presets are applied only when the tabs were saved, one by one: a preset that
+    fails keeps the saved tabs and the other presets.
+    """
+    result = await FlowConfigWriter(hass).async_update(msg["entry_id"], msg["changes"])
+    preset_errors = await async_set_presets(hass, msg["entry_id"], msg["presets"]) if result.ok and msg["presets"] else []
+    connection.send_result(
+        msg["id"], {**result.as_dict(), "config_saved": result.ok, "preset_errors": [error.as_dict() for error in preset_errors], "ok": result.ok and not preset_errors}
+    )
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): WS_CREATE_CONFIG,
+        vol.Required("thermostat_type"): str,
+        vol.Optional("changes", default={}): CHANGES_SCHEMA,
+    }
+)
+@websocket_api.async_response
+async def ws_create_config(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Create a thermostat or the central configuration through the flow of Versatile Thermostat."""
+    result: SaveResult = await FlowConfigWriter(hass).async_create(msg["thermostat_type"], msg["changes"])
+    connection.send_result(msg["id"], result.as_dict())

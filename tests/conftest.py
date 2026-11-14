@@ -1,11 +1,35 @@
 """Pytest configuration: custom integrations of the repository are enabled in every test."""
 
+from pathlib import Path
+
 import pytest
+from homeassistant import loader
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry, MockModule, mock_integration
 
+import custom_components
 from custom_components.vtherm_dashboard import panel
 from custom_components.vtherm_dashboard.const import DOMAIN
+
+EXTERNAL_VTHERM = Path(__file__).resolve().parent.parent / "external" / "versatile_thermostat" / "custom_components"
+"""The Versatile Thermostat of the development environment. Tests that run its real code need it, see requires_vtherm."""
+
+requires_vtherm = pytest.mark.skipif(not EXTERNAL_VTHERM.is_dir(), reason="external/versatile_thermostat is not available")
+
+
+@pytest.fixture(name="real_vtherm")
+def real_vtherm_fixture(hass: HomeAssistant):
+    """Let Home Assistant load the real Versatile Thermostat of external/, for the tests that run its code.
+
+    The other tests must not see it: they check what happens when Versatile Thermostat is absent, or replace it by a fake.
+    """
+    path = str(EXTERNAL_VTHERM)
+    custom_components.__path__.append(path)
+    hass.data.pop(loader.DATA_CUSTOM_COMPONENTS, None)
+    yield
+    # The path of a namespace package has no remove(): its list is private.
+    custom_components.__path__._path = [entry for entry in custom_components.__path__._path if entry != path]  # pylint: disable=protected-access,no-member
+    hass.data.pop(loader.DATA_CUSTOM_COMPONENTS, None)
 
 
 @pytest.fixture(autouse=True)
@@ -27,7 +51,9 @@ def setup_dashboard_fixture(hass: HomeAssistant, frontend_module):  # pylint: di
     """Return a coroutine function that sets up the dashboard with a fake Versatile Thermostat dependency."""
 
     async def _setup() -> MockConfigEntry:
-        mock_integration(hass, MockModule("versatile_thermostat"))
+        if "versatile_thermostat" not in hass.config.components:
+            # A fake dependency, unless the test set up the real Versatile Thermostat.
+            mock_integration(hass, MockModule("versatile_thermostat"))
         entry = MockConfigEntry(domain=DOMAIN, data={})
         entry.add_to_hass(hass)
         assert await hass.config_entries.async_setup(entry.entry_id)
@@ -35,3 +61,8 @@ def setup_dashboard_fixture(hass: HomeAssistant, frontend_module):  # pylint: di
         return entry
 
     return _setup
+
+
+def pytest_addoption(parser) -> None:
+    """Options of the tests of the dashboard."""
+    parser.addoption("--update-schemas", action="store_true", default=False, help="Write the description of the forms of Versatile Thermostat in shared/.")

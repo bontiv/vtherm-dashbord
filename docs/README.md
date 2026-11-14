@@ -14,8 +14,9 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [Theming](plugins/theming.md) | Plugin author | Use the variables of the Home Assistant theme and no color of your own. |
 | [Hooks and placement](plugins/hooks-and-placement.md) | Plugin author | The seven hooks, the menus, the six placements, how a position is resolved, visibility and the problems reported. |
 | [Testing a plugin](plugins/testing.md) | Plugin author | The fake dashboard of `@vtherm/dashboard-sdk/testing`: register, resolve, render and check translations. |
-| [WebSocket API](reference/websocket-api.md) | Contributor, Plugin author | The `vtherm_dashboard/get_ui_plugins` command: request, response, plugin states and errors. |
+| [WebSocket API](reference/websocket-api.md) | Contributor, Plugin author | The commands of the dashboard: the plugins to load, and the reading and writing of the configuration of Versatile Thermostat, with their errors. |
 | [SDK reference](reference/sdk/index.md) | Plugin author | Generated reference of `@vtherm/dashboard-sdk`: types, `registerUiPlugin` and validation. Do not edit it, run `npm run docs:reference`. |
+| [Driving the config flow](contributing/config-flow-driver.md) | Contributor | How the configuration of Versatile Thermostat is validated and saved, the tabs and steps, the presets, the versions and the evolution planned. |
 
 ## Rules for the documentation
 

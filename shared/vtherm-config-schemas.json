@@ -1,0 +1,1441 @@
+{
+  "STEP_ADVANCED_DATA_SCHEMA": [
+    {
+      "key": "use_advanced_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_AUTO_START_STOP": [
+    {
+      "key": "auto_start_stop_level",
+      "required": false,
+      "default": "auto_start_stop_none",
+      "kind": "select",
+      "options": [
+        "auto_start_stop_none",
+        "auto_start_stop_very_slow",
+        "auto_start_stop_slow",
+        "auto_start_stop_medium",
+        "auto_start_stop_fast"
+      ],
+      "multiple": false
+    }
+  ],
+  "STEP_AUTO_TPI_AVG_SETTINGS_SCHEMA": [
+    {
+      "key": "auto_tpi_avg_initial_weight",
+      "required": true,
+      "default": 1,
+      "kind": "integer"
+    }
+  ],
+  "STEP_AUTO_TPI_CONFIGURATION_SCHEMA": [
+    {
+      "key": "auto_tpi_learning_type",
+      "required": true,
+      "default": "discovery",
+      "kind": "select",
+      "options": [
+        "discovery",
+        "fine_tuning"
+      ],
+      "multiple": false
+    },
+    {
+      "key": "auto_tpi_aggressiveness",
+      "required": true,
+      "default": 1.0,
+      "kind": "number",
+      "min": 0.5,
+      "max": 1.0,
+      "step": 0.01
+    },
+    {
+      "key": "heater_heating_time",
+      "required": false,
+      "default": 5,
+      "kind": "integer"
+    },
+    {
+      "key": "heater_cooling_time",
+      "required": false,
+      "default": 5,
+      "kind": "integer"
+    },
+    {
+      "key": "auto_tpi_heating_rate",
+      "required": true,
+      "default": 0.0,
+      "kind": "number"
+    },
+    {
+      "key": "auto_tpi_continuous_kext",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "auto_tpi_enable_advanced_settings",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_AUTO_TPI_EMA_SETTINGS_SCHEMA": [
+    {
+      "key": "auto_tpi_ema_alpha",
+      "required": true,
+      "default": 0.15,
+      "kind": "number",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    {
+      "key": "auto_tpi_ema_decay_rate",
+      "required": true,
+      "default": 0.08,
+      "kind": "number",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    {
+      "key": "auto_tpi_continuous_kext_alpha",
+      "required": true,
+      "default": 0.04,
+      "kind": "number",
+      "min": 0.005,
+      "max": 0.2,
+      "step": 0.005
+    }
+  ],
+  "STEP_CENTRAL_ADVANCED_DATA_SCHEMA": [
+    {
+      "key": "safety_delay_min",
+      "required": true,
+      "default": 60,
+      "kind": "integer"
+    },
+    {
+      "key": "safety_min_on_percent",
+      "required": true,
+      "default": 0.5,
+      "kind": "number"
+    },
+    {
+      "key": "safety_default_on_percent",
+      "required": true,
+      "default": 0.1,
+      "kind": "number"
+    },
+    {
+      "key": "repair_incorrect_state",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "manual_override_duration_min",
+      "required": false,
+      "default": 0,
+      "kind": "integer"
+    }
+  ],
+  "STEP_CENTRAL_BOILER_SCHEMA": [
+    {
+      "key": "central_boiler_activation_delay_sec",
+      "required": true,
+      "default": 0,
+      "kind": "number",
+      "min": 0.0,
+      "max": 600.0,
+      "step": 10.0
+    },
+    {
+      "key": "central_boiler_activation_service",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "central_boiler_deactivation_service",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "keep_alive_boiler_delay_sec",
+      "required": false,
+      "default": 0,
+      "kind": "number",
+      "min": 0.0,
+      "max": 3600.0,
+      "step": 10.0,
+      "unit_of_measurement": "s"
+    }
+  ],
+  "STEP_CENTRAL_FEATURES_DATA_SCHEMA": [
+    {
+      "key": "use_window_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_motion_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_power_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_presence_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_central_boiler_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_heating_failure_detection_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA": [
+    {
+      "key": "heating_failure_threshold",
+      "required": true,
+      "default": 0.9,
+      "kind": "number",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    {
+      "key": "cooling_failure_threshold",
+      "required": true,
+      "default": 0.0,
+      "kind": "number",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    {
+      "key": "heating_failure_detection_delay",
+      "required": true,
+      "default": 15,
+      "kind": "integer"
+    },
+    {
+      "key": "temperature_change_tolerance",
+      "required": true,
+      "default": 0.5,
+      "kind": "number",
+      "min": 0.0,
+      "max": 5.0,
+      "step": 0.1
+    },
+    {
+      "key": "failure_detection_enable_template",
+      "required": false,
+      "default": null,
+      "kind": "template"
+    }
+  ],
+  "STEP_CENTRAL_LOCK_DATA_SCHEMA": [
+    {
+      "key": "lock_code",
+      "required": false,
+      "default": null,
+      "kind": "string"
+    },
+    {
+      "key": "lock_users",
+      "required": false,
+      "default": true,
+      "kind": "boolean"
+    },
+    {
+      "key": "lock_automations",
+      "required": false,
+      "default": true,
+      "kind": "boolean"
+    },
+    {
+      "key": "auto_relock_sec",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    }
+  ],
+  "STEP_CENTRAL_MAIN_DATA_SCHEMA": [
+    {
+      "key": "external_temperature_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_number"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "temp_min",
+      "required": true,
+      "default": 7,
+      "kind": "number"
+    },
+    {
+      "key": "temp_max",
+      "required": true,
+      "default": 35,
+      "kind": "number"
+    },
+    {
+      "key": "step_temperature",
+      "required": true,
+      "default": 0.1,
+      "kind": "number"
+    }
+  ],
+  "STEP_CENTRAL_MOTION_DATA_SCHEMA": [
+    {
+      "key": "motion_delay",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    },
+    {
+      "key": "motion_off_delay",
+      "required": false,
+      "default": 300,
+      "kind": "integer"
+    },
+    {
+      "key": "motion_preset",
+      "required": false,
+      "default": "comfort",
+      "kind": "select",
+      "options": [
+        "frost",
+        "eco",
+        "comfort",
+        "boost"
+      ],
+      "multiple": false
+    },
+    {
+      "key": "no_motion_preset",
+      "required": false,
+      "default": "eco",
+      "kind": "select",
+      "options": [
+        "frost",
+        "eco",
+        "comfort",
+        "boost"
+      ],
+      "multiple": false
+    }
+  ],
+  "STEP_CENTRAL_POWER_DATA_SCHEMA": [
+    {
+      "key": "power_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_number"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "max_power_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_number"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "power_unit",
+      "required": false,
+      "default": "auto",
+      "kind": "select",
+      "options": [
+        "w",
+        "kw",
+        "auto"
+      ],
+      "multiple": false
+    },
+    {
+      "key": "power_temp",
+      "required": false,
+      "default": "13",
+      "kind": "number"
+    }
+  ],
+  "STEP_CENTRAL_PRESENCE_DATA_SCHEMA": [
+    {
+      "key": "presence_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "person",
+        "binary_sensor",
+        "input_boolean"
+      ],
+      "multiple": false,
+      "reorder": false
+    }
+  ],
+  "STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA": [
+    {
+      "key": "external_temperature_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_number"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "temp_min",
+      "required": true,
+      "default": 7,
+      "kind": "number"
+    },
+    {
+      "key": "temp_max",
+      "required": true,
+      "default": 35,
+      "kind": "number"
+    },
+    {
+      "key": "step_temperature",
+      "required": true,
+      "default": 0.1,
+      "kind": "number"
+    }
+  ],
+  "STEP_CENTRAL_TPI_DATA_SCHEMA": [
+    {
+      "key": "tpi_coef_int",
+      "required": true,
+      "default": 0.6,
+      "kind": "number",
+      "min": 0.0,
+      "max": 10.0,
+      "step": "any"
+    },
+    {
+      "key": "tpi_coef_ext",
+      "required": true,
+      "default": 0.01,
+      "kind": "number",
+      "min": 0.0,
+      "max": 1.0,
+      "step": "any"
+    },
+    {
+      "key": "minimal_activation_delay",
+      "required": true,
+      "default": 10,
+      "kind": "integer"
+    },
+    {
+      "key": "minimal_deactivation_delay",
+      "required": true,
+      "default": 0,
+      "kind": "integer"
+    },
+    {
+      "key": "tpi_threshold_low",
+      "required": false,
+      "default": 0,
+      "kind": "number",
+      "min": -10.0,
+      "max": 10.0,
+      "step": 0.1
+    },
+    {
+      "key": "tpi_threshold_high",
+      "required": false,
+      "default": 0,
+      "kind": "number",
+      "min": -10.0,
+      "max": 10.0,
+      "step": 0.1
+    },
+    {
+      "key": "auto_tpi_mode",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_CENTRAL_TPI_DATA_SCHEMA_CENTRAL": [
+    {
+      "key": "tpi_coef_int",
+      "required": true,
+      "default": 0.6,
+      "kind": "number",
+      "min": 0.0,
+      "max": 10.0,
+      "step": 0.01
+    },
+    {
+      "key": "tpi_coef_ext",
+      "required": true,
+      "default": 0.01,
+      "kind": "number",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.001
+    },
+    {
+      "key": "minimal_activation_delay",
+      "required": true,
+      "default": 10,
+      "kind": "integer"
+    },
+    {
+      "key": "minimal_deactivation_delay",
+      "required": true,
+      "default": 0,
+      "kind": "integer"
+    },
+    {
+      "key": "tpi_threshold_low",
+      "required": false,
+      "default": 0,
+      "kind": "number",
+      "min": -10.0,
+      "max": 10.0,
+      "step": 0.1
+    },
+    {
+      "key": "tpi_threshold_high",
+      "required": false,
+      "default": 0,
+      "kind": "number",
+      "min": -10.0,
+      "max": 10.0,
+      "step": 0.1
+    }
+  ],
+  "STEP_CENTRAL_WINDOW_DATA_SCHEMA": [
+    {
+      "key": "window_delay",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    },
+    {
+      "key": "window_off_delay",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    },
+    {
+      "key": "window_auto_open_threshold",
+      "required": false,
+      "default": 3,
+      "kind": "number"
+    },
+    {
+      "key": "window_auto_close_threshold",
+      "required": false,
+      "default": 0,
+      "kind": "number"
+    },
+    {
+      "key": "window_auto_max_duration",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    },
+    {
+      "key": "window_action",
+      "required": false,
+      "default": "window_turn_off",
+      "kind": "select",
+      "options": [
+        "window_turn_off",
+        "window_fan_only",
+        "window_frost_temp",
+        "window_eco_temp"
+      ],
+      "multiple": false
+    }
+  ],
+  "STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA": [
+    {
+      "key": "window_delay",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    },
+    {
+      "key": "window_off_delay",
+      "required": false,
+      "default": 30,
+      "kind": "integer"
+    },
+    {
+      "key": "window_action",
+      "required": false,
+      "default": "window_turn_off",
+      "kind": "select",
+      "options": [
+        "window_turn_off",
+        "window_fan_only",
+        "window_frost_temp",
+        "window_eco_temp"
+      ],
+      "multiple": false
+    }
+  ],
+  "STEP_CLIMATE_FEATURES_DATA_SCHEMA": [
+    {
+      "key": "use_window_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_motion_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_power_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_presence_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_auto_start_stop_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA": [
+    {
+      "key": "use_window_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_motion_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_power_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_presence_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_heating_failure_detection_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_FEATURES_DATA_SCHEMA": [
+    {
+      "key": "use_window_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_motion_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_power_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_presence_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_heating_failure_detection_feature",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_HEATING_FAILURE_DETECTION_SCHEMA": [
+    {
+      "key": "use_heating_failure_detection_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_HUMIDITY_DATA_SCHEMA": [
+    {
+      "key": "use_humidity_feature",
+      "required": true,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "humidity_sensor_entity_id",
+      "required": false,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_number",
+        "number"
+      ],
+      "multiple": false,
+      "reorder": false
+    }
+  ],
+  "STEP_LOCK_DATA_SCHEMA": [
+    {
+      "key": "use_lock_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_MAIN_DATA_SCHEMA": [
+    {
+      "key": "name",
+      "required": true,
+      "default": null,
+      "kind": "string"
+    },
+    {
+      "key": "temperature_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_number",
+        "number"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "last_seen_temperature_sensor_entity_id",
+      "required": false,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "sensor",
+        "input_datetime",
+        "number"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "cycle_min",
+      "required": true,
+      "default": 5,
+      "kind": "number",
+      "min": 1.0,
+      "max": 1000.0,
+      "step": 1.0
+    },
+    {
+      "key": "device_power",
+      "required": false,
+      "default": "1",
+      "kind": "number"
+    },
+    {
+      "key": "power_unit",
+      "required": false,
+      "default": "w",
+      "kind": "select",
+      "options": [
+        "w",
+        "kw"
+      ],
+      "multiple": false
+    },
+    {
+      "key": "use_main_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    },
+    {
+      "key": "use_central_mode",
+      "required": false,
+      "default": true,
+      "kind": "boolean"
+    },
+    {
+      "key": "used_by_controls_central_boiler",
+      "required": true,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_MOTION_DATA_SCHEMA": [
+    {
+      "key": "motion_sensor_entity_id",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "binary_sensor",
+        "input_boolean"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "use_motion_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_NON_CENTRAL_POWER_DATA_SCHEMA": [
+    {
+      "key": "power_temp",
+      "required": false,
+      "default": "13",
+      "kind": "number"
+    }
+  ],
+  "STEP_POWER_DATA_SCHEMA": [
+    {
+      "key": "use_power_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_PRESENCE_DATA_SCHEMA": [
+    {
+      "key": "use_presence_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_PRESETS_DATA_SCHEMA": [
+    {
+      "key": "use_presets_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_SYNC_DEVICE_INTERNAL_TEMP": [
+    {
+      "key": "sync_with_calibration",
+      "required": false,
+      "default": true,
+      "kind": "boolean"
+    },
+    {
+      "key": "sync_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    }
+  ],
+  "STEP_THERMOSTAT_CLIMATE": [
+    {
+      "key": "underlying_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "climate"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "ac_mode",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "sync_device_internal_temp",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "auto_regulation_mode",
+      "required": false,
+      "default": "auto_regulation_none",
+      "kind": "select",
+      "options": [
+        "auto_regulation_none",
+        "auto_regulation_valve",
+        "auto_regulation_light",
+        "auto_regulation_medium",
+        "auto_regulation_strong",
+        "auto_regulation_slow",
+        "auto_regulation_expert"
+      ],
+      "multiple": false
+    },
+    {
+      "key": "auto_regulation_dtemp",
+      "required": false,
+      "default": 0.5,
+      "kind": "number"
+    },
+    {
+      "key": "auto_regulation_periode_min",
+      "required": false,
+      "default": 5,
+      "kind": "integer"
+    },
+    {
+      "key": "auto_fan_mode",
+      "required": false,
+      "default": "auto_fan_high",
+      "kind": "select",
+      "options": [
+        "auto_fan_none",
+        "auto_fan_low",
+        "auto_fan_medium",
+        "auto_fan_high",
+        "auto_fan_turbo"
+      ],
+      "multiple": false
+    },
+    {
+      "key": "auto_regulation_use_device_temp",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_THERMOSTAT_SWITCH": [
+    {
+      "key": "underlying_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "switch",
+        "input_boolean",
+        "select",
+        "input_select",
+        "climate"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "heater_keep_alive",
+      "required": false,
+      "default": null,
+      "kind": "integer"
+    },
+    {
+      "key": "proportional_function",
+      "required": true,
+      "default": "tpi",
+      "kind": "select",
+      "options": [
+        "tpi"
+      ]
+    },
+    {
+      "key": "ac_mode",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "inverse_switch_command",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "on_command_text",
+      "required": false,
+      "default": null,
+      "kind": "select",
+      "options": []
+    },
+    {
+      "key": "vswitch_on_command",
+      "required": false,
+      "default": null,
+      "kind": "text",
+      "type": "text",
+      "multiple": true,
+      "multiline": false
+    },
+    {
+      "key": "off_command_text",
+      "required": false,
+      "default": null,
+      "kind": "select",
+      "options": []
+    },
+    {
+      "key": "vswitch_off_command",
+      "required": false,
+      "default": null,
+      "kind": "text",
+      "type": "text",
+      "multiple": true,
+      "multiline": false
+    }
+  ],
+  "STEP_THERMOSTAT_VALVE": [
+    {
+      "key": "underlying_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "proportional_function",
+      "required": true,
+      "default": "tpi",
+      "kind": "select",
+      "options": [
+        "tpi"
+      ]
+    },
+    {
+      "key": "ac_mode",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "auto_regulation_dtemp",
+      "required": false,
+      "default": 10,
+      "kind": "number"
+    },
+    {
+      "key": "auto_regulation_periode_min",
+      "required": false,
+      "default": 5,
+      "kind": "integer"
+    },
+    {
+      "key": "opening_threshold_degree",
+      "required": false,
+      "default": 0,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "min_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_closing_degree",
+      "required": false,
+      "default": 100,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "STEP_TPI_DATA_SCHEMA": [
+    {
+      "key": "use_tpi_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "STEP_USER_DATA_SCHEMA": [
+    {
+      "key": "thermostat_type",
+      "required": true,
+      "default": "thermostat_over_switch",
+      "kind": "select",
+      "options": [
+        "thermostat_central_config",
+        "thermostat_over_switch",
+        "thermostat_over_climate",
+        "thermostat_over_valve"
+      ],
+      "multiple": false
+    }
+  ],
+  "STEP_VALVE_REGULATION": [
+    {
+      "key": "opening_degree_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "closing_degree_entity_ids",
+      "required": false,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "proportional_function",
+      "required": true,
+      "default": "tpi",
+      "kind": "select",
+      "options": [
+        "tpi"
+      ]
+    },
+    {
+      "key": "opening_threshold_degree",
+      "required": false,
+      "default": 0,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "min_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_closing_degree",
+      "required": false,
+      "default": 100,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "STEP_WINDOW_DATA_SCHEMA": [
+    {
+      "key": "window_sensor_entity_id",
+      "required": false,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "binary_sensor",
+        "input_boolean"
+      ],
+      "multiple": false,
+      "reorder": false
+    },
+    {
+      "key": "use_window_central_config",
+      "required": true,
+      "default": true,
+      "kind": "boolean"
+    }
+  ],
+  "build_step_thermostat_switch_schema": [
+    {
+      "key": "underlying_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "switch",
+        "input_boolean",
+        "select",
+        "input_select",
+        "climate"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "heater_keep_alive",
+      "required": false,
+      "default": null,
+      "kind": "integer"
+    },
+    {
+      "key": "proportional_function",
+      "required": true,
+      "default": "tpi",
+      "kind": "select",
+      "options": [
+        "tpi"
+      ]
+    },
+    {
+      "key": "ac_mode",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "inverse_switch_command",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "on_command_text",
+      "required": false,
+      "default": null,
+      "kind": "select",
+      "options": []
+    },
+    {
+      "key": "vswitch_on_command",
+      "required": false,
+      "default": null,
+      "kind": "text",
+      "type": "text",
+      "multiple": true,
+      "multiline": false
+    },
+    {
+      "key": "off_command_text",
+      "required": false,
+      "default": null,
+      "kind": "select",
+      "options": []
+    },
+    {
+      "key": "vswitch_off_command",
+      "required": false,
+      "default": null,
+      "kind": "text",
+      "type": "text",
+      "multiple": true,
+      "multiline": false
+    }
+  ],
+  "build_step_thermostat_valve_schema": [
+    {
+      "key": "underlying_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "proportional_function",
+      "required": true,
+      "default": "tpi",
+      "kind": "select",
+      "options": [
+        "tpi"
+      ]
+    },
+    {
+      "key": "ac_mode",
+      "required": false,
+      "default": false,
+      "kind": "boolean"
+    },
+    {
+      "key": "auto_regulation_dtemp",
+      "required": false,
+      "default": 10,
+      "kind": "number"
+    },
+    {
+      "key": "auto_regulation_periode_min",
+      "required": false,
+      "default": 5,
+      "kind": "integer"
+    },
+    {
+      "key": "opening_threshold_degree",
+      "required": false,
+      "default": 0,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "min_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_closing_degree",
+      "required": false,
+      "default": 100,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "build_step_valve_regulation_schema": [
+    {
+      "key": "opening_degree_entity_ids",
+      "required": true,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "closing_degree_entity_ids",
+      "required": false,
+      "default": null,
+      "kind": "entity",
+      "domain": [
+        "number",
+        "input_number"
+      ],
+      "multiple": true,
+      "reorder": false
+    },
+    {
+      "key": "proportional_function",
+      "required": true,
+      "default": "tpi",
+      "kind": "select",
+      "options": [
+        "tpi"
+      ]
+    },
+    {
+      "key": "opening_threshold_degree",
+      "required": false,
+      "default": 0,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "min_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_opening_degrees",
+      "required": false,
+      "default": "",
+      "kind": "string"
+    },
+    {
+      "key": "max_closing_degree",
+      "required": false,
+      "default": 100,
+      "kind": "integer",
+      "min": 0,
+      "max": 100
+    }
+  ]
+}

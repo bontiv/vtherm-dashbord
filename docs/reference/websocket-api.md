@@ -99,3 +99,107 @@ ordered by identifier, so the order is the same on every call.
 | --- | --- |
 | `unauthorized` | The request has `dev_plugins` and the user is not an administrator. |
 | `invalid_format` | The request does not match the schema, for example `dev_plugins` is not a list of objects. |
+
+## Configuration of Versatile Thermostat
+
+These commands read and write the configuration of the thermostats and of the central configuration. They are reserved for
+administrators: any other user gets the error `unauthorized`. The configuration is never written directly: the writing goes
+through the config flow of Versatile Thermostat, see [driving the config flow](../contributing/config-flow-driver.md).
+
+### `vtherm_dashboard/get_thermostats`
+
+Lists the thermostats, ordered by name, and tells whether a central configuration exists.
+
+| Field of the result | Type | Meaning |
+| --- | --- | --- |
+| `thermostats` | `list` | Each thermostat: `id` (identifier of its configuration entry), `name`, `type` (`over_switch`, `over_climate` or `over_valve`) and `read_only`. The central configuration is not in the list. |
+| `has_central_config` | `boolean` | Whether the central configuration exists. |
+| `central_config_id` | `string` or `null` | The identifier of the central configuration. |
+| `supported_config_version` | `list` | The version and the minor version of configuration that the dashboard can edit, for example `[2, 4]`. |
+
+### `vtherm_dashboard/get_config`
+
+Reads the configuration of an entry. Request: `entry_id`.
+
+| Field of the result | Type | Meaning |
+| --- | --- | --- |
+| `id`, `name` | `string` | The entry. |
+| `type` | `string` | `central`, `over_switch`, `over_climate` or `over_valve`. |
+| `values` | `object` | The values of the configuration, by key of Versatile Thermostat. |
+| `version`, `minor_version` | `integer` | The version of the configuration of the entry. |
+| `read_only` | `boolean` | True when the dashboard cannot edit the entry. |
+| `read_only_reason` | `string` or `null` | `config_version_newer`: the version of the entry is newer than `supported_config_version`. Use the screens of Home Assistant, or update the dashboard. |
+
+The error `not_found` means that no entry of Versatile Thermostat has this identifier.
+
+### `vtherm_dashboard/get_central_config`
+
+Reads the central configuration, with the same fields as `get_config`. The result is `null` when there is no central configuration.
+
+### `vtherm_dashboard/get_presets`
+
+Reads the preset temperatures of an entry. Request: `entry_id`. Versatile Thermostat keeps them in `number` entities, outside of the
+configuration. The result has `presets`, a list ordered by name. Each preset has `preset` (for example `eco_temp`, `comfort_ac_temp`,
+`frost_away_temp`), `entity_id`, `value`, `min`, `max`, `step` and `unit`. A thermostat that uses the central presets has none. The error
+`not_found` means that the entry does not exist.
+
+### `vtherm_dashboard/save_config`
+
+Saves the draft of a configuration.
+
+| Field of the request | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `entry_id` | `string` | yes | The entry to change. |
+| `changes` | `object` | no | The changes by tab, then by key: `{"tpi": {"tpi_coef_int": 0.7}}`. A field of a changed tab that is not given keeps its value. `null` clears an optional field. |
+| `presets` | `object` | no | The temperatures by preset: `{"eco_temp": 18}`. |
+
+The tabs are saved all together or not at all. The presets are applied after the tabs, one by one, and only if the tabs were saved.
+
+| Field of the result | Type | Meaning |
+| --- | --- | --- |
+| `ok` | `boolean` | True when the tabs and every preset were saved. |
+| `config_saved` | `boolean` | True when the tabs were saved. |
+| `entry_id` | `string` or `null` | The entry, when the tabs were saved. |
+| `errors` | `list` | The errors of the tabs. Nothing was saved when there is one. |
+| `preset_errors` | `list` | The presets that could not be applied. The tabs and the other presets are saved. |
+
+### `vtherm_dashboard/create_config`
+
+Creates a thermostat or the central configuration. Request: `thermostat_type` (`thermostat_over_switch`, `thermostat_over_climate`,
+`thermostat_over_valve` or `thermostat_central_config`) and `changes`, as for `save_config`. The result has `ok`, `entry_id` (the new
+entry) and `errors`. Nothing is created when there is an error.
+
+### Errors of the configuration
+
+An error has `tab` (the tab, or `null` for the whole configuration), `field` (the key, or `base` for the whole form) and `code`. The
+dashboard translates the code. The codes of Versatile Thermostat are passed on unchanged.
+
+| Code | Comes from | Cause |
+| --- | --- | --- |
+| `unknown_entity` | Versatile Thermostat | The field names an entity that has no state in Home Assistant. |
+| `window_open_detection_method` | Versatile Thermostat | A window sensor and the thresholds of the automatic detection are used together. |
+| `no_central_config` | Versatile Thermostat | An option "use the central configuration" is on and there is no central configuration. |
+| `service_configuration_format` | Versatile Thermostat | A service of the central boiler does not have the expected format, or its template is not valid. |
+| `lock_code_incorrect` | Versatile Thermostat | The lock code is not made of four digits. |
+| `valve_regulation_nb_entities_incorrect` | Versatile Thermostat | The number of opening or closing entities differs from the number of underlying entities. |
+| `sync_device_internal_temp_nb_entities_incorrect` | Versatile Thermostat | The number of synchronization entities differs from the number of underlying entities. |
+| `min_opening_degrees_format`, `max_opening_degrees_format` | Versatile Thermostat | A list of opening degrees is not a list of numbers within the limits of the valves. |
+| `min_max_opening_degrees_inconsistent` | Versatile Thermostat | A maximal opening is not greater than the minimal one. |
+| `valve_control_parameters_cardinality_incorrect` | Versatile Thermostat | A list of opening degrees has more values than there are valves. |
+| `vswitch_configuration_incorrect` | Versatile Thermostat | A custom command of a switch does not have the format `command[/argument[:value]]`, or the number of commands is wrong. |
+| `configuration_not_complete` | Versatile Thermostat | A required element is missing, for example the name, the temperature sensor or an underlying entity. The configuration cannot be finished. |
+| `unknown` | Versatile Thermostat | An unexpected error of the flow. |
+| `required` | Dashboard | The form requires this field and no value was given. |
+| `invalid_value` | Dashboard | The value is not of the kind that the form accepts. |
+| `field_not_applicable` | Dashboard | No form of the tab asks for this field in the current configuration, for example the thresholds of the automatic window detection once a window sensor is saved. |
+| `tab_unavailable` | Dashboard | The flow does not offer this tab for this configuration, for example the auto start and stop of a thermostat over a switch. |
+| `unknown_tab` | Dashboard | The tab does not exist. |
+| `not_found` | Dashboard | The entry does not exist. |
+| `config_version_unsupported` | Dashboard | The entry is read-only, its configuration is newer than the dashboard supports. |
+| `central_config_exists` | Dashboard | A central configuration already exists. There is only one. |
+| `unknown_thermostat_type` | Dashboard | The type is not one of the four types. |
+| `flow_failed` | Dashboard | The flow did not behave as expected. |
+
+The errors of the presets have the tab `presets` and these codes: `out_of_range` (the temperature is outside the limits of the
+preset), `unknown_preset` (the entry has no such preset), `preset_rejected` (Home Assistant refused the value) and `preset_not_applied`
+(the thermostat was not ready and kept its previous value).
