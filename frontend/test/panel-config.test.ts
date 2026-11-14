@@ -231,6 +231,17 @@ describe("the assistant of creation", () => {
 });
 
 describe("the central configuration", () => {
+  it("shows its sections at once when it exists, without waiting for the user to open one", async () => {
+    const configs: FakeConfigs = { ...salonAndChambre(), central: { name: "Central", type: "central", values: { thermostat_type: "thermostat_central_config" } } };
+    // A page that is not a section: nothing opens the central configuration, so the panel must read it by itself.
+    const { panel } = await mount({ configs, path: `/home-confort/${CONFIGURATION}/core.page.plugins` });
+    await vi.waitFor(() => {
+      const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
+      expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))).toContain("TPI parameters");
+    });
+    expect(texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"))).not.toContain("Central configuration");
+  });
+
   it("offers to create it when it is absent, then shows its sections once created", async () => {
     const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/home-confort/${CONFIGURATION}` });
     const page = find(root(panel), "core-create-central-page") as HTMLElement;

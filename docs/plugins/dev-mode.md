@@ -110,6 +110,10 @@ the import failed, the causes that a browser cannot tell apart:
 
 The other plugins keep loading.
 
+## One copy of Lit
+A plugin that bundles Lit loads a second copy next to the one of the dashboard, and Lit warns about it in the console in development. It works, because
+each copy has its own elements. Mark `lit` as external only if you use an import map; the sample does not.
+
 ## HTTPS and Safari
 `http://localhost` from an HTTPS page works in Chrome and Firefox. Safari always blocks it: serve your module over HTTPS, or open
 Home Assistant over HTTP while you develop.

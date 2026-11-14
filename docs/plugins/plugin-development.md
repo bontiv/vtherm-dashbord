@@ -144,12 +144,20 @@ Add a `language` property so that the element draws its texts again when the use
 <!-- example: examples/vtherm_sample_plugin/ui/src/elements.ts -->
 ```typescript
 import type { ConfigValues, Hass } from "@vtherm/dashboard-sdk";
-import { LitElement, html } from "lit";
+import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
 import { t } from "./translations";
 
 /** The section that the plugin adds to the configuration of a thermostat. The dashboard sets its properties. */
 export class SampleTab extends LitElement {
+  // Use the variables of the theme of Home Assistant, never a color of your own.
+  static override styles = css`
+    :host {
+      display: block;
+      padding: 16px;
+      color: var(--primary-text-color);
+    }
+  `;
   static override properties = { hass: { attribute: false }, thermostatId: { type: String }, values: { attribute: false }, language: { type: String } };
   declare hass: Hass | undefined;
   declare thermostatId: string;
@@ -173,6 +181,13 @@ export class SampleTab extends LitElement {
 
 /** The section that takes the place of the native one. */
 export class SampleSyncTab extends LitElement {
+  static override styles = css`
+    :host {
+      display: block;
+      padding: 16px;
+      color: var(--primary-text-color);
+    }
+  `;
   static override properties = { language: { type: String } };
   declare language: string;
 

@@ -10,8 +10,10 @@ GitHub CLI. Its `postCreateCommand` runs `.devcontainer/post-create.sh`, which:
 1. clones the repositories that the dashboard depends on into `external/` (ignored by git): Versatile Thermostat, `vtherm_api` and HACS;
 2. installs the Python dependencies (`requirements-dev.txt`) and `vtherm_api` in editable mode, then `numpy` and `scipy`, which
    Versatile Thermostat needs;
-3. runs `npm install` for the workspaces;
-4. copies `.devcontainer/configuration.yaml` to `config/configuration.yaml`, the configuration of the development instance.
+3. installs the packages that the browser of Home Assistant needs at its start (voice assistants, cameras): without them the page stays
+   on "Loading data", because Home Assistant does not install them for a development instance;
+4. runs `npm install` for the workspaces;
+5. copies `.devcontainer/configuration.yaml` to `config/configuration.yaml`, the configuration of the development instance.
 
 `vtherm_api` must have the registry of UI plugins. Until it is merged upstream, set `VTHERM_API_REPO` and `VTHERM_API_REF` (a branch
 or a tag) before the container is created. `VTHERM_REPO`, `VTHERM_REF`, `HACS_REPO` and `HACS_REF` work the same way. An existing
@@ -32,7 +34,8 @@ The script uses `python -m pip`, so activate the virtual environment first. Late
    refuses to start without. Run it again after a change of the frontend, or use the preview below.
 2. Start: `bash .devcontainer/start-ha.sh`. It links Versatile Thermostat and the dashboard into `config/custom_components/` and
    runs `hass --config config --debug` on port 8123.
-3. At the first start, create the user in the browser (onboarding).
+3. At the first start, create the user in the browser (onboarding). To skip the login screen on your computer, add `trusted_networks` with
+   `allow_bypass_login` to `auth_providers` in `config/configuration.yaml`, see the documentation of Home Assistant.
 4. **Settings > Devices & services > Add integration**: add "Versatile Thermostat" (create a thermostat or the central
    configuration), then "VTherm Dashboard". "Home confort" appears in the side menu.
 

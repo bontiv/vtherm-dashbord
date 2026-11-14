@@ -42,6 +42,7 @@ The rules are those of Versatile Thermostat, so that code can move between the r
 npm run check
 ```
 runs, in this order: the type checks of every project (`typecheck`), ESLint, `check:js`, `check:docs` (index, links, examples, anchors),
+`check:completeness` (the pages that the specification requires, the audiences, the changelog and the template of the pull request),
 `check:reference`, `check:catalogs` and `check:python` (Black and pylint over every Python file of the repository, which
 `scripts/check-python.sh` can also run on given files). Then run `npm test` and `pytest`. The continuous integration runs the same
 commands.

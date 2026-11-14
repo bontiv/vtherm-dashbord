@@ -72,6 +72,7 @@ export class NativeTabElement extends LitElement {
       column-gap: 8px;
     }
     .field.boolean .help,
+    .field.boolean .note,
     .field.boolean .error {
       grid-column: 2;
     }

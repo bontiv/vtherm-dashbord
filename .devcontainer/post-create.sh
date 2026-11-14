@@ -42,6 +42,27 @@ python -m pip install -e external/vtherm_api
 # Dependencies of the Versatile Thermostat integration, without the published vtherm_api package.
 python -m pip install numpy scipy
 
+# The browser of Home Assistant asks for the voice assistants and the cameras when it starts, and stays on "Loading data" without their
+# packages. Install the ones that the installed Home Assistant requires, at the versions that it asks for.
+python - <<'PYTHON' | xargs -r python -m pip install
+import json
+import pathlib
+import sys
+
+root = pathlib.Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages" / "homeassistant" / "components"
+seen, todo, requirements = set(), ["conversation", "ai_task", "assist_pipeline", "camera", "tts", "assist_satellite", "stt"], set()
+while todo:
+    name = todo.pop()
+    manifest = root / name / "manifest.json"
+    if name in seen or not manifest.exists():
+        continue
+    seen.add(name)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    requirements.update(data.get("requirements", []))
+    todo.extend(data.get("dependencies", []))
+print("\n".join(sorted(requirements)))
+PYTHON
+
 # Frontend and SDK: npm workspaces installed from the root package.json.
 if [ -f package.json ]; then
     npm install

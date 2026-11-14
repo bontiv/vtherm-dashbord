@@ -27,6 +27,7 @@ rules:
     - Any task that creates frontend, SDK, script or test code writes it in TypeScript, not JavaScript
     - Any task that creates Python code applies Black (180 columns) and pylint, as Versatile Thermostat does
     - Any task that creates a file, comment, docstring or documentation page writes it in English
+    - Any task that changes a public behavior (API, plugin contract, procedure, behavior of the dashboard) updates the matching pages of docs/ in the same group of tasks
 
 # Per-operation guidance (optional)
 # Add advisory guidance for how apply and archive work should be conducted.

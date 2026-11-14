@@ -48,6 +48,12 @@ export class ConfigSession {
   /** Read the list of the thermostats again. */
   async refreshList(): Promise<ThermostatList> {
     this.list = await this.api.thermostats();
+    // The sections of the general configuration and the inherited values depend on the central configuration, so it is read as soon as
+    // it is known to exist, not when its page opens.
+    const central = this.list.central_config_id;
+    if (central !== null && this.open.get(central) === undefined) {
+      this.load(central).catch(() => undefined);
+    }
     this.notify();
     return this.list;
   }
