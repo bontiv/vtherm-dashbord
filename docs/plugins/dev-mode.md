@@ -14,6 +14,8 @@ not install anything and you do not restart Home Assistant. It is for administra
   isolation of failures. See [Loading and dependencies](loading-and-dependencies.md).
 - While at least one entry is active, a banner "Development mode" with the identifiers of the plugins is shown on every page.
 
+The configurations below are the ones of the sample plugin. [Developing a plugin](plugin-development.md) uses them from the start.
+
 ## Add an entry
 Open **Configuration > Development** (the group "Dashboard" of the menu). The page lists your entries, and each one can be enabled,
 disabled (it stays in the list) or removed. Changes apply when you reload the page, and the page offers a button for it.
@@ -38,23 +40,31 @@ An identifier `core` or starting with `core_` that is not a native plugin is exc
 The dashboard imports your module from another origin than Home Assistant, so the server must send `Access-Control-Allow-Origin`.
 
 ### Vite
-<!-- example: docs/examples/dev-server/vite.config.ts -->
+<!-- example: examples/vtherm_sample_plugin/ui/vite.config.ts -->
 ```typescript
 import { defineConfig } from "vite";
 
-// Serve the plugin from http://localhost:5173 while you work on it. The dashboard imports the module from another origin, so the
-// server must allow it with Access-Control-Allow-Origin.
+// `npx vite` serves the plugin from http://localhost:5173 while you work on it. The dashboard imports the module from another
+// origin, so the server must allow it with Access-Control-Allow-Origin.
 export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
     headers: { "Access-Control-Allow-Origin": "*" },
-    // Home Assistant opens the module from its own page: no need to open the dev server in a browser tab.
-    open: false,
+    // The dashboard is reloaded by hand. The hot update client would try to reach Home Assistant, not this server.
+    hmr: false,
   },
   build: {
-    // The release build is one ES module that registers the plugin when it is imported.
-    lib: { entry: "src/main.ts", formats: ["es"], fileName: "my-plugin" },
+    // `npx vite build` writes one ES module for each plugin into the integration, which serves it.
+    outDir: "../custom_components/vtherm_sample_plugin/www",
+    emptyOutDir: true,
+    lib: {
+      entry: { "vtherm-sample": "src/main.ts", "vtherm-sample-extras": "src/extras.ts" },
+      formats: ["es"],
+      fileName: (_format, name) => `${name}.js`,
+    },
+    // A module that two plugins share goes to a chunk of its own.
+    rollupOptions: { output: { chunkFileNames: "chunks/[name]-[hash].js" } },
   },
 });
 ```
@@ -64,25 +74,31 @@ Run `npx vite`, then add the entry with the URL of your module, for example `htt
 TypeScript source as a module.
 
 ### Rollup
-<!-- example: docs/examples/dev-server/rollup.config.ts -->
+<!-- example: examples/vtherm_sample_plugin/ui/rollup.config.ts -->
 ```typescript
+import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import type { RollupOptions } from "rollup";
 import serve from "rollup-plugin-serve";
 
-// Build the plugin in watch mode (`rollup -c -w`) and serve it from http://localhost:5173. The dashboard imports the module from
-// another origin, so the server must allow it with Access-Control-Allow-Origin.
+const OUTPUT = "../custom_components/vtherm_sample_plugin/www";
+// Only in this repository, where tsconfig.json reads the SDK from its sources. In your project, leave `rootDir` out.
+const ROOT = "../../..";
+
+// `npx rollup -c rollup.config.ts --configPlugin typescript -w` builds the plugins again at each change and serves them from
+// http://localhost:5173. The dashboard imports the modules from another origin, so the server must allow it with
+// Access-Control-Allow-Origin.
 const config: RollupOptions = {
-  input: "src/main.ts",
-  output: { file: "dist/my-plugin.js", format: "es", sourcemap: true },
-  plugins: [typescript(), serve({ contentBase: "dist", port: 5173, headers: { "Access-Control-Allow-Origin": "*" } })],
+  input: { "vtherm-sample": "src/main.ts", "vtherm-sample-extras": "src/extras.ts" },
+  output: { dir: OUTPUT, format: "es", entryFileNames: "[name].js", chunkFileNames: "chunks/[name]-[hash].js", sourcemap: true },
+  plugins: [resolve(), typescript({ noEmit: false, outDir: OUTPUT, declaration: false, rootDir: ROOT }), serve({ contentBase: OUTPUT, port: 5173, headers: { "Access-Control-Allow-Origin": "*" } })],
 };
 
 export default config;
 ```
 <!-- /example -->
 
-Run `npx rollup -c -w`, then add the entry with `http://localhost:5173/my-plugin.js`.
+Run `npx rollup -c rollup.config.ts --configPlugin typescript -w`, then add the entry with `http://localhost:5173/vtherm-sample.js`. It needs `rollup`, `@rollup/plugin-typescript`, `@rollup/plugin-node-resolve`, `rollup-plugin-serve` and `tslib`.
 
 ## When the module does not load
 The status page (**Configuration > Plugins**) shows the source of each plugin. For a plugin in development, it shows the URL and, when

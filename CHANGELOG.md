@@ -1,0 +1,18 @@
+# Changelog
+All notable changes of the dashboard and of the SDK `@vtherm/dashboard-sdk`, which share one version. The format follows
+[Keep a Changelog](https://keepachangelog.com/) and the versions follow [Semantic Versioning](https://semver.org/).
+
+Each version has a section **For plugin authors**: the changes of the contract of the plugins (the SDK, the hooks, the placements, the
+WebSocket command that lists the plugins) and what to change in a plugin to follow them. See
+[Developing a plugin](docs/plugins/plugin-development.md#10-a-new-major-version-of-the-dashboard).
+
+## [Unreleased]
+
+## [0.1.0]
+The first version.
+
+### For plugin authors
+- The contract of the plugins starts here: seven hooks, six placements, typed translations, and the version constraint `dashboard_version`.
+- A plugin is declared in Python with `register_ui_plugin` of `vtherm_api`, and contributes from a JavaScript module built with
+  `@vtherm/dashboard-sdk`.
+- Nothing to migrate.

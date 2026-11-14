@@ -4,11 +4,8 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
-from vtherm_api import VThermAPI
-from vtherm_api.const import DOMAIN
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "docs" / "examples" / "python"
 
@@ -19,15 +16,6 @@ def _load_example(name: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-@pytest.fixture(name="api")
-def api_fixture():
-    """Return a VThermAPI on a minimal Home Assistant-like object."""
-    VThermAPI.reset_vtherm_api()
-    hass = SimpleNamespace(data={DOMAIN: {}}, config=SimpleNamespace(time_zone="UTC"))
-    yield VThermAPI.get_vtherm_api(hass), hass
-    VThermAPI.reset_vtherm_api()
 
 
 def test_register_ui_plugin_example(api) -> None:

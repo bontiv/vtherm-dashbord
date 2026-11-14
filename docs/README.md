@@ -9,6 +9,7 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [Using the dashboard](user/dashboard.md) | User | Open the dashboard, the tabs, the menu and the breadcrumb, a phone, and the status of the plugins. |
 | [Configuring thermostats](user/configuration.md) | User | The draft and its save bar, the central configuration, creating a thermostat, and each section of the configuration. |
 | [Add-ons for Versatile Thermostat](user/complements.md) | User | The catalog, the states of an add-on, the installation with HACS, the restart, the configuration, and the update and removal by HACS. |
+| [Developing a plugin](plugins/plugin-development.md) | Plugin author | The whole procedure with the sample plugin: project, declaration in Python, elements, translations, placements, development mode, tests, installation, publication and a new major version of the dashboard. |
 | [Python API for UI plugins](plugins/python-api.md) | Plugin author | Declare a UI plugin with `register_ui_plugin`, its parameters, its errors and what the dashboard checks later. |
 | [Native plugins](plugins/native-plugins.md) | Plugin author | The 16 native plugins, their load order, and the identifiers of their contributions that a plugin can use as a position. |
 | [Loading and dependencies](plugins/loading-and-dependencies.md) | Plugin author | `requires`, `load_after` and `load_before`, the load order and the status of a plugin. |
@@ -22,6 +23,7 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [SDK reference](reference/sdk/index.md) | Plugin author | Generated reference of `@vtherm/dashboard-sdk`: types, `registerUiPlugin` and validation. Do not edit it, run `npm run docs:reference`. |
 | [The add-ons feature](contributing/complements.md) | Contributor | The catalog on the server, the adapter of HACS and its fallback, the states, the restart, and the tested versions. |
 | [Format of the catalog](reference/catalog-format.md) | Plugin author, Contributor | The fields of the catalog of add-ons, `hacs_category`, and how descriptions are sanitized. |
+| [Publishing](contributing/publishing.md) | Contributor | The common version, the tag, what the release workflow does, the trusted publisher of npm and how to install a release. |
 | [Driving the config flow](contributing/config-flow-driver.md) | Contributor | How the configuration of Versatile Thermostat is validated and saved, the tabs and steps, the presets, the versions and the evolution planned. |
 
 ## Rules for the documentation

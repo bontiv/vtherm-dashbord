@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "erasableSyntaxOnly": true,
+    // Only in this repository: the SDK is read from its sources, so no build is needed to type-check. Remove "paths" in your own project.
+    "paths": {
+      "@vtherm/dashboard-sdk/testing": ["../../../packages/sdk/src/testing.ts"],
+      "@vtherm/dashboard-sdk": ["../../../packages/sdk/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "*.config.ts", "*.d.ts"]
+}

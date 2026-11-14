@@ -1,10 +1,13 @@
 """Pytest configuration: custom integrations of the repository are enabled in every test."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from homeassistant import loader
 from homeassistant.core import HomeAssistant
+from vtherm_api import VThermAPI
+from vtherm_api.const import DOMAIN as VTHERM_API_DOMAIN
 from pytest_homeassistant_custom_component.common import MockConfigEntry, MockModule, mock_integration
 
 import custom_components
@@ -66,3 +69,12 @@ def setup_dashboard_fixture(hass: HomeAssistant, frontend_module):  # pylint: di
 def pytest_addoption(parser) -> None:
     """Options of the tests of the dashboard."""
     parser.addoption("--update-schemas", action="store_true", default=False, help="Write the description of the forms of Versatile Thermostat in shared/.")
+
+
+@pytest.fixture(name="api")
+def api_fixture():
+    """Return a VThermAPI on a minimal Home Assistant-like object, and that object."""
+    VThermAPI.reset_vtherm_api()
+    hass = SimpleNamespace(data={VTHERM_API_DOMAIN: {}}, config=SimpleNamespace(time_zone="UTC"))
+    yield VThermAPI.get_vtherm_api(hass), hass
+    VThermAPI.reset_vtherm_api()

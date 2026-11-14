@@ -32,3 +32,4 @@ coverage/
 
 # Frontend build output served from the integration (see design decision 21)
 custom_components/vtherm_dashboard/www/
+examples/*/custom_components/*/www/

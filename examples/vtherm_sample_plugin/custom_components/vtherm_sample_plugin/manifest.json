@@ -1,0 +1,12 @@
+{
+  "domain": "vtherm_sample_plugin",
+  "name": "VTherm Sample Plugin",
+  "codeowners": ["@bontiv"],
+  "dependencies": ["vtherm_dashboard", "http"],
+  "documentation": "https://github.com/bontiv/vtherm_dashboard/tree/master/examples/vtherm_sample_plugin",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/bontiv/vtherm_dashboard/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
