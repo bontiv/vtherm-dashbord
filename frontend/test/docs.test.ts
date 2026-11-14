@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { HOOK_NAMES } from "@vtherm/dashboard-sdk";
+
 import { SERVER_STATES } from "../src/plugin-list.ts";
 
 const page = (name: string): string => readFileSync(fileURLToPath(new URL(`../../docs/plugins/${name}`, import.meta.url)), "utf8");
@@ -61,6 +63,42 @@ describe("the documentation of the translations", () => {
   it("explains the resolution chain, the fallback by key and the change of language", () => {
     for (const text of ["fr-CA", "`pt-BR`", "key by key", "without reloading", "`Intl.PluralRules`", "`satisfies CompleteCatalog<typeof en>`", "`error.generic`"]) {
       expect(translations, text).toContain(text);
+    }
+  });
+});
+
+describe("the documentation of the hooks and the placements", () => {
+  const hooks = page("hooks-and-placement.md");
+
+  it("describes each of the seven hooks", () => {
+    expect(HOOK_NAMES).toHaveLength(7);
+    for (const hook of HOOK_NAMES) {
+      expect(hooks, hook).toContain(`| \`${hook}\` |`);
+    }
+  });
+
+  it("describes each form of placement, the default, on_missing and the visibility", () => {
+    for (const form of ["first: true", "last: true", "before:", "after:", "replace:", "remove:"]) {
+      expect(hooks, form).toContain(`{ ${form}`);
+    }
+    for (const text of ["on_missing", "`skip`", "`visible`", "target_missing", "undeclared_dependency", "zone", "group"]) {
+      expect(hooks, text).toContain(text);
+    }
+  });
+
+  it("describes the menu of each top tab", () => {
+    for (const tab of ["core.top.dashboard", "core.top.thermostats", "core.top.configuration"]) {
+      expect(hooks, tab).toContain(tab);
+    }
+  });
+});
+
+describe("the documentation of the test harness", () => {
+  const testing = page("testing.md");
+
+  it("describes every member of the fake host and the translation checks", () => {
+    for (const name of ["registerPlugin", "resolved", "menu", "visible", "render", "hass", "install", "uninstall", "issues", "createFakeHass", "assertCompleteTranslations", "findTranslationProblems", "knownPlugins", "dashboardVersion"]) {
+      expect(testing, name).toContain(name);
     }
   });
 });

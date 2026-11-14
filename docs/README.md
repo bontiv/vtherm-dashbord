@@ -10,6 +10,8 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [Loading and dependencies](plugins/loading-and-dependencies.md) | Plugin author | `requires`, `load_after` and `load_before`, the load order and the status of a plugin. |
 | [Version constraints](plugins/version-constraints.md) | Plugin author | The grammar of `dashboard_version`, pre-releases and how to support a new major version. |
 | [Translations](plugins/internationalization.md) | Plugin author | The English catalog, typed keys, language resolution and fallback, titles as keys, parameters, plurals and catalogs loaded on demand. |
+| [Hooks and placement](plugins/hooks-and-placement.md) | Plugin author | The seven hooks, the menus, the six placements, how a position is resolved, visibility and the problems reported. |
+| [Testing a plugin](plugins/testing.md) | Plugin author | The fake dashboard of `@vtherm/dashboard-sdk/testing`: register, resolve, render and check translations. |
 | [WebSocket API](reference/websocket-api.md) | Contributor, Plugin author | The `vtherm_dashboard/get_ui_plugins` command: request, response, plugin states and errors. |
 | [SDK reference](reference/sdk/index.md) | Plugin author | Generated reference of `@vtherm/dashboard-sdk`: types, `registerUiPlugin` and validation. Do not edit it, run `npm run docs:reference`. |
 

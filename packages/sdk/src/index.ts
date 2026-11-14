@@ -25,3 +25,5 @@ export type {
   TranslationWarning,
   Translations,
 } from "./translations.js";
+export { CORE_TOP_TABS, createPlacementEngine, groupMenu } from "./placement.js";
+export type { CoreTopTabs, EngineIssue, MenuSection, PlacedEntry, PlacementEngine, PluginRelations, ShownContribution, TopTabZones } from "./placement.js";

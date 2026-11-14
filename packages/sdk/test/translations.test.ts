@@ -135,6 +135,16 @@ describe("catalogs loaded on demand", () => {
     expect(translations.t("tab.title")).toBe("Intelligentes TPI (module)");
   });
 
+  it("accepts a loader that returns an object with only a default export, and a catalog that has a key named default", async () => {
+    const wrapped = defineTranslations(en, { de: async () => ({ default: { "tab.title": "Intelligentes TPI (objet)" } }) });
+    await wrapped.setLanguage("de");
+    expect(wrapped.t("tab.title")).toBe("Intelligentes TPI (objet)");
+
+    const withDefaultKey = defineTranslations({ default: "Default", other: "Other" }, { fr: async () => ({ default: "Par défaut" }) });
+    await withDefaultKey.setLanguage("fr");
+    expect(withDefaultKey.t("default")).toBe("Par défaut");
+  });
+
   it("falls back to English when the loading fails, and records it", async () => {
     const translations = defineTranslations(en, {
       de: async () => {

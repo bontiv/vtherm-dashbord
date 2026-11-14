@@ -4,6 +4,7 @@
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "paths": {
+      "@vtherm/dashboard-sdk/testing": ["../../packages/sdk/src/testing.ts"],
       "@vtherm/dashboard-sdk": ["../../packages/sdk/src/index.ts"]
     }
   },

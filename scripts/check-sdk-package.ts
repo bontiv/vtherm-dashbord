@@ -61,13 +61,20 @@ function main(): number {
         'const translations = defineTranslations({ "tab.title": "Tab" });',
         'const definition: UiPluginDefinition = { id: "mine", translations, contributions: { thermostat_config: [{ id: "mine.tab.main", title: "tab.title", component: "mine-tab", placement }] } };',
         "registerUiPlugin(definition);",
+        'import { createFakeHost } from "@vtherm/dashboard-sdk/testing";',
+        "createFakeHost().registerPlugin(definition);",
         "",
       ].join("\n"),
     );
     run("npm", ["install", "--no-audit", "--no-fund", "--ignore-scripts", join(work, tarball.filename)], project);
     run("node", [join(ROOT, "node_modules", "typescript", "bin", "tsc"), "-p", "tsconfig.json"], project);
     const exported = run("node", ["--input-type=module", "-e", 'import * as sdk from "@vtherm/dashboard-sdk"; console.log(Object.keys(sdk).sort().join(","));'], project).trim();
-    console.log(`Package OK: ${files.length} files, imports compile in strict mode, exports: ${exported}`);
+    const harness = run("node", ["--input-type=module", "-e", 'import * as testing from "@vtherm/dashboard-sdk/testing"; console.log(Object.keys(testing).sort().join(","));'], project).trim();
+    if (exported.includes("createFakeHost") || !harness.includes("createFakeHost")) {
+      console.error(`The harness must be exported by @vtherm/dashboard-sdk/testing only.\nMain entry point: ${exported}\nTesting entry point: ${harness}`);
+      return 1;
+    }
+    console.log(`Package OK: ${files.length} files, imports compile in strict mode.\nMain entry point: ${exported}\nTesting entry point: ${harness}`);
     return 0;
   } catch (error) {
     const output = error instanceof Error ? [(error as { stdout?: string }).stdout, (error as { stderr?: string }).stderr].filter(Boolean).join("\n") : "";

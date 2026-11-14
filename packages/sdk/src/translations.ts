@@ -133,9 +133,21 @@ function isLoader(value: unknown): value is CatalogLoader<Catalog> {
   return typeof value === "function";
 }
 
-/** Tell a module namespace, which is what a dynamic `import()` returns, from a catalog that has a key named `default`. */
-function isModule(value: object): value is { readonly default: object } {
-  return Object.prototype.toString.call(value) === "[object Module]" && "default" in value;
+/**
+ * Give the catalog that a loader returned: the catalog itself, or the default export of a module.
+ *
+ * A module namespace, which is what a dynamic `import()` returns, is recognized. So is a plain object that has only the key
+ * `default`, with an object that is not a plural text, as a test double returns. A catalog that has a text under the key `default`
+ * is a catalog.
+ *
+ * @internal
+ */
+export function unwrapCatalog(result: object): Catalog {
+  const keys = Object.keys(result);
+  const candidate = (result as { default?: unknown }).default;
+  const isModuleNamespace = Object.prototype.toString.call(result) === "[object Module]" && "default" in result;
+  const isDefaultOnly = keys.length === 1 && keys[0] === "default" && typeof candidate === "object" && candidate !== null && typeof (candidate as { other?: unknown }).other !== "string";
+  return (isModuleNamespace || isDefaultOnly ? candidate : result) as Catalog;
 }
 
 function pluralMessage(message: PluralMessage, language: string, count: number): string {
@@ -224,7 +236,7 @@ export function defineTranslations<const English extends Catalog>(english: Engli
           .map(async (tag) => {
             try {
               const result = await (loaders.get(tag) as CatalogLoader<Catalog>)();
-              loaded.set(tag, isModule(result) ? (result.default as Catalog) : (result as Catalog));
+              loaded.set(tag, unwrapCatalog(result));
             } catch (error) {
               // A language that cannot be loaded falls back to English, and is not tried again.
               loaders.delete(tag);

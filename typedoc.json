@@ -1,7 +1,12 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "plugin": ["typedoc-plugin-markdown"],
-  "entryPoints": ["packages/sdk/src/index.ts"],
+  "plugin": [
+    "typedoc-plugin-markdown"
+  ],
+  "entryPoints": [
+    "packages/sdk/src/index.ts",
+    "packages/sdk/src/testing.ts"
+  ],
   "tsconfig": "packages/sdk/tsconfig.json",
   "out": "docs/reference/sdk",
   "readme": "none",
