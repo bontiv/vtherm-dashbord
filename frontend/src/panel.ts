@@ -23,7 +23,6 @@ import "./components/thermostat-list.ts";
 import "./components/top-bar.ts";
 import { createLanguageController } from "./i18n.ts";
 import type { LanguageController } from "./i18n.ts";
-import type { DevelopmentEntry } from "./plugin-list.ts";
 import type { PluginStatus } from "./loader.ts";
 import { resolveNavigation, routeForThermostat } from "./navigation.ts";
 import type { NavigationInput, NavigationModel, ThermostatInfo } from "./navigation.ts";
@@ -34,6 +33,8 @@ import { shell, t } from "./shell-translations.ts";
 import { translateErrorCode } from "./i18n.ts";
 import { DASHBOARD_VERSION } from "./version.ts";
 import { defineElement } from "./components/define.ts";
+import { DevStore } from "./dev/dev-store.ts";
+import type { DevelopmentEntry } from "./plugin-list.ts";
 
 /** The tag name of the panel. The integration registers the panel with this name. */
 export const PANEL_ELEMENT = "vtherm-dashboard-panel";
@@ -62,6 +63,7 @@ export class VThermDashboardPanel extends LitElement {
     languageVersion: { state: true },
     saving: { state: true },
     pageTitle: { state: true },
+    developmentPlugins: { state: true },
     savedMessage: { state: true },
     configRevision: { state: true },
   };
@@ -109,6 +111,11 @@ export class VThermDashboardPanel extends LitElement {
       border: 1px solid currentcolor;
       border-radius: var(--ha-card-border-radius, 4px);
       cursor: pointer;
+    }
+    .devbanner {
+      padding: 6px 16px;
+      color: var(--text-primary-color);
+      background-color: var(--warning-color);
     }
     .body {
       position: relative;
@@ -228,6 +235,9 @@ export class VThermDashboardPanel extends LitElement {
   /** Changes each time the language was applied, so that every component draws its texts again. */
   declare languageVersion: number;
 
+  /** The identifiers of the plugins in development that were sent with the request. They make the banner. */
+  declare developmentPlugins: readonly string[];
+
   /** The last segment of the breadcrumb, given by the page that is shown. It is dropped when the route changes. */
   declare pageTitle: string;
 
@@ -272,6 +282,7 @@ export class VThermDashboardPanel extends LitElement {
     this.failure = "";
     this.languageVersion = 0;
     this.pageTitle = "";
+    this.developmentPlugins = [];
     this.saving = false;
     this.savedMessage = "";
     this.configRevision = 0;
@@ -456,12 +467,33 @@ export class VThermDashboardPanel extends LitElement {
     }
   }
 
+  /**
+   * The entries of the plugins in development to send with the request. Only an administrator has them: for anyone else the browser
+   * keeps no entry that counts, and the server would refuse them anyway.
+   */
+  private activeDevelopmentEntries(hass: Hass): readonly DevelopmentEntry[] {
+    if (hass.user?.is_admin !== true) {
+      return [];
+    }
+    if (this.developmentEntries.length > 0) {
+      return this.developmentEntries;
+    }
+    try {
+      return new DevStore().active();
+    } catch {
+      // A browser can refuse the local storage.
+      return [];
+    }
+  }
+
   /** Ask the server for the plugins, import them, read the thermostats and give the language to everything. */
   private async start(hass: Hass): Promise<void> {
     try {
       await this.language.update(hass);
+      const development = this.activeDevelopmentEntries(hass);
+      this.developmentPlugins = development.map((entry) => entry.id);
       this.loaded = await bootstrap(hass, {
-        developmentEntries: this.developmentEntries,
+        developmentEntries: development,
         ...(this.importModule === undefined ? {} : { importModule: this.importModule }),
         onStatus: (statuses) => {
           this.statuses = statuses;
@@ -469,7 +501,13 @@ export class VThermDashboardPanel extends LitElement {
         },
       });
       this.statuses = this.loaded.statuses;
-      publishState({ statuses: this.statuses, issues: this.loaded.registry.issues(), dashboardVersion: this.loaded.list.dashboard_version });
+      const registry = this.loaded.registry;
+      publishState({
+        statuses: this.statuses,
+        issues: registry.issues(),
+        dashboardVersion: this.loaded.list.dashboard_version,
+        translationWarnings: (pluginId) => registry.definitions().find((definition) => definition.id === pluginId)?.translations.warnings ?? [],
+      });
       if (this.loaded.list.dashboard_version !== DASHBOARD_VERSION) {
         // After an update, the browser can keep the previous bundle in its cache.
         console.warn(`The dashboard frontend is ${DASHBOARD_VERSION} but the server is ${this.loaded.list.dashboard_version}. Reload the page without cache.`);
@@ -634,6 +672,7 @@ export class VThermDashboardPanel extends LitElement {
     }
     const hasMenu = !creating && model.mode === "page" && (model.sections.length > 0 || model.thermostat !== undefined);
     return html`<vtherm-top-bar .tabs=${model.tabs} .heading=${t("shell.title")}></vtherm-top-bar>
+      ${this.developmentPlugins.length === 0 ? undefined : html`<div class="devbanner" role="status">${t("dev.banner", { plugins: this.developmentPlugins.join(", ") })}</div>`}
       <div class="toolbar">
         ${this.compact && hasMenu
           ? html`<button class="menu-button" aria-expanded=${this.drawerOpen ? "true" : "false"} @click=${() => (this.drawerOpen = !this.drawerOpen)}>${t("shell.menu.toggle")}</button>`

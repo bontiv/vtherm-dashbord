@@ -16,5 +16,6 @@ it("shows the plugin in the language of the user, and English where a key is mis
 
   await translations.setLanguage("ja");
   expect(t("tab.title")).toBe("Smart TPI");
-  expect(translations.warnings).toEqual([]);
+  // A key that is shown in English although a catalog exists is a `fallback`. Nothing is missing everywhere.
+  expect(translations.warnings.filter((warning) => warning.code !== "fallback")).toEqual([]);
 });

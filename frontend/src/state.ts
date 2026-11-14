@@ -5,7 +5,7 @@
  * to draw again when it changes.
  */
 
-import type { EngineIssue } from "@vtherm/dashboard-sdk";
+import type { EngineIssue, TranslationWarning } from "@vtherm/dashboard-sdk";
 
 import type { PluginStatus } from "./loader.ts";
 
@@ -17,6 +17,8 @@ export interface DashboardState {
   readonly issues: readonly EngineIssue[];
   /** The version of the dashboard. */
   readonly dashboardVersion: string;
+  /** The warnings of the translations of a plugin, read when they are shown because they grow as the pages draw. */
+  readonly translationWarnings?: (pluginId: string) => readonly TranslationWarning[];
 }
 
 /** The event sent on the window when the state changes. */

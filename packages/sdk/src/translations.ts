@@ -62,8 +62,11 @@ export type TranslationParams = Readonly<Record<string, string | number>>;
 
 /** Something that went wrong while translating. It does not stop the display. */
 export interface TranslationWarning {
-  /** What happened: the key exists in no catalog, a parameter is missing, or a catalog could not be loaded. */
-  readonly code: "missing_key" | "missing_param" | "load_failed";
+  /**
+   * What happened: the key exists in no catalog, a parameter is missing, a catalog could not be loaded, or the key is missing
+   * from the loaded catalog of the language of the user and English was shown instead.
+   */
+  readonly code: "missing_key" | "missing_param" | "load_failed" | "fallback";
   /** The language that was asked, or the language that failed to load. */
   readonly language: string;
   /** The key concerned. Empty for a catalog that failed to load. */
@@ -193,10 +196,15 @@ export function defineTranslations<const English extends Catalog>(english: Engli
   };
 
   const resolve = (language: string, key: string, params: TranslationParams = {}): string => {
-    for (const tag of languageChain(language)) {
+    const chain = languageChain(language);
+    for (const tag of chain) {
       const message = loaded.get(tag)?.[key];
       if (message === undefined) {
         continue;
+      }
+      if (tag === "en" && chain.some((other) => other !== "en" && loaded.has(other))) {
+        // The language of the user has a catalog, and the key is not in it. A partial catalog is allowed, so this only informs.
+        warn({ code: "fallback", language, key });
       }
       let text: string;
       if (typeof message === "string") {

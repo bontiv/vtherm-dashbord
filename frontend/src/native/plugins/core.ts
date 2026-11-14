@@ -12,6 +12,9 @@ export const translations = defineTranslations(en, { fr, de });
 defineCorePages();
 const tabs = nativeTabContributions("core", translations);
 
+/** The plugins in development are for administrators only. */
+const administrator = (context: VisibilityContext<"tab_page">): boolean => context.hass.user?.is_admin === true;
+
 /** The definition of the plugin `core`. */
 export const definition: UiPluginDefinition = {
   id: "core",
@@ -24,7 +27,7 @@ export const definition: UiPluginDefinition = {
     ],
     tab_page: [
       { id: PLUGINS_PAGE_ID, tab: CORE_TOP_TABS.configuration, title: "page.plugins", group: "group.dashboard", component: "core-plugins-page" },
-      { id: "core.page.dev_plugins", tab: CORE_TOP_TABS.configuration, title: "page.dev_plugins", group: "group.dashboard", component: "core-dev-plugins-page" },
+      { id: "core.page.dev_plugins", tab: CORE_TOP_TABS.configuration, title: "page.dev_plugins", group: "group.dashboard", component: "core-dev-plugins-page", visible: administrator },
     ],
     global_page: [{ id: "core.page.overview", title: "page.overview", icon: "mdi:view-dashboard-outline", component: "core-overview-page", placement: { first: true } }],
     general_config: [

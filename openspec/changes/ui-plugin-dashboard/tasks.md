@@ -103,10 +103,10 @@ Voir `design.md`, décision 20. Les tests d'intégration de HACS utilisent une c
 
 ## 10. Mode développement
 
-- [ ] 10.1 Implémenter le stockage local des entrées de développement (ajout, activation, désactivation, suppression, validation du schéma `http`/`https`, `dashboard_version` obligatoire pour un `id` inconnu) ; vérifier par tests unitaires de `ui-plugin-dev-mode`
-- [ ] 10.2 Joindre les entrées actives de développement à la requête `vtherm_dashboard/get_ui_plugins`, que le serveur fusionne (remplacement de l'URL pour un `id` installé, déclaration complète pour un `id` inconnu, refus d'un identifiant `core*` non natif) et faire accepter ces `id` par le registre JS ; vérifier par tests unitaires dont les deux cas, le refus pour un utilisateur non administrateur et l'absence de conservation côté serveur
+- [x] 10.1 Implémenter le stockage local des entrées de développement (ajout, activation, désactivation, suppression, validation du schéma `http`/`https`, `dashboard_version` obligatoire pour un `id` inconnu) ; vérifier par tests unitaires de `ui-plugin-dev-mode`
+- [x] 10.2 Joindre les entrées actives de développement à la requête `vtherm_dashboard/get_ui_plugins`, que le serveur fusionne (remplacement de l'URL pour un `id` installé, déclaration complète pour un `id` inconnu, refus d'un identifiant `core*` non natif) et faire accepter ces `id` par le registre JS ; vérifier par tests unitaires dont les deux cas, le refus pour un utilisateur non administrateur et l'absence de conservation côté serveur
 - [ ] 10.3 Réaliser la page de gestion des plugins en développement, le bandeau "Mode développement" et le diagnostic d'échec (URL tentée, CORS, contenu mixte) ; vérifier avec un serveur local arrêté, un serveur sans en-tête CORS et un serveur correct
-- [ ] 10.4 Ajouter à la vue d'état des plugins la source (installé, natif ou développement avec URL) et les clés de traduction manquantes rencontrées en mode développement ; vérifier avec un plugin de chaque source et un plugin en développement qui demande une clé absente en allemand
+- [x] 10.4 Ajouter à la vue d'état des plugins la source (installé, natif ou développement avec URL) et les clés de traduction manquantes rencontrées en mode développement ; vérifier avec un plugin de chaque source et un plugin en développement qui demande une clé absente en allemand
 - [ ] 10.5 Documenter le mode développement dans `docs/plugins/dev-mode.md` (usage, deux modes d'entrée, CORS pour Rollup et Vite, HTTPS et Safari, limites) ; vérifier que les configurations Rollup et Vite proviennent de `docs/examples/` et fonctionnent avec le plugin d'exemple du groupe 11
 
 ## 11. Intégration

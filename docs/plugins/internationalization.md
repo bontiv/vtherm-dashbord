@@ -58,8 +58,9 @@ The tags are compared without case, and `-` equals `_`: `pt_br` is `pt-BR`. A us
 when you have no `fr-CA` one, and a user in `ja` sees English.
 
 The fallback is made key by key, not catalog by catalog: a key that is missing in the French catalog is shown in
-English, and the other keys are shown in French. A key that is missing everywhere is shown as it is, and a warning
-is recorded in `translations.warnings`.
+English, and the other keys are shown in French. The fallback is recorded as a `fallback` warning in `translations.warnings`,
+which the plugin status page shows for a plugin in development. A key that is missing everywhere is shown as it is, and a
+`missing_key` warning is recorded.
 
 When the user changes language in Home Assistant, the dashboard updates every plugin without reloading the page.
 
@@ -125,7 +126,7 @@ export default {
   not in the English catalog all fail to compile.
 - In your tests, `assertCompleteTranslations` from `@vtherm/dashboard-sdk/testing` fails and names each missing or unknown key
   of the languages that must be complete (see [Testing a plugin](testing.md)).
-- At run time, `translations.warnings` lists the keys that were not found, the parameters that were not given and the
+- At run time, `translations.warnings` lists the keys that were not found (`missing_key`), the keys that were shown in English although the language of the user has a catalog (`fallback`), the parameters that were not given and the
   catalogs that did not load.
 
 ## Texts of the server

@@ -79,7 +79,7 @@ describe("the plugin status page", () => {
   it("shows a plugin in development with its source and the URL that was used", async () => {
     const { rows } = await statusRows([stub("mine", { source: "development" })]);
     expect(cells(rows.get("mine"))[1]).toBe("Development");
-    expect(cells(rows.get("mine"))[3]).toBe("URL: /mine/ui.js");
+    expect(cells(rows.get("mine"))[3]).toContain("URL: /mine/ui.js");
   });
 
   it("shows the problems found with the contributions", async () => {

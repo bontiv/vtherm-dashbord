@@ -64,6 +64,16 @@ describe("fallback by key", () => {
     const translations = defineTranslations(en, { fr: { "tab.title": "TPI intelligent" } });
     await translations.setLanguage("fr");
     expect(translations.t("tab.help", { name: "Salon" })).toBe("Help for Salon");
+    // The fallback is allowed, and recorded so that the dashboard can tell the author of a plugin in development.
+    expect(translations.warnings).toEqual([{ code: "fallback", language: "fr", key: "tab.help" }]);
+  });
+
+  it("does not record a fallback for a language without catalog, or for English", async () => {
+    const translations = defineTranslations(en, { fr: { "tab.title": "TPI intelligent" } });
+    await translations.setLanguage("ja");
+    translations.t("tab.title");
+    await translations.setLanguage("en");
+    translations.t("tab.title");
     expect(translations.warnings).toEqual([]);
   });
 

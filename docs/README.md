@@ -14,6 +14,7 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [Loading and dependencies](plugins/loading-and-dependencies.md) | Plugin author | `requires`, `load_after` and `load_before`, the load order and the status of a plugin. |
 | [Version constraints](plugins/version-constraints.md) | Plugin author | The grammar of `dashboard_version`, pre-releases and how to support a new major version. |
 | [Translations](plugins/internationalization.md) | Plugin author | The English catalog, typed keys, language resolution and fallback, titles as keys, parameters, plurals and catalogs loaded on demand. |
+| [Developing a plugin](plugins/dev-mode.md) | Plugin author | The development mode: entries of the browser, the two kinds of entry, the servers of Vite and Rollup with CORS, the diagnosis of a failure, HTTPS and Safari, and the limits. |
 | [Theming](plugins/theming.md) | Plugin author | Use the variables of the Home Assistant theme and no color of your own. |
 | [Hooks and placement](plugins/hooks-and-placement.md) | Plugin author | The seven hooks, the menus, the six placements, how a position is resolved, visibility and the problems reported. |
 | [Testing a plugin](plugins/testing.md) | Plugin author | The fake dashboard of `@vtherm/dashboard-sdk/testing`: register, resolve, render and check translations. |

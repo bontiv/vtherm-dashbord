@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
 
-import type { EngineIssue } from "@vtherm/dashboard-sdk";
+import type { EngineIssue, TranslationWarning } from "@vtherm/dashboard-sdk";
 
 import type { PluginStatus } from "../loader.ts";
 import { t } from "../shell-translations.ts";
@@ -49,6 +49,50 @@ export function describeStatus(status: PluginStatus, dashboardVersion: string): 
   }
   if (status.source === "development") {
     lines.push(translate("status.url", { url: status.js_url }));
+    if (status.state === "failed" && status.reason === "import_failed") {
+      lines.push(...diagnoseDevelopmentFailure(status.js_url));
+    }
+  }
+  return lines;
+}
+
+/**
+ * The common causes of a module in development that does not load.
+ *
+ * A browser does not tell a stopped server from a missing CORS header: both are a failed import. So the page lists the causes, and
+ * puts the mixed content first when the page is served over HTTPS and the module over HTTP, which a browser may block.
+ *
+ * @param url - The URL that was tried.
+ * @param pageProtocol - The protocol of the page of the dashboard.
+ */
+export function diagnoseDevelopmentFailure(url: string, pageProtocol: string = window.location.protocol): string[] {
+  const mixed = pageProtocol === "https:" && url.startsWith("http:");
+  return [
+    translate("status.dev.failed", { url }),
+    ...(mixed ? [translate("status.dev.cause.mixed")] : []),
+    translate("status.dev.cause.stopped"),
+    translate("status.dev.cause.cors"),
+  ];
+}
+
+/**
+ * Tell the author of a plugin which texts are missing: the ones shown in English because the language of the user has no text, and
+ * the ones that exist nowhere.
+ *
+ * @param warnings - The warnings of the translations of the plugin.
+ */
+export function describeTranslationWarnings(warnings: readonly TranslationWarning[]): string[] {
+  const lines: string[] = [];
+  const fallback = new Map<string, string[]>();
+  for (const warning of warnings.filter((candidate) => candidate.code === "fallback")) {
+    fallback.set(warning.language, [...(fallback.get(warning.language) ?? []), warning.key]);
+  }
+  for (const [language, keys] of fallback) {
+    lines.push(translate("status.translations.fallback", { language, keys: keys.join(", ") }));
+  }
+  const missing = warnings.filter((candidate) => candidate.code === "missing_key").map((warning) => warning.key);
+  if (missing.length > 0) {
+    lines.push(translate("status.translations.missing", { keys: [...new Set(missing)].join(", ") }));
   }
   return lines;
 }
@@ -59,6 +103,7 @@ export class VThermPluginStatus extends LitElement {
     language: { type: String },
     statuses: { attribute: false },
     issues: { attribute: false },
+    translationWarnings: { attribute: false },
     dashboardVersion: { type: String },
   };
 
@@ -124,6 +169,9 @@ export class VThermPluginStatus extends LitElement {
   /** The problems that the placement of the contributions found. */
   declare issues: readonly EngineIssue[];
 
+  /** The warnings of the translations of a plugin. They are shown for the plugins in development, whose author can fix them. */
+  declare translationWarnings: ReadonlyMap<string, readonly TranslationWarning[]>;
+
   /** The version of the dashboard. */
   declare dashboardVersion: string;
 
@@ -135,6 +183,7 @@ export class VThermPluginStatus extends LitElement {
     this.language = "";
     this.statuses = [];
     this.issues = [];
+    this.translationWarnings = new Map();
     this.dashboardVersion = "";
   }
 
@@ -158,7 +207,11 @@ export class VThermPluginStatus extends LitElement {
                   <td>${status.id}</td>
                   <td>${translate(`status.source.${status.source}`)}</td>
                   <td class="state ${status.state}">${translate(`status.state.${status.state}`)}</td>
-                  <td>${describeStatus(status, this.dashboardVersion).map((line) => html`<div>${line}</div>`)}</td>
+                  <td>
+                    ${[...describeStatus(status, this.dashboardVersion), ...(status.source === "development" ? describeTranslationWarnings(this.translationWarnings.get(status.id) ?? []) : [])].map(
+                      (line) => html`<div>${line}</div>`,
+                    )}
+                  </td>
                 </tr>`,
               )}
             </tbody>

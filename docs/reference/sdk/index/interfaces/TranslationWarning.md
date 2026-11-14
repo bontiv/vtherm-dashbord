@@ -10,9 +10,10 @@ Something that went wrong while translating. It does not stop the display.
 
 ### code
 
-> `readonly` **code**: `"missing_key"` \| `"missing_param"` \| `"load_failed"`
+> `readonly` **code**: `"missing_key"` \| `"missing_param"` \| `"load_failed"` \| `"fallback"`
 
-What happened: the key exists in no catalog, a parameter is missing, or a catalog could not be loaded.
+What happened: the key exists in no catalog, a parameter is missing, a catalog could not be loaded, or the key is missing
+from the loaded catalog of the language of the user and English was shown instead.
 
 ***
 

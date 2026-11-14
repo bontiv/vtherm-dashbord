@@ -5,6 +5,7 @@ import type { TemplateResult } from "lit";
 
 import "../components/plugin-status-page.ts";
 import "../components/widgets-page.ts";
+import "../dev/dev-plugins-page.ts";
 import { navigate } from "../components/events.ts";
 import { buildPath } from "../router.ts";
 import { t } from "../shell-translations.ts";
@@ -69,26 +70,18 @@ export class CorePluginsPage extends LitElement {
   }
 }
 
-/** The page "Development" of the configuration. The management of the plugins in development comes with the development mode. */
+/** The page "Development" of the configuration: the plugins in development of this browser. */
 export class CoreDevPluginsPage extends LitElement {
   static override properties = { language: { type: String } };
-  static override styles = css`
-    :host {
-      display: block;
-      padding: 16px;
-      color: var(--secondary-text-color);
-    }
-  `;
   declare language: string;
   constructor() {
     super();
     this.language = "";
   }
   protected override render(): TemplateResult {
-    return html`<p>${t("dev.placeholder")}</p>`;
+    return html`<vtherm-dev-plugins-page .language=${this.language}></vtherm-dev-plugins-page>`;
   }
 }
-
 /** The section of the general configuration shown while there is no central configuration: it offers to create it. */
 export class CoreCreateCentralPage extends LitElement {
   static override properties = { language: { type: String } };

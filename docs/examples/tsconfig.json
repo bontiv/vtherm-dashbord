@@ -8,5 +8,5 @@
       "@vtherm/dashboard-sdk": ["../../packages/sdk/src/index.ts"]
     }
   },
-  "include": ["typescript/**/*.ts"]
+  "include": ["typescript/**/*.ts", "dev-server/**/*.ts"]
 }
