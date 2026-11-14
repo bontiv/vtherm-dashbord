@@ -1,0 +1,27 @@
+# Système
+.DS_Store
+
+# Liens générés par OpenSpec pour chaque outil (la source est .agents/skills)
+.kiro/skills/
+.codestudio/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Environnement et éditeurs
+.env
+.idea/
+.vscode/
