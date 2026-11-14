@@ -19,7 +19,7 @@ Projet neuf : aucun code existant. `vtherm_api` est un package Python pur, sans 
 ## Decisions
 
 ### 1. Architecture hybride : Python déclare, JavaScript contribue
-Le registre Python (dans `vtherm_api`) liste les plugins UI présents et leur `js_url`. Le frontend charge ces modules, qui déclarent leurs contributions dans `VThermUiPluginRegistry`.
+Le registre Python (dans `vtherm_api`, décision du projet : le custom component n'en a pas de copie) liste les plugins UI présents et leur `js_url`. Le frontend charge ces modules, qui déclarent leurs contributions dans `VThermUiPluginRegistry`.
 - *Alternative A, tout en Python* : couple chaque plugin à l'API du dashboard et impose de sérialiser des composants UI. Rejetée.
 - *Alternative B, tout en JS (auto-enregistrement global)* : pas de source de vérité sur les plugins installés, et risque de course au chargement. Rejetée.
 
@@ -36,12 +36,19 @@ Le plugin appelle `register_ui_plugin` pendant son setup, plutôt que de déclar
 
 Chaque niveau a ainsi un seul rôle et se valide séparément.
 
-### 5. Algorithme de chargement
-1. Récupérer la liste via WS.
-2. Construire un graphe : `requires` et `load_after` donnent l'arête cible → plugin, `load_before` donne plugin → cible. Les cibles absentes sont ignorées pour les liens souples.
+### 5. Liste de chargement construite par le serveur
+`vtherm_api` est un registre passif : il stocke les enregistrements (structure et unicité de l'`id`) et ne trie rien. L'extension construit la liste à chaque appel de la commande WebSocket, en Python :
+1. Lire les plugins enregistrés dans `vtherm_api`, y ajouter les entrées de développement jointes à la requête (administrateur seulement, voir décision 10).
+2. Valider chaque plugin : `js_url` local (sauf entrée de développement, `http`/`https`), grammaire de `dashboard_version`, identifiant réservé `core*` qui n'est pas natif. Un plugin invalide reçoit un état et n'est pas chargé.
 3. Écarter les plugins dont la contrainte `dashboard_version` n'est pas satisfaite par la version du dashboard (état "dashboard incompatible"), puis ceux avec `requires` manquant (propagation jusqu'à stabilité).
-4. Tri topologique de Kahn. Départage des ex æquo par `id` alphabétique, pour un ordre déterministe. Les plugins restants non triés forment des cycles et sont exclus.
-5. Importer les modules dans cet ordre (`import()` dynamique, attente de chaque enregistrement). Chaque module appelle `registerUiPlugin(...)` du SDK, qui délègue au registre ; le registre vérifie que l'`id` correspond au plugin en cours d'import (connu côté Python), puis les contributions sont appliquées à ce moment.
+4. Construire un graphe : `requires` et `load_after` donnent l'arête cible → plugin, `load_before` donne plugin → cible. Les cibles absentes sont ignorées pour les liens souples.
+5. Tri topologique de Kahn. Départage des ex æquo par `id` alphabétique, pour un ordre déterministe. Les plugins restants non triés forment des cycles et sont exclus.
+6. Retourner tous les plugins, y compris les exclus, avec `state`, `reason`, `source`, `requires` et leur rang de chargement.
+
+Le frontend importe les modules dans l'ordre reçu (`import()` dynamique, attente de chaque enregistrement). Chaque module appelle `registerUiPlugin(...)` du SDK, qui délègue au registre JavaScript ; le registre vérifie que l'`id` figure dans la liste reçue, puis applique les contributions à ce moment. Le seul calcul de dépendances côté frontend est la propagation d'un échec à l'exécution : un plugin dont un `requires` a échoué n'est pas importé.
+- Tous les plugins natifs, dont `core`, sont enregistrés côté Python (décision 14). Le frontend n'a pas de plugin de base propre.
+- *Alternative : tri dans le frontend* : évite un appel serveur plus lourd, mais impose un second parseur de contraintes en TypeScript et deux copies de l'algorithme. Rejetée.
+- *Alternative : tri dans `vtherm_api`* : le package n'est pas responsable de l'ordre de chargement de l'interface. Rejetée.
 
 ### 6. Résolution des positions à l'ajout
 Chaque hook maintient une liste ordonnée d'éléments. Pour chaque contribution, au chargement de son plugin :
@@ -66,10 +73,10 @@ Le dépôt devient un monorepo npm (workspaces) : `packages/sdk` (publié sous `
 - *Alternative : types dans un dépôt séparé* : plus de découplage, mais deux dépôts à synchroniser à chaque évolution du contrat. Rejetée pour la première version.
 
 ### 9. Compatibilité par contrainte de version du dashboard
-Chaque plugin déclare une seule fois, dans `register_ui_plugin`, une contrainte `dashboard_version` (par exemple `>=1.0,<2.0`). Le dashboard l'évalue avant de télécharger le module : un plugin incompatible n'est jamais exécuté. L'état "dashboard incompatible" indique la contrainte, la version courante et le motif (trop ancien ou trop récent).
+Chaque plugin déclare une seule fois, dans `register_ui_plugin`, une contrainte `dashboard_version` (par exemple `>=1.0,<2.0`). Le serveur l'évalue avant de lister le module à charger : un plugin incompatible n'est jamais exécuté. L'état "dashboard incompatible" indique la contrainte, la version courante et le motif (trop ancien ou trop récent).
 - **Une seule déclaration, côté Python.** Le dashboard et le SDK sont publiés avec le même numéro de version, donc une déclaration côté JavaScript n'apporterait qu'un risque de désaccord entre deux copies. Le SDK n'a pas de champ de version dans `registerUiPlugin`.
 - **Grammaire minimale** : comparateurs `>=`, `>`, `<=`, `<`, `==` séparés par des virgules (ET), versions semver, `1.0` équivaut à `1.0.0`. Pas de `^`, `~`, `||` ni de jokers en v1.
-- **Parseur écrit à la main** en Python (validation à l'enregistrement) et en TypeScript (évaluation dans le dashboard), sans dépendance externe. Les deux passent la même table de cas, ce qui évite les écarts de comportement entre `packaging` (PEP 440) et `semver` (npm), notamment sur les préversions.
+- **Parseur écrit à la main**, en Python seulement, dans le custom component (aucune copie dans `vtherm_api` ni en TypeScript), sans dépendance externe. Il passe la table de cas partagée `shared/version-constraints.json`, qui fige son comportement et évite les écarts avec `packaging` (PEP 440) et `semver` (npm), notamment sur les préversions.
 - La version du dashboard est celle de son `manifest.json`, injectée dans le bundle au build. Le SDK l'expose en lecture seule.
 - **Alternative : version minimale seule** : ne protège pas contre un dashboard plus récent qui change le contrat. Rejetée.
 - **Alternative : numéro de version de contrat distinct** : une deuxième numérotation à maintenir. Rejetée.
@@ -77,10 +84,10 @@ Chaque plugin déclare une seule fois, dans `register_ui_plugin`, une contrainte
 - Les auteurs alignent la plage de leur dépendance `@vtherm/dashboard-sdk` sur leur `dashboard_version` (à documenter dans le guide).
 
 ### 10. Mode développement côté navigateur
-Les entrées de développement sont stockées dans le `localStorage` du navigateur, lues par le chargeur du dashboard avant le tri des plugins. Rien n'est écrit côté Home Assistant.
+Les entrées de développement sont stockées dans le `localStorage` du navigateur et jointes par le chargeur à la requête de découverte. Le serveur les fusionne à la construction de la liste et ne les conserve pas. Rien n'est écrit côté Home Assistant.
 - Une entrée avec un `id` installé remplace seulement le `js_url` ; ses métadonnées restent celles du registre Python.
 - Une entrée avec un `id` inconnu contient ses propres métadonnées (`dashboard_version` obligatoire) et tient lieu de déclaration Python. Le contrôle "id connu" du registre JS accepte les deux sources.
-- Le chargeur fusionne les entrées avec la liste reçue du WebSocket, puis suit le même algorithme (décision 5) : aucun chemin de code distinct pour les plugins en développement, sauf la source de l'URL.
+- Le serveur fusionne les entrées avec les plugins enregistrés, puis suit le même algorithme (décision 5) : aucun chemin de code distinct pour les plugins en développement, sauf la source de l'URL. Il refuse les entrées d'un utilisateur non administrateur.
 - Le mode est réservé aux administrateurs, comme le panel, et un bandeau le signale.
 - Le rechargement se fait par rafraîchissement de la page. Un rechargement à chaud automatique est hors périmètre.
 - Prérequis côté développeur : le serveur de développement doit envoyer `Access-Control-Allow-Origin` (import de module depuis une autre origine). Le guide donne la configuration Rollup et Vite. `http://localhost` depuis une page HTTPS fonctionne sur Chrome et Firefox, pas sur Safari.
@@ -98,7 +105,8 @@ Le dashboard n'embarque aucune couleur fixe. Il utilise uniquement les variables
 ### 13. Panel et sécurité côté Python
 - Panel enregistré en `require_admin=True` via `panel_custom`, avec un module JS servi en chemin statique.
 - La commande WS est enregistrée avec `websocket_api.async_response` et exige l'authentification standard de HA.
-- `register_ui_plugin` valide `id`, `js_url` local (chemin absolu commençant par `/`), `dashboard_version` (grammaire de la décision 9) et unicité.
+- `vtherm_api` ne valide que la structure et l'unicité de l'`id` à l'enregistrement. L'extension valide `js_url` local (chemin absolu commençant par `/`), `dashboard_version` (grammaire de la décision 9) et les identifiants réservés à la construction de la liste. Une erreur d'un auteur de plugin apparaît donc dans la vue d'état et non à l'appel de `register_ui_plugin`.
+- Aucune vérification de l'appelant : un plugin tiers peut enregistrer un identifiant `core*`, qui est alors exclu à la construction de la liste. Si un tiers l'enregistre avant le dashboard, l'enregistrement du plugin natif de même identifiant échoue (doublon) et l'extension journalise l'erreur.
 
 ### 14. Configuration native : pilotage du config flow de Versatile Thermostat
 Le dashboard ne réécrit pas les règles de validation de Versatile Thermostat : il pilote le config flow et l'options flow existants côté serveur, par les API publiques de Home Assistant (`hass.config_entries.flow` et `hass.config_entries.options`). Cela garantit la même validation et le même enregistrement atomique que l'interface de Home Assistant.
@@ -110,7 +118,7 @@ Le dashboard ne réécrit pas les règles de validation de Versatile Thermostat 
 - **Interface unique côté serveur** : le pilote de flow est caché derrière une interface "valider et enregistrer une configuration" (voir "Orientation à long terme" plus bas), pour pouvoir changer de mécanisme sans toucher aux commandes WebSocket ni au frontend.
 - **Composants écrits à la main**, pas générés depuis les schémas : l'expérience d'édition (champs conditionnels, valeurs centrales en lecture seule) demande des composants dédiés. Pour détecter la dérive, un test d'intégration compare les champs de chaque onglet avec les schémas du config flow du dépôt `external/versatile_thermostat` et échoue si un champ apparaît, disparaît ou change de type.
 - **Versions** : le dashboard déclare la version de configuration (`VERSION` et `MINOR_VERSION`) de Versatile Thermostat qu'il supporte. Une entrée plus récente est affichée en lecture seule.
-- **Presets** : les températures de preset sont des entités `number` de Versatile Thermostat, hors du config flow. L'onglet des presets les lit et les modifie par le service `number.set_value` de Home Assistant. L'édition des presets centraux dans la configuration générale dépasse le config flow : elle est ajoutée parce que sans elle l'option "utiliser les presets centraux" n'a pas d'écran où définir les valeurs.
+- **Presets** : les températures de preset, de chaque thermostat et de la configuration centrale, sont des entités `number.*` exposées par Versatile Thermostat, hors du config flow. L'onglet des presets les lit et les modifie par le service `number.set_value`. Seule l'option "utiliser les presets centraux" appartient au config flow. Les modifications de presets font partie du brouillon, mais l'enregistrement les applique après le config flow, sans atomicité commune : une erreur sur un preset laisse la configuration du flow enregistrée et est affichée sur son champ.
 - **Libellés** : traductions propres au dashboard (anglais, français et allemand, voir décision 17). Réutiliser celles de Versatile Thermostat n'est pas retenu : leurs clés sont liées aux formulaires de Home Assistant et changent avec ses étapes.
 - **Orientation à long terme : validation et normalisation partagées dans `vtherm_api`.** Des fonctions pures (validation d'un onglet, normalisation de la configuration à l'enregistrement, test de complétude), utilisées à la fois par le config flow de Versatile Thermostat et par le dashboard, permettraient de remplacer le pilotage du flow par une mise à jour directe de l'entrée (`async_update_entry`) sans dupliquer les règles. Elle suppose que le config flow de Versatile Thermostat les adopte, ce qui ne dépend pas de ce projet. Le pilotage du flow est donc la solution de cette version, et la contribution amont est la cible.
   - **Chemin de transition** : le pilote de flow reste derrière une interface unique de "validation et enregistrement d'une configuration". Quand `vtherm_api` fournit les fonctions partagées et que la version minimale de Versatile Thermostat supportée les utilise, une seconde implémentation de cette interface est ajoutée, puis le pilote de flow est retiré. Les specs décrivent le comportement et non le mécanisme, donc elles ne changent pas.
@@ -203,6 +211,12 @@ Le catalogue est un fichier JSON de 18 entrées (`slug`, `name`, `description`, 
 - *Alternative : serveur qui appelle les objets internes de HACS (`hass.data["hacs"]`)* : évite les commandes WebSocket, mais couple le serveur à des classes privées qui changent plus vite que les commandes. Rejetée.
 - *Alternative : rendre soi-même le config flow* : contrôle total, mais il faut afficher les schémas de formulaire de Home Assistant (sélecteurs, listes déroulantes). Rejetée pour cette version.
 
+### 21. Manifest, dépendances, icône et emplacement du frontend
+- **Dépendance à Versatile Thermostat** : `manifest.json` déclare `"dependencies": ["versatile_thermostat"]`. Home Assistant ne charge donc pas le dashboard sans Versatile Thermostat, et le panel n'existe pas dans ce cas. Le dashboard n'a pas de mode dégradé pour ce cas. `hassfest` ne contrôle pas l'existence d'une dépendance quand il est lancé sur un seul dossier d'intégration, donc une dépendance vers une intégration personnalisée passe ; à vérifier au premier passage de la CI.
+- **`vtherm_api`** : `manifest.json` déclare `requirements` avec la version minimale de `vtherm_api` qui contient le registre des plugins UI. Versatile Thermostat dépend déjà de `vtherm_api`, mais la version minimale du dashboard peut être plus récente que la sienne.
+- **Frontend dans le custom component** : le build écrit le bundle dans `custom_components/vtherm_dashboard/www/`. Ce dossier est ignoré par git (sortie de build) et fait partie de l'archive `zip_release`. Le panel le sert en chemin statique depuis cet emplacement. Le code source reste dans `frontend/` et `packages/sdk/`, hors du composant.
+- **Icône** : `custom_components/vtherm_dashboard/brand/` contient `icon.png` (256×256) et `icon@2x.png` (512×512), comme l'exige Home Assistant depuis la version 2026.3 pour les intégrations personnalisées. La source vectorielle est `assets/brand/icon.svg`, hors du composant. L'icône du panel dans le menu latéral est une icône `mdi:` distincte.
+
 ## Risks / Trade-offs
 
 - [Dépendance à l'API interne de HACS (commandes et formats de réponse)] → Un adaptateur unique, un contrôle de version, un lien de repli vers HACS et des tests contre une copie de HACS dans l'environnement de développement.
@@ -212,7 +226,7 @@ Le catalogue est un fichier JSON de 18 entrées (`slug`, `name`, `description`, 
 - [Ordre d'enregistrement Python : le plugin s'inscrit avant ou après le dashboard] → Le registre vit dans `vtherm_api`, indépendant de l'ordre de setup. Le frontend lit la liste à l'ouverture du panel.
 - [Plugin enregistré après l'ouverture du panel] → Non visible avant rechargement de la page. Acceptable en première version (non-objectif : rechargement à chaud).
 - [Position résolue à l'ajout : dépend de l'ordre de chargement] → Mitigé par l'ordre déterministe et par l'avertissement quand un `replace`/`remove` n'a pas de dépendance déclarée.
-- [Nécessite une évolution du package `vtherm_api`] → À coordonner avec ses mainteneurs. Le registre est petit et isolé, pour limiter le risque.
+- [Nécessite une évolution du package `vtherm_api`, et le dashboard ne peut pas être publié avant une version de `vtherm_api` qui contient le registre] → À coordonner avec ses mainteneurs. Le registre est petit et isolé, pour limiter le risque. En développement, `external/vtherm_api` est installé en mode éditable.
 - [Couplage au config flow de Versatile Thermostat : une nouvelle étape, un champ ou un enchaînement modifié casse le pilotage] → La version de configuration supportée est déclarée (lecture seule au-delà), le test de dérive compare les champs aux schémas réels, et les tests d'intégration exécutent le vrai flow à chaque changement de version de Versatile Thermostat dans l'intégration continue.
 - [Plugins tiers sans convention de stockage de leur configuration] → Hors périmètre de ce changement. Le contrat de contexte de configuration est posé, mais le stockage des valeurs d'un plugin tiers est à définir (par exemple des clés préfixées par l'identifiant du plugin) dans un changement ultérieur.
 - [Les plugins doivent élargir leur borne haute à chaque version majeure du dashboard] → Voulu : un plugin non testé sur la nouvelle majeure n'est pas chargé silencieusement. Le dashboard affiche un motif explicite, et le guide des auteurs décrit la démarche.

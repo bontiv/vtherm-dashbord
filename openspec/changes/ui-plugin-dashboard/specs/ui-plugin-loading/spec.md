@@ -7,11 +7,30 @@ Définir comment le dashboard charge les plugins UI dans un ordre déduit de dé
 ## ADDED Requirements
 
 ### Requirement: Plugin UI du cœur
-Le dashboard SHALL fournir un plugin UI d'identifiant `core`, toujours présent et chargé en premier. Les autres plugins peuvent le référencer dans leurs dépendances.
+L'extension SHALL enregistrer côté Python, avec les autres plugins natifs, un plugin UI d'identifiant `core`, toujours présent et chargé en premier. Les autres plugins peuvent le référencer dans leurs dépendances.
 
 #### Scenario: Dépendance au cœur
 - **WHEN** un plugin déclare `requires: ["core"]`
 - **THEN** la dépendance est satisfaite
+
+#### Scenario: Cœur enregistré en Python
+- **WHEN** l'extension démarre
+- **THEN** `core` figure parmi les plugins enregistrés dans `vtherm_api` et en tête de la liste de chargement
+
+### Requirement: Liste de chargement construite par le serveur
+À chaque appel de la commande WebSocket, l'extension SHALL construire la liste ordonnée des plugins avec état, motif et rang, en appliquant la validation, la compatibilité de version, les dépendances et la détection des cycles. Le frontend SHALL importer les modules dans l'ordre reçu et ne SHALL pas recalculer cet ordre.
+
+#### Scenario: Ordre reçu suivi
+- **WHEN** le serveur retourne les plugins A, B puis C à charger
+- **THEN** le frontend importe leurs modules dans cet ordre
+
+#### Scenario: Plugin exclu par le serveur
+- **WHEN** le serveur marque un plugin "dashboard incompatible", "cycle" ou "invalide"
+- **THEN** le frontend ne télécharge pas son module
+
+#### Scenario: Échec à l'exécution
+- **WHEN** le module de A échoue à l'import et que B requiert A
+- **THEN** le frontend n'importe pas B, qui passe en "dépendance manquante"
 
 ### Requirement: Ordre de chargement déclaratif
 Le dashboard SHALL charger les plugins UI dans un ordre qui respecte `requires`, `load_after` et `load_before`. Un plugin n'est exécuté qu'après les plugins dont il dépend.
@@ -73,7 +92,7 @@ Une erreur de téléchargement ou d'exécution du module JS d'un plugin SHALL ne
 - **THEN** le plugin est marqué en échec avec la raison, et les plugins qui le requièrent passent en "dépendance manquante"
 
 ### Requirement: Visibilité de l'état des plugins
-Le dashboard SHALL permettre à l'utilisateur de consulter, pour chaque plugin UI, son état (chargé, dépendance manquante, dashboard incompatible, cycle, échec), le motif et sa source (installé, ou en développement avec l'URL utilisée).
+Le dashboard SHALL permettre à l'utilisateur de consulter, pour chaque plugin UI, son état (chargé, dépendance manquante, dashboard incompatible, cycle, invalide, échec), le motif et sa source (installé, ou en développement avec l'URL utilisée).
 
 #### Scenario: Consultation
 - **WHEN** l'utilisateur ouvre la vue d'état des plugins

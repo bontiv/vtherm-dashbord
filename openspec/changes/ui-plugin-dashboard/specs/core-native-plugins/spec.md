@@ -151,7 +151,7 @@ L'onglet TPI d'un thermostat SHALL proposer l'apprentissage automatique (Auto TP
 - **THEN** alpha (0,15), décroissance (0,08) et alpha du Kext continu (0,04, de 0,005 à 0,2) sont proposés
 
 ### Requirement: Plugin `core_presets`
-Le plugin `core_presets` SHALL fournir l'onglet des presets : l'option "utiliser les presets centraux" et, sans héritage, la modification des températures de preset du thermostat. Dans la configuration générale, il SHALL permettre de modifier les températures de preset centrales.
+Le plugin `core_presets` SHALL fournir l'onglet des presets : l'option "utiliser les presets centraux" et, sans héritage, la modification des températures de preset du thermostat. Dans la configuration générale, il SHALL permettre de modifier les températures de preset centrales. Ces températures sont des entités `number.*` de Versatile Thermostat, hors du config flow.
 
 #### Scenario: Presets propres
 - **WHEN** l'héritage des presets est désactivé

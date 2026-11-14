@@ -131,12 +131,23 @@ Le dashboard SHALL utiliser les variables de thème de Home Assistant (couleurs,
 - **WHEN** le thème actif de Home Assistant est en mode sombre
 - **THEN** le dashboard s'affiche en mode sombre
 
-### Requirement: Dashboard sans plugin
-Le dashboard SHALL fonctionner avec le seul plugin `core`, quand aucun plugin UI n'est enregistré.
+### Requirement: Dashboard sans plugin tiers
+Le dashboard SHALL fonctionner avec les seuls plugins natifs, quand aucun plugin UI tiers n'est enregistré.
 
-#### Scenario: Aucun plugin enregistré
-- **WHEN** `get_ui_plugins` retourne une liste vide
+#### Scenario: Aucun plugin tiers
+- **WHEN** la liste de chargement ne contient que les plugins natifs
 - **THEN** le dashboard affiche les éléments du cœur sans erreur
+
+### Requirement: Dépendance à Versatile Thermostat
+Le `manifest.json` de l'extension SHALL déclarer la dépendance à l'intégration `versatile_thermostat`. Home Assistant ne SHALL donc charger l'extension que lorsque Versatile Thermostat est chargé.
+
+#### Scenario: Versatile Thermostat absent
+- **WHEN** l'intégration Versatile Thermostat n'est pas installée ou n'a pas démarré
+- **THEN** Home Assistant ne charge pas l'extension, journalise la dépendance manquante et n'affiche pas l'élément "Home confort"
+
+#### Scenario: Versatile Thermostat présent
+- **WHEN** l'intégration Versatile Thermostat est chargée
+- **THEN** l'extension est chargée et l'élément "Home confort" apparaît
 
 ### Requirement: Absence de thermostat
 Le dashboard SHALL afficher un message explicite s'il n'existe aucun thermostat Versatile Thermostat.

@@ -22,7 +22,7 @@ Le dashboard SHALL accepter des contributions pour sept hooks : `top_tab` (ongle
 - **THEN** la contribution est ignorée et l'erreur est signalée dans l'état du plugin
 
 ### Requirement: Identifiant de contribution
-Chaque contribution SHALL avoir un identifiant unique dans son hook, préfixé par l'identifiant de son plugin (par exemple `core_tpi.tab.main`). Les autres contributions peuvent le désigner comme cible de position.
+Chaque contribution SHALL avoir un identifiant unique dans son hook (le menu d'un onglet supérieur est lui-même un hook, composé des contributions de plusieurs hooks), préfixé par l'identifiant de son plugin (par exemple `core_tpi.tab.main`). Les autres contributions peuvent le désigner comme cible de position.
 
 #### Scenario: Identifiant dupliqué
 - **WHEN** deux contributions du même hook ont le même identifiant

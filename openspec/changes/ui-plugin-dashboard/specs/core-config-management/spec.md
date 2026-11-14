@@ -63,7 +63,7 @@ Les modifications d'une configuration SHALL être conservées dans un brouillon 
 - **THEN** le dashboard demande confirmation avant de les perdre
 
 ### Requirement: Enregistrement atomique
-L'enregistrement SHALL appliquer l'ensemble des modifications du brouillon ou aucune. Après un enregistrement réussi, la prise en compte de la configuration par Versatile Thermostat (rechargement de l'entrée) SHALL suivre le comportement de Versatile Thermostat, sans rechargement supplémentaire provoqué par le dashboard.
+L'enregistrement des modifications passant par le config flow SHALL appliquer l'ensemble de ces modifications ou aucune. Après un enregistrement réussi, la prise en compte de la configuration par Versatile Thermostat (rechargement de l'entrée) SHALL suivre le comportement de Versatile Thermostat, sans rechargement supplémentaire provoqué par le dashboard.
 
 #### Scenario: Enregistrement réussi
 - **WHEN** l'administrateur enregistre un brouillon valide
@@ -72,6 +72,21 @@ L'enregistrement SHALL appliquer l'ensemble des modifications du brouillon ou au
 #### Scenario: Enregistrement refusé
 - **WHEN** une valeur du brouillon est invalide
 - **THEN** aucune valeur n'est enregistrée et les erreurs sont affichées sur les champs concernés
+
+### Requirement: Températures de preset hors config flow
+Les températures de preset SHALL être lues et modifiées par les entités `number.*` que Versatile Thermostat expose, pour les presets de chaque thermostat et pour ceux de la configuration centrale. Le dashboard SHALL ne pas les écrire dans la configuration du config flow. Elles font partie du brouillon, mais leur enregistrement n'est pas couvert par l'atomicité du config flow.
+
+#### Scenario: Presets dans le brouillon
+- **WHEN** le brouillon contient des champs du config flow et des températures de preset
+- **THEN** le config flow est enregistré d'abord, puis chaque température est appliquée à son entité `number`
+
+#### Scenario: Échec d'une température
+- **WHEN** l'application d'une température de preset est refusée par Home Assistant
+- **THEN** l'erreur est affichée sur le champ concerné et la configuration déjà enregistrée par le config flow est conservée
+
+#### Scenario: Presets centraux
+- **WHEN** l'administrateur modifie une température de preset dans la configuration générale
+- **THEN** la valeur est appliquée à l'entité `number` de la configuration centrale
 
 ### Requirement: Validation équivalente au config flow
 Le dashboard SHALL refuser les mêmes configurations que le config flow de Versatile Thermostat, avec la même cause, et SHALL afficher l'erreur sur le champ fautif ou, à défaut, sur le formulaire.
@@ -144,9 +159,6 @@ Le dashboard SHALL déclarer la version de configuration de Versatile Thermostat
 - **WHEN** une entrée a une version de configuration supérieure à celle supportée
 - **THEN** la configuration est en lecture seule et un message indique d'utiliser l'interface de Home Assistant ou de mettre à jour le dashboard
 
-#### Scenario: Versatile Thermostat absent
-- **WHEN** l'intégration Versatile Thermostat n'est pas chargée
-- **THEN** le dashboard affiche un message indiquant qu'elle est requise, sans erreur
 
 ### Requirement: Accès et langue
 La configuration SHALL être réservée aux administrateurs. Les libellés, aides et messages d'erreur SHALL suivre les règles de la spec `internationalization` : anglais, français et allemand fournis, anglais par défaut.

@@ -32,6 +32,21 @@ Les entrées SHALL être conservées uniquement dans le navigateur de l'utilisat
 - **WHEN** l'administrateur rafraîchit la page
 - **THEN** les entrées activées sont chargées de nouveau
 
+### Requirement: Transmission au serveur
+Le dashboard SHALL transmettre les entrées actives dans la requête de découverte des plugins, et le serveur les fusionne aux plugins enregistrés pour construire la liste. Le serveur SHALL ne pas conserver ces entrées.
+
+#### Scenario: Fusion par le serveur
+- **WHEN** une entrée active est transmise avec la requête
+- **THEN** le plugin figure dans la liste de chargement avec la source "développement"
+
+#### Scenario: Aucune conservation
+- **WHEN** l'entrée est désactivée puis la page rafraîchie
+- **THEN** le serveur ne la retourne plus
+
+#### Scenario: Identifiant réservé
+- **WHEN** une entrée de développement porte un `id` égal à `core` ou commençant par `core_` sans correspondre à un plugin natif
+- **THEN** elle est exclue de la liste avec l'état "identifiant réservé"
+
 ### Requirement: Remplacement d'un plugin installé
 Une entrée dont l'`id` correspond à un plugin enregistré côté Python SHALL remplacer l'URL du module de ce plugin par l'URL de développement. Les métadonnées (`dashboard_version`, `requires`, `load_after`, `load_before`) SHALL rester celles de l'enregistrement Python.
 
@@ -52,7 +67,7 @@ Une entrée dont l'`id` ne correspond à aucun plugin enregistré côté Python 
 
 #### Scenario: Contrainte absente
 - **WHEN** une entrée pour un `id` inconnu ne contient pas `dashboard_version`
-- **THEN** l'entrée est refusée à l'enregistrement avec une erreur explicite
+- **THEN** l'entrée est refusée à l'ajout avec une erreur explicite
 
 ### Requirement: Mêmes règles de chargement
 Les plugins en développement SHALL suivre les règles du chargement normal : évaluation de `dashboard_version`, dépendances de chargement, cycles, isolation des échecs et résolution des positions.
