@@ -125,7 +125,19 @@ Une contribution déclare facultativement `visible(context)`, fonction pure éva
 - L'ordre des onglets natifs reproduit le menu du config flow, exprimé par `after` en chaîne et `load_after` entre plugins natifs, sans numéro d'ordre. Les plugins natifs sont ainsi aussi un test des mécanismes de position.
 - Les identifiants de plugin `core` et `core_*` sont réservés. Le préfixe d'identifiant d'une contribution est le plugin suivi d'un point, donc `core_tpi.tab.main` n'appartient pas à `core`.
 
-### 16. Documentation dans `docs/`, vérifiée par l'intégration continue
+### 16. Conventions de code
+- **TypeScript partout où le code est écrit pour le navigateur ou Node** : dashboard, SDK, plugins natifs, plugin d'exemple, tests Vitest, scripts de vérification (documentation, conformité), et fichiers de configuration quand l'outil accepte TypeScript (`vite.config.ts`, `rollup.config.ts` via le chargeur de configuration TypeScript de l'outil, `vitest.config.ts`). Les sorties de build sont du JavaScript généré, non versionné.
+  - Configuration : `strict: true`, `allowJs: false`, ESLint avec `@typescript-eslint/no-explicit-any` en erreur. Un contrôle liste les fichiers `.js`, `.mjs` et `.cjs` versionnés et les compare à une liste d'exceptions (par exemple une configuration d'outil qui n'accepte pas TypeScript), chaque exception avec sa justification.
+  - Les exemples de la documentation et du README du SDK sont en TypeScript. Les auteurs de plugins restent libres de leur langage : le SDK fournit des types, et le module livré est du JavaScript compilé.
+- **Python aligné sur Versatile Thermostat** : mêmes outils et réglages que son dépôt (Black avec `line-length = 180` dans `pyproject.toml`, `.pylintrc` avec `max-line-length=180`, `* text=auto eol=lf` dans `.gitattributes`, `asyncio_mode = "auto"` pour pytest, annotations de type, docstrings, logger de module). Les extraits de configuration proviennent de ce dépôt, pour que le code de `vtherm_api` contribué en amont suive les mêmes règles que celui du dashboard.
+  - Le devcontainer utilise donc les extensions Black et pylint (et non Ruff) avec formatage à l'enregistrement.
+  - Le logger suit celui de Versatile Thermostat (`get_vtherm_logger` de `vtherm_api`) si cette fonction est disponible dans la version de `vtherm_api` ciblée ; sinon `logging.getLogger(__name__)`, à vérifier à l'implémentation.
+- **Langue : anglais exclusivement** pour les en-têtes, commentaires, docstrings, commentaires de documentation, messages de commit et pages de `docs/`. Les traductions de l'interface (français et anglais) restent des chaînes de produit dans les fichiers de traduction. La conformité repose sur la revue et la case du modèle de demande de fusion : une détection automatique de langue donnerait trop de faux positifs (noms propres, identifiants, extraits de log). L'anglais s'impose aussi parce que le code contribué à `vtherm_api` et à Versatile Thermostat est en anglais.
+- **Vérification** : une commande locale unique et le même contrôle dans l'intégration continue (Black en mode vérification, pylint, `tsc --noEmit`, ESLint, contrôle des fichiers JavaScript).
+- *Alternative : Ruff pour Python* : plus rapide, mais différent de Versatile Thermostat. Les contributions vers `vtherm_api` et Versatile Thermostat doivent passer leur propre intégration continue, donc les mêmes outils évitent les surprises. Rejetée.
+- *Alternative : JavaScript avec JSDoc et `checkJs`* : évite l'étape de compilation, mais les types du contrat du SDK (positions à forme unique, contextes par hook) s'expriment mal. Rejetée.
+
+### 17. Documentation dans `docs/`, vérifiée par l'intégration continue
 Principe : ce qui peut être dérivé du code l'est, ce qui est rédigé est vérifié.
 - **Arborescence** : `docs/README.md` (index avec public visé), `docs/user/` (utilisateur), `docs/plugins/` (auteur de plugin : procédure `plugin-development.md`, chargement et dépendances, hooks et positions, mode développement, tests, thème), `docs/reference/` (références générées et grammaire des contraintes), `docs/contributing/` (architecture, environnement, publication) et `CHANGELOG.md` à la racine avec une section "Pour les auteurs de plugins" par version.
 - **Référence générée** : TypeDoc (avec sortie Markdown) pour le SDK, génération depuis les docstrings pour Python. Les fichiers générés sont enregistrés dans `docs/reference/` ; un contrôle recompile la référence et échoue en cas de différence. Un contrôle échoue aussi pour un export public sans commentaire.
@@ -133,10 +145,33 @@ Principe : ce qui peut être dérivé du code l'est, ce qui est rédigé est vé
 - **Liens et index** : un script vérifie les liens relatifs, les ancres et la présence de chaque page dans `docs/README.md`.
 - **Process** : un modèle de demande de fusion contient une case de mise à jour de la documentation, et `openspec/config.yaml` impose, dans les règles des tâches, qu'une tâche qui change un comportement public mette à jour `docs/` dans le même groupe.
 - **La prose rédigée ne peut pas être vérifiée automatiquement** : c'est le rôle de la revue et de la case du modèle de demande de fusion, mais les contrôles ci-dessus couvrent les dérives les plus fréquentes (référence, exemples, liens).
-- **Langue** : français, noms de code non traduits.
+- **Langue** : anglais exclusivement (décision 16), noms de code non traduits.
 - **Documentation de `vtherm_api`** : la référence de l'API Python d'enregistrement est générée dans ce dépôt ; la documentation du dépôt `vtherm_api` renvoie vers elle, pour éviter deux sources à maintenir.
 - *Alternative : site de documentation publié (MkDocs, Docusaurus)* : utile plus tard, mais hors de la première version. Les pages Markdown restent lisibles sur GitHub.
 - *Alternative : documentation écrite à la main uniquement* : dérive inévitable à mesure que les API évoluent. Rejetée.
+
+### 18. Navigation : onglets supérieurs, menu de gauche, fil d'ariane
+```
++--------------------------------------------------------------+
+| Home confort  [Dashboard] [Thermostats] [Plugin tab]  [gear] |   top_tab (zones start / end)
++--------------------------------------------------------------+
+| Thermostats > Salon > TPI                                    |   breadcrumb
++-----------------+--------------------------------------------+
+| Salon        v  |  content of the selected menu entry        |   left menu: scrolls alone
+| Overview        |                                            |   entries come from hooks
+| Main ... TPI <  |                                            |
++-----------------+--------------------------------------------+
+```
+- **Deux niveaux de navigation, tous deux déclaratifs.** Le niveau 1 est le hook `top_tab`. Le niveau 2 est le menu de gauche, composé des contributions qui ciblent l'onglet : `global_page` (Dashboard), `general_config` et `tab_page` (Configuration), `thermostat_config` (thermostat sélectionné), `tab_page` (onglet de plugin). Les sept hooks gardent les cinq hooks précédents et ajoutent `top_tab` et `tab_page`.
+- **Un menu est une liste unique.** Les contributions des différents hooks d'un même menu sont fusionnées dans une seule liste ordonnée, ce qui permet les positions croisées (une `tab_page` placée `after` une section `general_config`). Les identifiants sont donc uniques dans le menu et non plus seulement par hook. Le moteur de résolution (décision 6) travaille sur la liste du menu.
+- **Zones des onglets supérieurs** : `start` (défaut) et `end`. La roue crantée est seule dans `end`, donc un onglet de plugin placé `last` reste avant elle. Une cible située dans l'autre zone est traitée comme absente.
+- **Groupes** : propriété facultative d'une entrée, rendue comme intitulé au-dessus de chaque suite consécutive d'entrées du même groupe. Le groupe n'est pas un objet positionnable : seules les entrées le sont, ce qui garde le modèle de position inchangé. Le menu de Configuration utilise deux groupes, "Versatile Thermostat" et "Dashboard".
+- **Fil d'ariane et itinéraires** : l'URL du panel porte l'onglet, le thermostat et l'entrée (`/home-confort/<tab>/<thermostat>/<entry>`), lue et écrite par un routeur léger sur l'historique du navigateur. Le fil d'ariane se calcule depuis l'itinéraire et les titres des contributions, qui sont obligatoires pour cette raison. Un itinéraire inconnu retombe sur la page par défaut de l'onglet avec un message.
+- **Onglet Thermostats** : la page d'arrivée est la liste en pleine largeur. Une fois un thermostat choisi, le menu est celui du thermostat, précédé d'un sélecteur qui conserve l'entrée courante quand elle existe pour le nouveau thermostat, sinon ouvre la vue d'ensemble. La vue d'ensemble est la première entrée `thermostat_config` du plugin `core`.
+- **Mobile** : en dessous d'un seuil de largeur, le menu devient un tiroir et les onglets supérieurs défilent horizontalement avec la roue crantée fixe. Le fil d'ariane garde ses deux derniers segments. L'application Home Assistant sur téléphone ouvre le panel dans cette disposition.
+- **Brouillon** : il survit aux changements d'entrée dans le même thermostat (le brouillon appartient au thermostat, pas à l'entrée) et déclenche une confirmation quand on le quitte.
+- *Alternative : navigation en barre latérale interne unique* : plus simple, mais les plugins ne peuvent pas ajouter un espace de premier niveau et la barre devient longue. Rejetée.
+- *Alternative : groupes positionnables* : plus expressif mais double le modèle de position. Rejetée pour cette version.
 
 ## Risks / Trade-offs
 

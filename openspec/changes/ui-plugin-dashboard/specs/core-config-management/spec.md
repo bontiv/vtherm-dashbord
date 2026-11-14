@@ -54,8 +54,12 @@ Les modifications d'une configuration SHALL être conservées dans un brouillon 
 - **WHEN** l'administrateur annule ses modifications
 - **THEN** les champs reprennent les valeurs enregistrées
 
-#### Scenario: Navigation avec brouillon
-- **WHEN** l'administrateur quitte la page avec des modifications non enregistrées
+#### Scenario: Changement de section
+- **WHEN** l'administrateur passe d'une section à une autre du menu d'un même thermostat
+- **THEN** le brouillon est conservé sans confirmation
+
+#### Scenario: Départ avec brouillon
+- **WHEN** l'administrateur change de thermostat, d'onglet supérieur ou de configuration avec des modifications non enregistrées, ou ferme la page
 - **THEN** le dashboard demande confirmation avant de les perdre
 
 ### Requirement: Enregistrement atomique

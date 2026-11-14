@@ -46,6 +46,21 @@ Le package SHALL exporter les types de la définition de plugin, des contributio
 - **WHEN** une contribution du plugin `smartpi` a l'identifiant `autre.tab.main`
 - **THEN** l'appel échoue avec une erreur qui désigne cette contribution
 
+### Requirement: Types des contributions de navigation
+Les types du package SHALL couvrir les sept hooks. Une contribution de navigation SHALL exiger un titre, une `top_tab` SHALL accepter une zone (`start` ou `end`), une `tab_page` SHALL exiger l'identifiant de son onglet cible, et une entrée de menu SHALL accepter un groupe facultatif.
+
+#### Scenario: Titre manquant
+- **WHEN** un auteur déclare une contribution `thermostat_config` sans titre
+- **THEN** la compilation TypeScript échoue
+
+#### Scenario: Onglet cible manquant
+- **WHEN** un auteur déclare une `tab_page` sans `tab`
+- **THEN** la compilation TypeScript échoue
+
+#### Scenario: Zone invalide
+- **WHEN** un auteur déclare une `top_tab` avec une zone autre que `start` ou `end`
+- **THEN** la compilation TypeScript échoue
+
 ### Requirement: Contexte des composants de configuration
 Un composant des hooks `general_config` et `thermostat_config` SHALL recevoir `hass`, les valeurs courantes de la configuration éditée, celles de la configuration centrale pour `thermostat_config`, les erreurs de validation de ses champs et un moyen de proposer des modifications du brouillon. Il ne SHALL pas écrire lui-même dans la configuration de Home Assistant : l'enregistrement est assuré par le dashboard.
 

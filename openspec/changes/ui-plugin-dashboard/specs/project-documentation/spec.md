@@ -101,8 +101,12 @@ Le projet SHALL tenir un journal des changements dont chaque version indique les
 - **THEN** son entrée du journal liste les ruptures et la migration à effectuer par les auteurs de plugins
 
 ### Requirement: Langue de la documentation
-La documentation SHALL être rédigée en français. Les identifiants de code, noms d'API, chemins et commandes SHALL rester non traduits.
+La documentation SHALL être rédigée exclusivement en anglais (pages de `docs/`, README, journal des changements, commentaires de documentation de l'API). Les identifiants de code, noms d'API, chemins et commandes SHALL rester non traduits.
 
 #### Scenario: Page de référence
 - **WHEN** une page de référence d'API est publiée
-- **THEN** sa prose est en français et les noms d'API sont ceux du code
+- **THEN** sa prose est en anglais et les noms d'API sont ceux du code
+
+#### Scenario: Page en une autre langue
+- **WHEN** une page de `docs/` est rédigée dans une autre langue que l'anglais
+- **THEN** la revue la refuse, conformément à la case du modèle de demande de fusion

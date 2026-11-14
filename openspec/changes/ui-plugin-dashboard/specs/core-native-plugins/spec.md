@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Définir les plugins UI fournis nativement par le dashboard, un par étape du config flow de Versatile Thermostat, avec leurs onglets, leurs champs et leurs conditions d'affichage.
+Définir les plugins UI fournis nativement par le dashboard, un par étape du config flow de Versatile Thermostat, avec leurs sections de configuration, leurs champs et leurs conditions d'affichage. Dans ce document, "onglet" désigne une entrée du menu de gauche d'un thermostat ou de la configuration générale (les identifiants contiennent `tab` par convention) ; les onglets de la barre supérieure sont appelés "onglets supérieurs".
 
 ## ADDED Requirements
 
@@ -20,6 +20,28 @@ Le dashboard SHALL fournir ses fonctions de configuration sous forme de plugins 
 #### Scenario: Visibilité dans la vue d'état
 - **WHEN** l'utilisateur ouvre la vue d'état des plugins
 - **THEN** les plugins natifs sont listés avec la source "natif"
+
+### Requirement: Navigation native du plugin `core`
+Le plugin `core` SHALL fournir les onglets supérieurs `core.top.dashboard`, `core.top.thermostats` et `core.top.configuration` (zone `end`, roue crantée), la page `core.page.overview` et la vue d'ensemble d'un thermostat `core.page.thermostat_overview`, placée en première position.
+
+#### Scenario: Barre par défaut
+- **WHEN** seuls les plugins natifs sont chargés
+- **THEN** la barre contient les onglets Dashboard et Thermostats, puis la roue crantée seule à droite
+
+#### Scenario: Vue d'ensemble d'un thermostat
+- **WHEN** un thermostat est sélectionné
+- **THEN** la première entrée de son menu est la vue d'ensemble
+
+#### Scenario: Remplacement par un plugin tiers
+- **WHEN** un plugin tiers déclare `replace: core.page.overview`
+- **THEN** sa page prend la place de la page Overview
+
+### Requirement: Menu de la configuration
+Le plugin `core` SHALL fournir dans le menu de Configuration les pages "Plugins" (`core.page.plugins`) et "Développement" (`core.page.dev_plugins`) du groupe "Dashboard". Les sections `general_config` des plugins natifs SHALL déclarer le groupe "Versatile Thermostat".
+
+#### Scenario: Pages du groupe Dashboard
+- **WHEN** l'utilisateur ouvre le menu de Configuration
+- **THEN** les pages "Plugins" et "Développement" apparaissent sous le groupe "Dashboard", après les sections du groupe "Versatile Thermostat"
 
 ### Requirement: Liste et identifiants des plugins natifs
 Le dashboard SHALL fournir les plugins natifs `core`, `core_tpi`, `core_presets`, `core_window`, `core_motion`, `core_power`, `core_presence`, `core_central_boiler`, `core_auto_start_stop`, `core_valve_regulation`, `core_sync_temp`, `core_humidity`, `core_advanced`, `core_lock` et `core_heating_failure`. Les identifiants de plugins commençant par `core` SHALL être réservés aux plugins natifs.

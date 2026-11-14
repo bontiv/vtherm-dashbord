@@ -14,13 +14,16 @@ Versatile Thermostat (VTherm) n'a pas d'interface unifiée pour configurer et su
 - Plugins natifs : le dashboard fournit lui-même 15 plugins UI (`core`, `core_tpi`, `core_window`, etc.), un par étape du config flow, enregistrés par les mêmes mécanismes que les plugins tiers. Les identifiants `core` et `core_*` leur sont réservés.
 - Contributions à visibilité conditionnelle (par exemple un onglet affiché seulement si une fonctionnalité est active) et contexte de configuration transmis aux composants (valeurs, erreurs, brouillon).
 - Package npm `@vtherm/dashboard-sdk` : types TypeScript du contrat et fonction `registerUiPlugin` que les plugins utilisent pour se déclarer, et un point d'entrée `@vtherm/dashboard-sdk/testing` avec un faux hôte pour les tests sans Home Assistant.
+- Langue : en-têtes, commentaires, docstrings et documentation exclusivement en anglais (les traductions de l'interface restent dans les fichiers de traduction).
+- Conventions de code vérifiées par l'intégration continue : TypeScript strict pour tout le code destiné au navigateur ou à Node (pas de fichiers `.js` dans les sources), Python aligné sur Versatile Thermostat (Black 180 colonnes, pylint, fins de ligne LF, pytest asynchrone automatique).
 - Documentation dans `docs/` : API (Python, WebSocket, SDK), procédure complète pour développer un plugin UI, guides utilisateur et contributeur, journal des changements. La référence est générée depuis le code, les exemples sont compilés par les tests, et l'intégration continue vérifie liens, index et synchronisation.
 - Mode développement : un administrateur peut déclarer dans son navigateur l'URL d'un serveur local (`rollup -c --watch`, `vite build --watch`) pour remplacer un plugin installé ou tester un plugin sans enregistrement Python. Un bandeau le signale.
 - Compatibilité : chaque plugin déclare, à l'enregistrement Python, une contrainte sur la version du dashboard (`dashboard_version`, par exemple `>=1.0,<2.0`). Le dashboard refuse de charger un plugin dont la contrainte n'est pas satisfaite, trop ancien ou trop récent.
 - Deux niveaux déclaratifs distincts, sans numéro d'ordre :
   - **Dépendances de chargement** (niveau plugin UI) : `requires`, `load_after`, `load_before`.
   - **Positionnement** (niveau de chaque contribution) : `first`, `last`, `before`, `after`, `replace`, `remove`, résolu à l'ajout.
-- Cinq hooks de contribution : configuration générale, configuration par thermostat, widget de supervision global, page de supervision globale, widget de supervision par thermostat.
+- Navigation du dashboard : onglets supérieurs (Dashboard, Thermostats, onglets de plugins, roue crantée de Configuration seule à droite), menu de gauche défilant construit par les contributions, fil d'ariane, itinéraires et affichage mobile.
+- Sept hooks de contribution : onglet supérieur, entrée de menu d'un onglet, page globale, widget global, section de configuration générale, entrée de menu d'un thermostat (dont ses sections de configuration), widget de vue d'ensemble d'un thermostat. Les entrées de menu ont un titre, une icône et un groupe facultatifs.
 - Le thème du dashboard réutilise les variables CSS du thème actif de Home Assistant.
 
 ## Capabilities
@@ -34,6 +37,7 @@ Versatile Thermostat (VTherm) n'a pas d'interface unifiée pour configurer et su
 - `project-documentation`: contenu, organisation et maintien à jour de la documentation du projet dans `docs/`, y compris la procédure pour les auteurs de plugins.
 - `core-config-management`: création, modification et validation de la configuration générale et par thermostat de Versatile Thermostat (brouillon, héritage de la configuration centrale, compatibilité de version).
 - `core-native-plugins`: plugins UI natifs du dashboard, leurs onglets, champs et conditions d'affichage, déduits du config flow de Versatile Thermostat.
+- `code-conventions`: TypeScript strict à la place de JavaScript, conventions Python de Versatile Thermostat, et vérification automatique.
 - `dashboard-panel`: panel "Home confort" dans le menu latéral de Home Assistant, page de configuration/supervision du cœur et thème hérité de Home Assistant.
 
 ### Modified Capabilities
