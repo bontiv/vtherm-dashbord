@@ -50,6 +50,17 @@ La documentation SHALL contenir une procédure complète pour développer un plu
 - **WHEN** un développeur doit rendre son plugin compatible avec une nouvelle version majeure du dashboard
 - **THEN** la documentation décrit comment élargir `dashboard_version` et où trouver les changements incompatibles
 
+### Requirement: Documentation de la configuration native et de son évolution
+La documentation du contributeur SHALL décrire le mécanisme par lequel le dashboard valide et enregistre la configuration de Versatile Thermostat, ses limites, et l'évolution prévue vers une validation et une normalisation partagées dans `vtherm_api`.
+
+#### Scenario: Mécanisme décrit
+- **WHEN** un contributeur ouvre la page consacrée au pilotage de la configuration
+- **THEN** elle décrit le mécanisme actuel, la correspondance entre onglets et étapes, et la gestion des versions de Versatile Thermostat
+
+#### Scenario: Évolution prévue
+- **WHEN** un contributeur cherche la direction technique à long terme
+- **THEN** la page contient une section "Évolution prévue" qui indique la cible, le chemin de transition et ce qui dépend du dépôt amont
+
 ### Requirement: Documentation par public
 La documentation SHALL couvrir trois publics : l'utilisateur du dashboard (installation, utilisation, thèmes, vue d'état des plugins), l'auteur de plugin (API, procédure, thème, tests) et le contributeur au dépôt (architecture, environnement de développement, tests, publication).
 

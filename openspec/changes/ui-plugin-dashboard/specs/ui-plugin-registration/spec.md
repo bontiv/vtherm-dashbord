@@ -21,6 +21,17 @@ L'API Python `vtherm_api` SHALL fournir `register_ui_plugin` pour déclarer un p
 - **WHEN** `id` ou `js_url` est absent ou vide
 - **THEN** l'appel est refusé avec une erreur explicite
 
+### Requirement: Identifiants réservés aux plugins natifs
+Les identifiants de plugins UI égaux à `core` ou commençant par `core_` SHALL être réservés aux plugins natifs du dashboard. `register_ui_plugin` SHALL refuser ces identifiants pour tout autre appelant.
+
+#### Scenario: Identifiant réservé
+- **WHEN** un plugin tiers appelle `register_ui_plugin` avec l'`id` `core_custom`
+- **THEN** l'appel est refusé avec une erreur explicite
+
+#### Scenario: Plugin natif
+- **WHEN** le dashboard enregistre ses propres plugins `core` et `core_tpi`
+- **THEN** ils apparaissent dans `get_ui_plugins`
+
 ### Requirement: Désenregistrement d'un plugin UI
 L'API Python SHALL fournir `unregister_ui_plugin` pour retirer un plugin UI, par exemple lors du déchargement de son intégration.
 

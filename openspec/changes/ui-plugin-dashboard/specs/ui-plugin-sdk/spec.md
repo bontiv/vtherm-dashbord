@@ -46,6 +46,21 @@ Le package SHALL exporter les types de la définition de plugin, des contributio
 - **WHEN** une contribution du plugin `smartpi` a l'identifiant `autre.tab.main`
 - **THEN** l'appel échoue avec une erreur qui désigne cette contribution
 
+### Requirement: Contexte des composants de configuration
+Un composant des hooks `general_config` et `thermostat_config` SHALL recevoir `hass`, les valeurs courantes de la configuration éditée, celles de la configuration centrale pour `thermostat_config`, les erreurs de validation de ses champs et un moyen de proposer des modifications du brouillon. Il ne SHALL pas écrire lui-même dans la configuration de Home Assistant : l'enregistrement est assuré par le dashboard.
+
+#### Scenario: Modification du brouillon
+- **WHEN** un composant propose la modification d'un champ
+- **THEN** le brouillon du dashboard est mis à jour et la configuration réelle reste inchangée jusqu'à l'enregistrement
+
+#### Scenario: Erreurs de validation
+- **WHEN** l'enregistrement est refusé pour une valeur
+- **THEN** le composant concerné reçoit l'erreur associée à son champ
+
+#### Scenario: Configuration générale
+- **WHEN** un composant du hook `general_config` est affiché
+- **THEN** il ne reçoit pas d'identifiant de thermostat
+
 ### Requirement: Registre unique côté dashboard
 Le package SHALL déléguer l'enregistrement au registre du dashboard présent dans la page, et ne SHALL pas contenir de registre propre. Plusieurs plugins qui embarquent chacun une copie du package SHALL enregistrer leurs contributions dans le même registre.
 
@@ -57,8 +72,8 @@ Le package SHALL déléguer l'enregistrement au registre du dashboard présent d
 Le package SHALL fournir un point d'entrée séparé `@vtherm/dashboard-sdk/testing` avec un faux hôte, utilisable sans Home Assistant ni navigateur complet. Ce faux hôte SHALL appliquer les mêmes règles de validation et de positionnement que le dashboard, SHALL permettre de définir les états du faux `hass`, et SHALL retourner pour chaque hook la liste ordonnée des contributions résolues. Ce point d'entrée SHALL ne pas être importé par le point d'entrée principal.
 
 #### Scenario: Test de position
-- **WHEN** un test enregistre un plugin avec une contribution `after: core.tab.tpi` dans le faux hôte
-- **THEN** la liste résolue du hook `thermostat_config` place la contribution juste après `core.tab.tpi`
+- **WHEN** un test enregistre un plugin avec une contribution `after: core_tpi.tab.main` dans le faux hôte
+- **THEN** la liste résolue du hook `thermostat_config` place la contribution juste après `core_tpi.tab.main`
 
 #### Scenario: Rendu d'un composant
 - **WHEN** un test affiche une contribution `thermostat_widget` avec un faux `hass` et un `thermostatId`

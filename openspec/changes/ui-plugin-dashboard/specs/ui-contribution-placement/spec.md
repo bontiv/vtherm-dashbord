@@ -18,7 +18,7 @@ Le dashboard SHALL accepter des contributions pour cinq hooks : `general_config`
 - **THEN** la contribution est ignorée et l'erreur est signalée dans l'état du plugin
 
 ### Requirement: Identifiant de contribution
-Chaque contribution SHALL avoir un identifiant unique dans son hook, préfixé par l'identifiant de son plugin (par exemple `core.tab.tpi`). Les autres contributions peuvent le désigner comme cible de position.
+Chaque contribution SHALL avoir un identifiant unique dans son hook, préfixé par l'identifiant de son plugin (par exemple `core_tpi.tab.main`). Les autres contributions peuvent le désigner comme cible de position.
 
 #### Scenario: Identifiant dupliqué
 - **WHEN** deux contributions du même hook ont le même identifiant
@@ -36,12 +36,12 @@ Chaque contribution SHALL déclarer sa position avec exactement une des formes `
 - **THEN** elle est placée après toutes les contributions déjà présentes dans le hook
 
 #### Scenario: Après une cible
-- **WHEN** une contribution déclare `after: core.tab.tpi`
-- **THEN** elle est placée immédiatement après l'onglet `core.tab.tpi`
+- **WHEN** une contribution déclare `after: core_tpi.tab.main`
+- **THEN** elle est placée immédiatement après l'onglet `core_tpi.tab.main`
 
 #### Scenario: Avant une cible
-- **WHEN** une contribution déclare `before: core.tab.tpi`
-- **THEN** elle est placée immédiatement avant l'onglet `core.tab.tpi`
+- **WHEN** une contribution déclare `before: core_tpi.tab.main`
+- **THEN** elle est placée immédiatement avant l'onglet `core_tpi.tab.main`
 
 #### Scenario: Forme invalide
 - **WHEN** une contribution déclare plusieurs formes de position ou une valeur numérique
@@ -51,18 +51,18 @@ Chaque contribution SHALL déclarer sa position avec exactement une des formes `
 La position d'une contribution SHALL être résolue au moment où son plugin est chargé, par rapport aux contributions déjà présentes. Plusieurs contributions visant la même cible SHALL s'enchaîner dans l'ordre de chargement des plugins, la plus récente étant placée juste après (ou avant) la cible.
 
 #### Scenario: Plusieurs "après TPI"
-- **WHEN** les plugins A puis B, chargés dans cet ordre, déclarent chacun `after: core.tab.tpi`
-- **THEN** l'ordre obtenu est `core.tab.tpi`, B, A
+- **WHEN** les plugins A puis B, chargés dans cet ordre, déclarent chacun `after: core_tpi.tab.main`
+- **THEN** l'ordre obtenu est `core_tpi.tab.main`, B, A
 
 ### Requirement: Remplacement d'une contribution
 Une contribution déclarant `replace: <id>` SHALL prendre la place de la cible, qui n'est plus affichée. Les contributions qui visaient la cible avec `before` ou `after` SHALL suivre le remplaçant.
 
 #### Scenario: Remplacement de l'onglet de synchronisation
-- **WHEN** un plugin déclare `replace: core.tab.temperature_sync`
+- **WHEN** un plugin déclare `replace: core_sync_temp.tab.main`
 - **THEN** son onglet apparaît à la place de l'onglet remplacé, qui n'est plus affiché
 
 #### Scenario: Cible remplacée suivie
-- **WHEN** B déclarait `after: core.tab.temperature_sync` et qu'un plugin remplace cette cible
+- **WHEN** B déclarait `after: core_sync_temp.tab.main` et qu'un plugin remplace cette cible
 - **THEN** l'onglet de B est placé après le remplaçant
 
 ### Requirement: Suppression d'une contribution
@@ -89,3 +89,18 @@ Quand une contribution `replace` ou `remove` vise une contribution d'un plugin q
 #### Scenario: Dépendance non déclarée
 - **WHEN** un plugin remplace une contribution d'un autre plugin sans déclarer de dépendance de chargement vers lui
 - **THEN** un avertissement est enregistré dans l'état du plugin
+
+### Requirement: Visibilité conditionnelle
+Une contribution SHALL pouvoir déclarer une condition de visibilité évaluée avec le contexte courant (par exemple la configuration du thermostat). Une contribution masquée ne SHALL pas être affichée, mais SHALL conserver sa place dans la résolution des positions, de sorte que les positions des autres contributions ne changent pas.
+
+#### Scenario: Condition devenue vraie
+- **WHEN** la configuration du thermostat change et que la condition d'une contribution passe à vrai
+- **THEN** la contribution apparaît à sa position résolue sans rechargement de la page
+
+#### Scenario: Position stable
+- **WHEN** une contribution B déclare `after` une contribution A, que A est masquée puis qu'elle devient visible
+- **THEN** B est affichée à la place qu'occuperait A, et A apparaît immédiatement avant B sans déplacer les autres contributions
+
+#### Scenario: Condition en erreur
+- **WHEN** l'évaluation de la condition lève une erreur
+- **THEN** la contribution est masquée et l'erreur est signalée dans l'état du plugin
