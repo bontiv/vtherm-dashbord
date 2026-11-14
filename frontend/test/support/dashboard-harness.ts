@@ -199,6 +199,10 @@ export interface MountOptions {
   readonly realThermostats?: boolean;
   /** How the fake server answers a creation. */
   readonly server?: FakeServerOptions;
+  /** Answers in front of those of the fake server: the first one that gives something other than `undefined` wins. */
+  readonly handlers?: readonly ((message: Record<string, unknown>) => Promise<unknown>)[];
+  /** Whether the user is an administrator. By default, yes. */
+  readonly admin?: boolean;
 }
 
 /** Mount the panel with plugins and wait for it to be ready. */
@@ -213,6 +217,19 @@ export async function mountPanel(options: MountOptions = {}) {
     options.configs ??
     Object.fromEntries((options.thermostats ?? thermostats).map((item) => [item.id, { name: item.name, type: item.type, values: { thermostat_type: `thermostat_${item.type}`, name: item.name } }]));
   const hass = createHass(options.language ?? "en", serverAnswer(plugins), configs, options.server);
+  if (options.handlers !== undefined) {
+    const base = hass.callWS.getMockImplementation() as (message: Record<string, unknown>) => Promise<unknown>;
+    hass.callWS.mockImplementation(async (message: Record<string, unknown>) => {
+      for (const handler of options.handlers ?? []) {
+        const answer = await handler(message);
+        if (answer !== undefined) {
+          return answer;
+        }
+      }
+      return base(message);
+    });
+  }
+  hass.user = { is_admin: options.admin ?? true };
   panel.importModule = async (url) => {
     const failure = options.failing?.[url.split("/")[1] as string];
     if (failure !== undefined) {

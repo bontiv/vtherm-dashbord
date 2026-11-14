@@ -44,7 +44,7 @@ describe("the native plugins", () => {
   });
 
   it("give the top tabs of the dashboard, the gear alone at the end", () => {
-    expect(ids(host.resolved("top_tab"))).toEqual([CORE_TOP_TABS.dashboard, CORE_TOP_TABS.thermostats, CORE_TOP_TABS.configuration]);
+    expect(ids(host.resolved("top_tab"))).toEqual([CORE_TOP_TABS.dashboard, CORE_TOP_TABS.thermostats, "core_complements.top.complements", CORE_TOP_TABS.configuration]);
   });
 
   it("name the tab of a plugin with a single tab main, and the tabs of core after their tab", () => {

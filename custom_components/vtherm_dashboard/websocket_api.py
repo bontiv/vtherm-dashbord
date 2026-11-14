@@ -12,6 +12,7 @@ from vtherm_api import VThermAPI
 
 from .const import DOMAIN
 from .config_flow_driver import FlowConfigWriter, SaveResult
+from .complements import ERROR_UNAVAILABLE as ERROR_CATALOG_UNAVAILABLE, CatalogUnavailableError, async_complements
 from .plugin_list import build_plugin_list
 from .presets import async_set_presets, read_presets
 from .vtherm_config import SUPPORTED_CONFIG_VERSION, ConfigNotFoundError, central_entry, list_thermostats, read_central_config, read_config
@@ -41,6 +42,8 @@ WS_CREATE_CONFIG = f"{DOMAIN}/create_config"
 WS_GET_HUMIDITY_SUGGESTION = f"{DOMAIN}/get_humidity_suggestion"
 """The type of the command that suggests a humidity sensor for a temperature sensor."""
 
+WS_GET_COMPLEMENTS = f"{DOMAIN}/get_complements"
+"""The type of the command that returns the catalog of add-ons."""
 CHANGES_SCHEMA = vol.Schema({str: dict})
 PRESETS_SCHEMA = vol.Schema({str: vol.Coerce(float)})
 
@@ -56,6 +59,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_save_config)
     websocket_api.async_register_command(hass, ws_create_config)
     websocket_api.async_register_command(hass, ws_get_humidity_suggestion)
+    websocket_api.async_register_command(hass, ws_get_complements)
 
 
 @websocket_api.websocket_command(
@@ -184,3 +188,14 @@ def ws_get_humidity_suggestion(hass: HomeAssistant, connection: websocket_api.Ac
         return
     candidates = find_humidity_sensor_candidates(hass, msg["temperature_sensor"])
     connection.send_result(msg["id"], {"entity_id": candidates[0] if candidates else None})
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_COMPLEMENTS, vol.Optional("refresh", default=False): bool})
+@websocket_api.async_response
+async def ws_get_complements(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Return the add-ons of the catalog, each with what Home Assistant knows about its integration."""
+    try:
+        connection.send_result(msg["id"], await async_complements(hass, msg["refresh"]))
+    except CatalogUnavailableError as err:
+        connection.send_error(msg["id"], ERROR_CATALOG_UNAVAILABLE, str(err))

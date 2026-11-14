@@ -15,15 +15,12 @@ const START = "<!-- native-ids -->";
 const END = "<!-- /native-ids -->";
 
 let definitions: Map<string, UiPluginDefinition>;
-let english: Record<string, Record<string, string>>;
 
 beforeAll(async () => {
   ({ definitions } = await nativeHost());
-  english = {};
-  for (const id of NATIVE_LOAD_ORDER) {
-    english[id] = ((await import(`../src/native/catalogs/${id}.ts`)) as { en: Record<string, string> }).en;
-  }
 });
+
+const english = (definition: UiPluginDefinition): Record<string, string> => definition.translations.english as unknown as Record<string, string>;
 
 /** One row per contribution of the native plugins, in the order of the load of the plugins. */
 function table(): string {
@@ -33,7 +30,7 @@ function table(): string {
     for (const [hook, list] of Object.entries(definition.contributions)) {
       for (const contribution of list ?? []) {
         const item = contribution as { id: string; title?: string };
-        const title = item.title === undefined ? "" : (english[id]?.[item.title] ?? item.title);
+        const title = item.title === undefined ? "" : (english(definition)[item.title] ?? item.title);
         rows.push(`| \`${id}\` | \`${item.id}\` | \`${hook}\` | ${title} |`);
       }
     }

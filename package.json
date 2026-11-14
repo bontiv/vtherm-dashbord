@@ -37,6 +37,7 @@
     "@types/node": "^24.0.0",
     "eslint": "^10.15.0",
     "jiti": "^2.7.0",
+    "jsdom": "^29.1.1",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.14.1",
     "typescript": "~6.0.3",

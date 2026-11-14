@@ -56,7 +56,8 @@ async def test_a_third_party_that_took_a_native_identifier_first_does_not_preven
 def test_every_native_plugin_of_the_configuration_is_a_reserved_identifier() -> None:
     """The native plugins use the identifiers that are reserved for them."""
     assert set(NATIVE_PLUGIN_ORDER) <= NATIVE_PLUGIN_IDS
-    assert NATIVE_PLUGIN_IDS - set(NATIVE_PLUGIN_ORDER) == {"core_complements"}
+    assert NATIVE_PLUGIN_IDS == set(NATIVE_PLUGIN_ORDER)
+    assert NATIVE_PLUGIN_ORDER[-1] == "core_complements"
 
 
 def test_the_order_is_the_one_of_the_frontend() -> None:

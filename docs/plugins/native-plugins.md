@@ -1,7 +1,7 @@
 # Native plugins
 Audience: plugin authors.
 
-The dashboard itself is made of 15 native plugins, registered by Python like any other plugin. A plugin of yours can place its
+The dashboard itself is made of 16 native plugins, registered by Python like any other plugin. A plugin of yours can place its
 tabs, replace one of theirs or remove it, with the identifiers of this page. See [Hooks and placement](hooks-and-placement.md).
 
 - `core`: the top tabs, the pages Overview, Plugins and Development, the overview of a thermostat, and the sections Main attributes,
@@ -9,6 +9,7 @@ tabs, replace one of theirs or remove it, with the identifiers of this page. See
 - One plugin for each other section of the config flow of Versatile Thermostat: `core_tpi`, `core_presets`, `core_central_boiler`,
   `core_window`, `core_motion`, `core_power`, `core_presence`, `core_auto_start_stop`, `core_valve_regulation`, `core_sync_temp`,
   `core_advanced`, `core_lock`, `core_humidity` and `core_heating_failure`.
+- `core_complements`: the tab "VT add-ons" with its entries Catalog and Installed. See [Add-ons for Versatile Thermostat](../user/complements.md).
 
 The identifiers `core` and `core_*` are reserved: the server leaves out a third-party plugin that uses one.
 
@@ -64,6 +65,9 @@ The table is generated from the code by `frontend/test/native-docs.test.ts`. Do 
 | `core_humidity` | `core_humidity.tab.main` | `thermostat_config` | Humidity |
 | `core_heating_failure` | `core_heating_failure.tab.main` | `thermostat_config` | Heating failure detection |
 | `core_heating_failure` | `core_heating_failure.general.main` | `general_config` | Heating failure detection |
+| `core_complements` | `core_complements.top.complements` | `top_tab` | VT add-ons |
+| `core_complements` | `core_complements.page.catalog` | `tab_page` | Catalog |
+| `core_complements` | `core_complements.page.installed` | `tab_page` | Installed |
 <!-- /native-ids -->
 
 ## The tabs and their values

@@ -209,3 +209,41 @@ dashboard translates the code. The codes of Versatile Thermostat are passed on u
 The errors of the presets have the tab `presets` and these codes: `out_of_range` (the temperature is outside the limits of the
 preset), `unknown_preset` (the entry has no such preset), `preset_rejected` (Home Assistant refused the value) and `preset_not_applied`
 (the thermostat was not ready and kept its previous value).
+
+## Add-ons of Versatile Thermostat
+
+### `vtherm_dashboard/get_complements`
+Administrators only. Reads the catalog of add-ons and gives each one what Home Assistant knows about its integration. What HACS knows is
+read by the browser, not by this command.
+
+The server reads the catalog at `https://raw.githubusercontent.com/bontiv/vtherm-website/latest/pluginsdb/plugins.json`. It keeps the
+copy for an hour, asks again with the entity tag (`If-None-Match`) once it has expired, and keeps the last valid copy in the storage of
+Home Assistant (`vtherm_dashboard.complements`), so that the page works offline.
+
+Request: `refresh` (optional boolean) skips the cache and asks the server again.
+
+Response:
+
+| Field | Content |
+| --- | --- |
+| `complements` | The add-ons, in the order of the catalog. |
+| `fetched_at` | When the copy was read, in seconds since the epoch. |
+| `stale` | True when the server could not be asked and the copy may be old. |
+| `warnings` | The problems: `network`, `catalog_invalid`, and one text for each entry that was ignored. |
+| `catalog_url` | The address of the catalog. |
+
+Each add-on has:
+
+| Field | Content |
+| --- | --- |
+| `id` | The `slug`, else the `url`, else the `name`. |
+| `name`, `description`, `description_fr`, `description_de` | The texts. The descriptions are HTML and must be sanitized before they are shown. A missing description is an empty string. |
+| `type`, `known_type` | `integration`, `interface`, `blueprint` or `addon`. `known_type` is false for any other value: the add-on is shown as a link. |
+| `certification`, `family`, `author` | As the catalog gives them. `author` can be null. |
+| `slug`, `url`, `ha_domain` | As the catalog gives them, null when absent. |
+| `repository` | The GitHub repository `owner/name` in lower case, from the `slug` or from a GitHub `url`. |
+| `link` | The address of the repository, else the `url`. |
+| `hacs_category` | The category of HACS to install it: `integration` for an integration, `plugin` for an interface, the `hacs_category` of the catalog when it has one. Null when the dashboard does not install the add-on. |
+| `ha` | `found` (the integration is in `custom_components`), `loaded`, `config_entries` (their number) and `config_flow` (the manifest declares one). |
+
+Error: `catalog_unavailable` when the catalog cannot be read and there is no copy. `unauthorized` for a user who is not an administrator.

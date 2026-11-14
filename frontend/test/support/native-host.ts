@@ -22,6 +22,7 @@ export const NATIVE_LOAD_ORDER = [
   "core_lock",
   "core_humidity",
   "core_heating_failure",
+  "core_complements",
 ] as const;
 
 /** Import the module of each native plugin with a fake dashboard in the page, and return the host and the definitions. */

@@ -37,7 +37,7 @@ def test_every_command_is_documented() -> None:
     from custom_components.vtherm_dashboard import websocket_api  # pylint: disable=import-outside-toplevel
 
     commands = [getattr(websocket_api, name) for name in dir(websocket_api) if name.startswith("WS_")]
-    assert len(commands) == 8
+    assert len(commands) == 9
     for command in commands:
         assert f"## `{command}`" in PAGE, command
 

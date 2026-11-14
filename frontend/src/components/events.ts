@@ -27,3 +27,22 @@ export function followLink(source: HTMLElement, event: MouseEvent, path: string)
   event.preventDefault();
   navigate(source, path);
 }
+
+/** The event that a page sends to give the last segment of the breadcrumb, for example the name of the add-on that it shows. */
+export const PAGE_TITLE_EVENT = "vtherm-page-title";
+
+/**
+ * Give the title of the page to the breadcrumb.
+ *
+ * @param source - The page. The event goes up through the shadow roots.
+ * @param title - The title.
+ */
+export function setPageTitle(source: HTMLElement, title: string): void {
+  source.dispatchEvent(new CustomEvent<string>(PAGE_TITLE_EVENT, { detail: title, bubbles: true, composed: true }));
+}
+
+/** Open a page of Home Assistant itself, such as the screen of HACS, the way its own links do. */
+export function openHomeAssistantPage(path: string): void {
+  window.history.pushState(null, "", path);
+  window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+}

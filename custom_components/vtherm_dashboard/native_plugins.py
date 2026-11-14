@@ -30,8 +30,9 @@ NATIVE_PLUGIN_ORDER: tuple[str, ...] = (
     "core_lock",
     "core_humidity",
     "core_heating_failure",
+    "core_complements",
 )
-"""The native plugins of the configuration, in their load order. `core_complements` comes with the catalog of add-ons."""
+"""The native plugins, in their load order: `core`, the sections of the config flow in the order of its menu, then the add-ons."""
 
 
 def native_js_url(plugin_id: str, version: str) -> str:

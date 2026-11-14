@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Prepare the development environment: Python dependencies, external repositories
-# (Versatile Thermostat and vtherm_api) and the Home Assistant configuration.
+# (Versatile Thermostat, vtherm_api and HACS) and the Home Assistant configuration.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 VTHERM_REPO="${VTHERM_REPO:-https://github.com/jmcollin78/versatile_thermostat.git}"
 VTHERM_API_REPO="${VTHERM_API_REPO:-https://github.com/jmcollin78/vtherm_api.git}"
+HACS_REPO="${HACS_REPO:-https://github.com/hacs/integration.git}"
 
 # External repositories, cloned once into external/ (ignored by git).
 # To use a fork or a branch, change the clone in external/
@@ -14,6 +15,8 @@ VTHERM_API_REPO="${VTHERM_API_REPO:-https://github.com/jmcollin78/vtherm_api.git
 mkdir -p external
 [ -d external/versatile_thermostat ] || git clone "$VTHERM_REPO" external/versatile_thermostat
 [ -d external/vtherm_api ] || git clone "$VTHERM_API_REPO" external/vtherm_api
+# HACS, to read the commands that the add-ons feature calls (not installed in Home Assistant by this script).
+[ -d external/hacs ] || git clone --depth 1 "$HACS_REPO" external/hacs
 
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt

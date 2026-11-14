@@ -15,7 +15,7 @@ import { definitionOfContribution } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
 import "./components/contribution-host.ts";
-import { NAVIGATE_EVENT } from "./components/events.ts";
+import { NAVIGATE_EVENT, PAGE_TITLE_EVENT } from "./components/events.ts";
 import type { NavigateDetail } from "./components/events.ts";
 import "./components/side-menu.ts";
 import { THERMOSTAT_SELECTED_EVENT } from "./components/side-menu.ts";
@@ -61,6 +61,7 @@ export class VThermDashboardPanel extends LitElement {
     failure: { state: true },
     languageVersion: { state: true },
     saving: { state: true },
+    pageTitle: { state: true },
     savedMessage: { state: true },
     configRevision: { state: true },
   };
@@ -227,6 +228,9 @@ export class VThermDashboardPanel extends LitElement {
   /** Changes each time the language was applied, so that every component draws its texts again. */
   declare languageVersion: number;
 
+  /** The last segment of the breadcrumb, given by the page that is shown. It is dropped when the route changes. */
+  declare pageTitle: string;
+
   /** Whether a save is running. */
   declare saving: boolean;
 
@@ -267,6 +271,7 @@ export class VThermDashboardPanel extends LitElement {
     this.thermostats = [];
     this.failure = "";
     this.languageVersion = 0;
+    this.pageTitle = "";
     this.saving = false;
     this.savedMessage = "";
     this.configRevision = 0;
@@ -289,6 +294,7 @@ export class VThermDashboardPanel extends LitElement {
     window.addEventListener("location-changed", this.readLocation);
     this.addEventListener(NAVIGATE_EVENT, this.onNavigate as EventListener);
     this.addEventListener(THERMOSTAT_SELECTED_EVENT, this.onThermostatSelected as EventListener);
+    this.addEventListener(PAGE_TITLE_EVENT, this.onPageTitle as EventListener);
     this.addEventListener(CREATED_EVENT, this.onCreated as EventListener);
     this.addEventListener(CANCELLED_EVENT, this.onCancelled as EventListener);
     window.addEventListener("beforeunload", this.onBeforeUnload);
@@ -316,6 +322,7 @@ export class VThermDashboardPanel extends LitElement {
     }
     if (route !== this.route) {
       this.route = route;
+      this.pageTitle = "";
       this.noticeDismissed = false;
       this.drawerOpen = false;
     }
@@ -392,6 +399,11 @@ export class VThermDashboardPanel extends LitElement {
       const central = list?.central_config_id === event.detail;
       this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: central ? buildPath({ tab: CORE_TOP_TABS.configuration, rest: [] }) : buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: event.detail, rest: [] }) } }));
     })();
+  };
+
+  private readonly onPageTitle = (event: CustomEvent<string>): void => {
+    event.stopPropagation();
+    this.pageTitle = event.detail;
   };
 
   private readonly onCancelled = (event: Event): void => {
@@ -514,7 +526,7 @@ export class VThermDashboardPanel extends LitElement {
   private propsOf(entry: PlacedEntry, thermostat: ThermostatInfo | undefined): Readonly<Record<string, unknown>> {
     const hass = this.pluginHass ?? this.hass;
     if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
-      return { hass, narrow: this.compact };
+      return { hass, narrow: this.compact, language: String(this.languageVersion), subpath: this.route.rest };
     }
     const entryId = entry.hook === "thermostat_config" ? (thermostat?.id ?? null) : (this.session?.centralId ?? null);
     const draft = this.session?.get(entryId)?.draft;
@@ -609,6 +621,15 @@ export class VThermDashboardPanel extends LitElement {
       (model as { breadcrumb: unknown }).breadcrumb = [
         { label: model.activeTab?.title ?? "", path: buildPath({ tab: CORE_TOP_TABS.thermostats, rest: [] }) },
         { label: t(this.route.entry === "central" ? "wizard.title_central" : "wizard.title"), path: undefined },
+      ];
+    }
+    if (!creating && this.pageTitle !== "" && this.route.rest.length > 0 && model.breadcrumb.length > 0) {
+      // A page that shows one item of a list adds it to the breadcrumb, and the page of the list becomes a link.
+      const last = model.breadcrumb[model.breadcrumb.length - 1] as { label: string; path: string | undefined };
+      (model as { breadcrumb: unknown }).breadcrumb = [
+        ...model.breadcrumb.slice(0, -1),
+        { label: last.label, path: buildPath({ ...(this.route.tab === undefined ? {} : { tab: this.route.tab }), ...(this.route.thermostat === undefined ? {} : { thermostat: this.route.thermostat }), ...(this.route.entry === undefined ? {} : { entry: this.route.entry }), rest: [] }) },
+        { label: this.pageTitle, path: undefined },
       ];
     }
     const hasMenu = !creating && model.mode === "page" && (model.sections.length > 0 || model.thermostat !== undefined);
