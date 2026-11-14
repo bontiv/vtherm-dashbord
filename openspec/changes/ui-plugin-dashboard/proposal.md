@@ -11,7 +11,9 @@ Versatile Thermostat (VTherm) n'a pas d'interface unifiée pour configurer et su
 - Commande WebSocket `vtherm_dashboard/get_ui_plugins`, exposée par notre extension (`vtherm_api` est un package Python pur et n'expose pas de WebSocket).
 - Registre JavaScript `VThermUiPluginRegistry` : le dashboard charge dynamiquement le `js_url` de chaque plugin UI, qui s'enregistre et déclare ses contributions.
 - Configuration native du cœur de Versatile Thermostat : création, consultation et modification de la configuration générale (configuration centrale) et de celle de chaque thermostat, avec les mêmes règles de validation que le config flow de Versatile Thermostat.
-- Plugins natifs : le dashboard fournit lui-même 15 plugins UI (`core`, `core_tpi`, `core_window`, etc.), un par étape du config flow, enregistrés par les mêmes mécanismes que les plugins tiers. Les identifiants `core` et `core_*` leur sont réservés.
+- Plugins natifs : le dashboard fournit lui-même 16 plugins UI (`core`, `core_tpi`, `core_window`, etc., un par étape du config flow, plus `core_complements`), enregistrés par les mêmes mécanismes que les plugins tiers. Les identifiants `core` et `core_*` leur sont réservés.
+- Internationalisation de tous les plugins : catalogues de traductions par plugin, typés par le SDK, résolution de la langue de l'utilisateur de Home Assistant avec repli sur l'anglais, titres de navigation par clés, changement de langue sans rechargement. Les plugins natifs fournissent au minimum l'anglais, le français et l'allemand.
+- Compléments : un plugin natif ajoute l'onglet supérieur "VT Compléments" ("VT add-ons" en anglais, préfixe VT dans toutes les langues) qui liste le catalogue de compléments du projet (`plugins.json` du site vtherm) et installe les intégrations et cartes par HACS (ajout du dépôt, téléchargement, redémarrage proposé, puis config flow de l'intégration).
 - Contributions à visibilité conditionnelle (par exemple un onglet affiché seulement si une fonctionnalité est active) et contexte de configuration transmis aux composants (valeurs, erreurs, brouillon).
 - Package npm `@vtherm/dashboard-sdk` : types TypeScript du contrat et fonction `registerUiPlugin` que les plugins utilisent pour se déclarer, et un point d'entrée `@vtherm/dashboard-sdk/testing` avec un faux hôte pour les tests sans Home Assistant.
 - Langue : en-têtes, commentaires, docstrings et documentation exclusivement en anglais (les traductions de l'interface restent dans les fichiers de traduction).
@@ -38,6 +40,8 @@ Versatile Thermostat (VTherm) n'a pas d'interface unifiée pour configurer et su
 - `core-config-management`: création, modification et validation de la configuration générale et par thermostat de Versatile Thermostat (brouillon, héritage de la configuration centrale, compatibilité de version).
 - `core-native-plugins`: plugins UI natifs du dashboard, leurs onglets, champs et conditions d'affichage, déduits du config flow de Versatile Thermostat.
 - `code-conventions`: TypeScript strict à la place de JavaScript, conventions Python de Versatile Thermostat, et vérification automatique.
+- `internationalization`: catalogues de traductions des plugins UI, langues minimales des plugins natifs (anglais, français, allemand), résolution de la langue et repli sur l'anglais.
+- `complements-catalog`: catalogue des compléments de Versatile Thermostat et installation par HACS (intégrations, cartes), états d'installation, redémarrage et configuration.
 - `dashboard-panel`: panel "Home confort" dans le menu latéral de Home Assistant, page de configuration/supervision du cœur et thème hérité de Home Assistant.
 
 ### Modified Capabilities

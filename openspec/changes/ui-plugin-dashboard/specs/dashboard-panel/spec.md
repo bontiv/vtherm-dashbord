@@ -22,11 +22,11 @@ Le dashboard SHALL afficher en haut une barre d'onglets : Dashboard et Thermosta
 
 #### Scenario: Barre par défaut
 - **WHEN** l'utilisateur ouvre le dashboard sans plugin tiers
-- **THEN** la barre contient Dashboard et Thermostats à gauche et la roue crantée à droite
+- **THEN** la barre contient Dashboard, Thermostats et VT Compléments à gauche et la roue crantée à droite
 
 #### Scenario: Onglet de plugin
 - **WHEN** un plugin contribue un onglet supérieur
-- **THEN** il apparaît après Thermostats et avant la roue crantée
+- **THEN** il apparaît après les onglets natifs et avant la roue crantée
 
 #### Scenario: Onglet actif
 - **WHEN** l'utilisateur ouvre une page d'un onglet

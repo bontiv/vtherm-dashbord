@@ -26,7 +26,7 @@ Le plugin `core` SHALL fournir les onglets supérieurs `core.top.dashboard`, `co
 
 #### Scenario: Barre par défaut
 - **WHEN** seuls les plugins natifs sont chargés
-- **THEN** la barre contient les onglets Dashboard et Thermostats, puis la roue crantée seule à droite
+- **THEN** la barre contient les onglets Dashboard, Thermostats et VT Compléments, puis la roue crantée seule à droite
 
 #### Scenario: Vue d'ensemble d'un thermostat
 - **WHEN** un thermostat est sélectionné
@@ -44,7 +44,7 @@ Le plugin `core` SHALL fournir dans le menu de Configuration les pages "Plugins"
 - **THEN** les pages "Plugins" et "Développement" apparaissent sous le groupe "Dashboard", après les sections du groupe "Versatile Thermostat"
 
 ### Requirement: Liste et identifiants des plugins natifs
-Le dashboard SHALL fournir les plugins natifs `core`, `core_tpi`, `core_presets`, `core_window`, `core_motion`, `core_power`, `core_presence`, `core_central_boiler`, `core_auto_start_stop`, `core_valve_regulation`, `core_sync_temp`, `core_humidity`, `core_advanced`, `core_lock` et `core_heating_failure`. Les identifiants de plugins commençant par `core` SHALL être réservés aux plugins natifs.
+Le dashboard SHALL fournir les plugins natifs `core`, `core_tpi`, `core_presets`, `core_window`, `core_motion`, `core_power`, `core_presence`, `core_central_boiler`, `core_auto_start_stop`, `core_valve_regulation`, `core_sync_temp`, `core_humidity`, `core_advanced`, `core_lock`, `core_heating_failure` et `core_complements` (voir la spec `complements-catalog`). Les identifiants de plugins commençant par `core` SHALL être réservés aux plugins natifs.
 
 #### Scenario: Identifiant réservé
 - **WHEN** un plugin tiers tente de s'enregistrer avec l'identifiant `core_custom`

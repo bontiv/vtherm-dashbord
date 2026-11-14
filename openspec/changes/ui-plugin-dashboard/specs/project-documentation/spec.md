@@ -110,3 +110,14 @@ La documentation SHALL être rédigée exclusivement en anglais (pages de `docs/
 #### Scenario: Page en une autre langue
 - **WHEN** une page de `docs/` est rédigée dans une autre langue que l'anglais
 - **THEN** la revue la refuse, conformément à la case du modèle de demande de fusion
+
+### Requirement: Documentation de l'internationalisation
+La documentation SHALL décrire comment un plugin fournit ses traductions : catalogue anglais obligatoire, déclaration typée des clés, résolution de la langue et repli, titres par clés, paramètres et pluriels, chargement différé, et vérification des traductions manquantes. La procédure de développement d'un plugin SHALL inclure l'ajout de traductions.
+
+#### Scenario: Ajout d'une langue
+- **WHEN** un auteur de plugin veut ajouter l'allemand à son plugin
+- **THEN** la documentation décrit le fichier à créer, le typage du catalogue et la vérification à exécuter
+
+#### Scenario: Procédure de plugin
+- **WHEN** un auteur suit la procédure complète de développement
+- **THEN** elle contient une étape qui crée le catalogue anglais du plugin

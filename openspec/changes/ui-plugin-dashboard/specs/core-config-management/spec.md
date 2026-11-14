@@ -149,8 +149,12 @@ Le dashboard SHALL déclarer la version de configuration de Versatile Thermostat
 - **THEN** le dashboard affiche un message indiquant qu'elle est requise, sans erreur
 
 ### Requirement: Accès et langue
-La configuration SHALL être réservée aux administrateurs. Les libellés et aides SHALL s'afficher dans la langue de l'utilisateur de Home Assistant, avec repli sur l'anglais, et le français et l'anglais SHALL être fournis.
+La configuration SHALL être réservée aux administrateurs. Les libellés, aides et messages d'erreur SHALL suivre les règles de la spec `internationalization` : anglais, français et allemand fournis, anglais par défaut.
+
+#### Scenario: Utilisateur non administrateur
+- **WHEN** un utilisateur non administrateur ouvre le dashboard
+- **THEN** aucune page de configuration n'est accessible
 
 #### Scenario: Langue non fournie
 - **WHEN** la langue de l'utilisateur n'est pas fournie par le dashboard
-- **THEN** les libellés sont affichés en anglais
+- **THEN** les libellés et les messages d'erreur de validation sont affichés en anglais

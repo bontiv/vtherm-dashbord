@@ -110,7 +110,7 @@ Une contribution SHALL pouvoir déclarer une condition de visibilité évaluée 
 - **THEN** la contribution est masquée et l'erreur est signalée dans l'état du plugin
 
 ### Requirement: Titre des contributions de navigation
-Chaque contribution des hooks `top_tab`, `tab_page`, `global_page`, `general_config` et `thermostat_config` SHALL déclarer un titre traduisible, utilisé dans la navigation et dans le fil d'ariane. Une icône est facultative.
+Chaque contribution des hooks `top_tab`, `tab_page`, `global_page`, `general_config` et `thermostat_config` SHALL déclarer un titre, sous la forme d'une clé de traduction de son plugin, utilisé dans la navigation et dans le fil d'ariane. Une icône est facultative.
 
 #### Scenario: Titre absent
 - **WHEN** une contribution de navigation est déclarée sans titre
@@ -162,7 +162,7 @@ Le menu de gauche d'un onglet supérieur SHALL être composé de toutes les cont
 - **THEN** la seconde enregistrée est refusée et l'erreur est signalée
 
 ### Requirement: Groupes dans le menu
-Une entrée de menu SHALL pouvoir déclarer un groupe (libellé traduisible). Le menu SHALL afficher l'intitulé du groupe au-dessus de chaque suite consécutive d'entrées du même groupe. Les entrées sans groupe n'ont pas d'intitulé.
+Une entrée de menu SHALL pouvoir déclarer un groupe (clé de traduction de son plugin). Le menu SHALL afficher l'intitulé du groupe au-dessus de chaque suite consécutive d'entrées du même groupe. Les entrées sans groupe n'ont pas d'intitulé.
 
 #### Scenario: Entrées consécutives
 - **WHEN** trois entrées consécutives déclarent le groupe "Dashboard"

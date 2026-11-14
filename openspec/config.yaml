@@ -9,7 +9,9 @@ context: |
   - Language: every file header, code comment, docstring, commit message and piece of
     documentation (docs/, READMEs, changelog) is written in English exclusively.
     User-facing dashboard strings are the only exception: they are translated through the
-    translation files (French and English are provided).
+    translation catalogs of each plugin (see the internationalization spec). Core plugins
+    provide English, French and German; English is the default when the language of the
+    Home Assistant user is not supported.
   - Write the project's JavaScript code in TypeScript: frontend, SDK, tests, scripts,
     examples and tool configuration files when the tool accepts TypeScript.
     Avoid .js, .mjs and .cjs files in the sources.

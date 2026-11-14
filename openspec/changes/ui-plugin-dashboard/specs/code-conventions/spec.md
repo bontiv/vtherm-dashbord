@@ -7,7 +7,7 @@ Fixer les conventions de code du projet (TypeScript pour tout le code destiné a
 ## ADDED Requirements
 
 ### Requirement: Langue du code et de la documentation
-Tout en-tête de fichier, commentaire, docstring, commentaire de documentation, message de commit et page de documentation SHALL être rédigé exclusivement en anglais. Les textes affichés à l'utilisateur du dashboard sont des chaînes de produit, pas de la documentation : ils SHALL passer par les fichiers de traduction (français et anglais fournis).
+Tout en-tête de fichier, commentaire, docstring, commentaire de documentation, message de commit et page de documentation SHALL être rédigé exclusivement en anglais. Les textes affichés à l'utilisateur du dashboard sont des chaînes de produit, pas de la documentation : ils SHALL passer par les catalogues de traduction (spec `internationalization` : anglais, français et allemand pour les plugins natifs).
 
 #### Scenario: Commentaire en français
 - **WHEN** un commentaire, un en-tête ou une docstring est rédigé en français
