@@ -1,0 +1,42 @@
+{
+  "name": "@vtherm/dashboard-sdk",
+  "version": "0.1.0",
+  "description": "Types and helpers to write UI plugins for the Versatile Thermostat dashboard",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bontiv/vtherm_dashboard.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/bontiv/vtherm_dashboard#readme",
+  "bugs": "https://github.com/bontiv/vtherm_dashboard/issues",
+  "keywords": [
+    "home-assistant",
+    "versatile-thermostat",
+    "dashboard",
+    "plugin",
+    "sdk"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepack": "npm run build"
+  }
+}

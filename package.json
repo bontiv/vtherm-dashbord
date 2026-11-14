@@ -1,0 +1,44 @@
+{
+  "name": "vtherm-dashboard-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workspace of the Versatile Thermostat dashboard: the dashboard frontend and its plugin SDK",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bontiv/vtherm_dashboard.git"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/sdk",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p docs/examples/tsconfig.json && npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "check:js": "node scripts/check-no-js.ts",
+    "check:docs": "node scripts/check-docs.ts",
+    "docs:sync": "node scripts/sync-doc-examples.ts",
+    "docs:reference": "typedoc",
+    "check:reference": "node scripts/check-sdk-reference.ts",
+    "check:sdk-package": "node scripts/check-sdk-package.ts",
+    "check:python": "bash scripts/check-python.sh",
+    "check": "npm run typecheck && npm run lint && npm run check:js && npm run check:docs && npm run check:reference && npm run check:python",
+    "test": "vitest run",
+    "test:python": "pytest"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "eslint": "^10.15.0",
+    "jiti": "^2.7.0",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.14.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^5.1.0"
+  }
+}

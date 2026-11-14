@@ -1,0 +1,4 @@
+{
+  "description": "JavaScript files (.js, .mjs, .cjs) that are allowed in the sources, each with its justification. Prefer TypeScript.",
+  "exceptions": []
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "plugin": ["typedoc-plugin-markdown"],
+  "entryPoints": ["packages/sdk/src/index.ts"],
+  "tsconfig": "packages/sdk/tsconfig.json",
+  "out": "docs/reference/sdk",
+  "readme": "none",
+  "entryFileName": "index",
+  "hidePageTitle": false,
+  "hideBreadcrumbs": true,
+  "disableSources": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "treatWarningsAsErrors": true
+}

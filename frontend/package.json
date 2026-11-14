@@ -1,0 +1,10 @@
+{
+  "name": "vtherm-dashboard-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frontend of the Versatile Thermostat dashboard",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

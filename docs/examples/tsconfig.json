@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@vtherm/dashboard-sdk": ["../../packages/sdk/src/index.ts"]
+    }
+  },
+  "include": ["typescript/**/*.ts"]
+}

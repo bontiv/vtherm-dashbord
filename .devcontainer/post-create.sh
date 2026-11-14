@@ -24,9 +24,9 @@ python -m pip install -e external/vtherm_api
 # Dependencies of the Versatile Thermostat integration, without the published vtherm_api package.
 python -m pip install numpy scipy
 
-# Frontend, only once the project has been initialized.
-if [ -f frontend/package.json ]; then
-    (cd frontend && npm install)
+# Frontend and SDK: npm workspaces installed from the root package.json.
+if [ -f package.json ]; then
+    npm install
 fi
 
 # Home Assistant configuration (config/ is ignored by git).
