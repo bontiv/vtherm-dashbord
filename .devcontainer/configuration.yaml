@@ -1,0 +1,36 @@
+# Configuration minimale de développement, copiée dans config/ à la création du conteneur.
+# Une fois copiée, config/configuration.yaml peut être modifiée librement (ignorée par git).
+
+homeassistant:
+  name: VTherm Dashboard Dev
+  unit_system: metric
+  time_zone: Europe/Paris
+  country: FR
+  language: fr
+
+frontend:
+config:
+history:
+logbook:
+http:
+
+# Entités de base pour créer des VTherm sans matériel
+input_boolean:
+  dev_switch:
+    name: Interrupteur de test
+
+input_number:
+  dev_temperature:
+    name: Température de test
+    min: 0
+    max: 40
+    step: 0.1
+    initial: 19
+    unit_of_measurement: "°C"
+
+logger:
+  default: info
+  logs:
+    custom_components.versatile_thermostat: debug
+    custom_components.vtherm_dashboard: debug
+    vtherm_api: debug

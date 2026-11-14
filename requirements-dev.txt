@@ -1,0 +1,12 @@
+# Home Assistant (Python 3.14 requis). La version exacte est imposée par
+# pytest-homeassistant-custom-component, ce qui garantit des tests alignés sur le cœur.
+homeassistant
+home-assistant-frontend
+
+# Tests
+pytest
+pytest-asyncio
+pytest-homeassistant-custom-component
+
+# Qualité
+ruff

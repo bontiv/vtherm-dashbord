@@ -1,0 +1,52 @@
+{
+    "name": "VTherm Dashboard",
+    // Python 3.14 requis par Home Assistant 2026.11
+    "image": "mcr.microsoft.com/devcontainers/python:3.14-bookworm",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "lts"
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "forwardPorts": [8123],
+    "portsAttributes": {
+        "8123": {
+            "label": "Home Assistant",
+            "onAutoForward": "notify"
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
+    "containerEnv": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "charliermarsh.ruff",
+                "redhat.vscode-yaml",
+                "keesschollaart.vscode-home-assistant",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "runem.lit-plugin"
+            ],
+            "settings": {
+                "files.eol": "\n",
+                "editor.tabSize": 4,
+                "files.trimTrailingWhitespace": true,
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.testing.pytestEnabled": true,
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true
+                },
+                "[typescript]": {
+                    "editor.tabSize": 2
+                },
+                "[yaml]": {
+                    "editor.tabSize": 2
+                }
+            }
+        }
+    }
+}

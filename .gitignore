@@ -5,6 +5,10 @@
 .kiro/skills/
 .codestudio/
 
+# Environnement de développement Home Assistant
+config/
+external/
+
 # Python
 __pycache__/
 *.py[cod]
