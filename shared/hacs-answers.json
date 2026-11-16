@@ -1,0 +1,721 @@
+{
+  "hacs_version": "2.0.5",
+  "scenarios": {
+    "absent": [
+      {
+        "request": {
+          "type": "hacs/info"
+        },
+        "error": {
+          "code": "unknown_command",
+          "message": "Unknown command."
+        }
+      }
+    ],
+    "ready": [
+      {
+        "request": {
+          "type": "hacs/info"
+        },
+        "result": {
+          "categories": [
+            "integration",
+            "plugin"
+          ],
+          "country": "ALL",
+          "debug": false,
+          "dev": false,
+          "disabled_reason": null,
+          "has_pending_tasks": false,
+          "lovelace_mode": "yaml",
+          "stage": "running",
+          "startup": true,
+          "version": "2.0.5"
+        }
+      }
+    ],
+    "disabled": [
+      {
+        "request": {
+          "type": "hacs/info"
+        },
+        "result": {
+          "categories": [
+            "integration",
+            "plugin"
+          ],
+          "country": "ALL",
+          "debug": false,
+          "dev": false,
+          "disabled_reason": "rate_limit",
+          "has_pending_tasks": false,
+          "lovelace_mode": "yaml",
+          "stage": "running",
+          "startup": true,
+          "version": "2.0.5"
+        }
+      }
+    ],
+    "install_present": [
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": false,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "default",
+            "topics": []
+          }
+        ]
+      },
+      {
+        "request": {
+          "type": "hacs/repository/download",
+          "repository": "101"
+        },
+        "result": {}
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      }
+    ],
+    "install_absent": [
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/add",
+          "repository": "owner/absent-addon",
+          "category": "integration"
+        },
+        "result": {}
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "absent_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/absent-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "102",
+            "installed": false,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Absent Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "default",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      },
+      {
+        "request": {
+          "type": "hacs/repository/download",
+          "repository": "102"
+        },
+        "result": {}
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "absent_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/absent-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "102",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Absent Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      }
+    ],
+    "install_refused": [
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "absent_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/absent-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "102",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Absent Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/add",
+          "repository": "owner/refused-addon",
+          "category": "integration"
+        },
+        "result": {}
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "absent_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/absent-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "102",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Absent Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      }
+    ],
+    "install_download_error": [
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "absent_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/absent-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "102",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Absent Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "failing_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/failing-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "103",
+            "installed": false,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Failing Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "default",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      },
+      {
+        "request": {
+          "type": "hacs/repository/download",
+          "repository": "103"
+        },
+        "error": {
+          "code": "error",
+          "message": "No release found"
+        }
+      }
+    ],
+    "install_interface_changed": [
+      {
+        "request": {
+          "type": "hacs/repositories/list",
+          "categories": [
+            "integration"
+          ]
+        },
+        "result": [
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "absent_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/absent-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "102",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Absent Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "failing_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/failing-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "103",
+            "installed": false,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Failing Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "default",
+            "topics": []
+          },
+          {
+            "authors": [
+              "@owner"
+            ],
+            "available_version": "1.2.0",
+            "installed_version": "1.2.0",
+            "config_flow": true,
+            "can_download": true,
+            "category": "integration",
+            "country": [],
+            "custom": true,
+            "description": "",
+            "domain": "present_addon",
+            "downloads": 0,
+            "file_name": "",
+            "full_name": "owner/present-addon",
+            "hide": false,
+            "homeassistant": null,
+            "id": "101",
+            "installed": true,
+            "last_updated": 0,
+            "local_path": "/config/custom_components/None",
+            "name": "Present Addon",
+            "new": false,
+            "pending_upgrade": false,
+            "stars": 0,
+            "state": null,
+            "status": "pending-restart",
+            "topics": []
+          }
+        ]
+      },
+      {
+        "request": {
+          "type": "hacs/repositories/add",
+          "repository": "owner/new-addon",
+          "category": "integration"
+        },
+        "error": {
+          "code": "unknown_command",
+          "message": "Unknown command."
+        }
+      }
+    ]
+  }
+}

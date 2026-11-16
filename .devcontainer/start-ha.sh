@@ -41,4 +41,14 @@ link "$ROOT/external/versatile_thermostat/custom_components/versatile_thermostat
 # Our integration, once it exists.
 link "$ROOT/custom_components/vtherm_dashboard" config/custom_components/vtherm_dashboard
 
-exec hass --config "$ROOT/config" --debug
+# Home Assistant exits with the code 100 when it is asked to restart (the service homeassistant.restart, or the restart of the add-ons
+# in the dashboard), and leaves the restart to what started it: start it again then, and stop on any other code.
+RESTART_EXIT_CODE=100
+while true; do
+    status=0
+    hass --config "$ROOT/config" --debug || status=$?
+    if [ "$status" -ne "$RESTART_EXIT_CODE" ]; then
+        exit "$status"
+    fi
+    echo "Home Assistant asked for a restart: starting it again."
+done

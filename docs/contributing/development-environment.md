@@ -50,7 +50,9 @@ The integration loads the frontend in one of two ways:
 4. **Settings > Devices & services > Add integration**: add "Versatile Thermostat" (create a thermostat or the central
    configuration), then "VTherm Dashboard". "Home confort" appears in the side menu.
 
-A change of the Python code still needs a restart of Home Assistant.
+A change of the Python code still needs a restart of Home Assistant. A restart asked from Home Assistant (Settings, the service
+`homeassistant.restart`, or the restart of the add-ons in the dashboard) works: Home Assistant exits with the code 100 and `start-ha.sh`
+starts it again.
 
 ### The development server of the frontend
 `--dev-frontend` sets the environment variable `VTHERM_DASHBOARD_DEV_SERVER` of Home Assistant to `http://localhost:5198`. With it,
@@ -116,6 +118,7 @@ Useful variants: `npx vitest run frontend/test/panel.test.ts`, `pytest tests/tes
 | `npm run docs:reference` | `docs/reference/sdk/`, from the types of the SDK. |
 | `npm run catalogs:generate` | The catalogs of the native tabs, from the translations of Versatile Thermostat. |
 | `pytest tests/test_schema_drift.py --update-schemas` | `shared/vtherm-config-schemas.json`. |
+| `pytest tests/test_hacs_contract.py --update-hacs-answers` | `shared/hacs-answers.json`, the answers of the real HACS that the adapter is tested against. |
 | `UPDATE_NATIVE_DOCS=1 npx vitest run frontend/test/native-docs.test.ts` | The table of the contributions in [Native plugins](../plugins/native-plugins.md). |
 
 ### The preview

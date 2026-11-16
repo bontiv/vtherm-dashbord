@@ -36,8 +36,9 @@ HACS has no public API. The adapter calls the commands of its own interface:
 | `hacs/repositories/add` with `repository` and `category` | Add a repository. |
 | `hacs/repository/download` with `repository` (the identifier of HACS) | Download it. |
 
-The sources are in `external/hacs` (cloned by `.devcontainer/post-create.sh`, `custom_components/hacs/websocket/`). The tests use a fake
-HACS (`frontend/test/support/fake-hacs.ts`) that answers like these commands.
+The sources are in `external/hacs` (cloned by `.devcontainer/post-create.sh`, `custom_components/hacs/websocket/`). The adapter is
+tested against the answers of this real HACS (see [Tests](#tests)), and the page tests use a fake HACS
+(`frontend/test/support/fake-hacs.ts`) that answers like these commands.
 
 Three behaviours of HACS shape the adapter:
 
@@ -61,8 +62,9 @@ interface of HACS changed: the page shows a message and a link that opens the re
 
 ### The versions
 `MIN_HACS_VERSION` is the oldest version that was checked, the 2.x line. A HACS older than that gets the link to HACS. To support
-another version: clone it in `external/hacs`, read `custom_components/hacs/websocket/`, check the four commands above, update the fake HACS
-and `MIN_HACS_VERSION`.
+another version: set its reference in `external-refs.txt` and fetch it in `external/hacs`, run `pytest tests/test_hacs_contract.py`, which
+fails when the answers changed, check the adapter, record the new answers with `--update-hacs-answers`, then update the fake HACS and
+`MIN_HACS_VERSION`.
 
 ## The states
 `deduceState` is a pure function of the add-on (with what Home Assistant says) and of its repository in HACS. The order matters: a
@@ -82,3 +84,15 @@ config flow of an integration. It is checked on the version of Home Assistant th
 `tests/test_complements.py` reads the real file of the catalog (`tests/data/plugins.json`) and covers the caches, the offline copy and
 the entries. `frontend/test/complements-core.test.ts` covers the adapter, the states and the model, `complements-sanitize.test.ts` the
 sanitizer on a complete DOM (jsdom, since happy-dom does not run DOMPurify), and `complements-pages.test.ts` the pages.
+
+The adapter is also checked against the real HACS, in two steps that share `shared/hacs-answers.json`:
+
+1. `tests/test_hacs_contract.py` runs the WebSocket handlers of `external/hacs` in Home Assistant, in the scenarios of the adapter: HACS
+   absent, ready, disabled, a repository already in HACS, one that is added, one that HACS refuses without an error, a download that fails
+   and a command that HACS no longer knows. Only GitHub is replaced: registering and downloading a repository do what HACS does when they
+   succeed or fail. The test compares the answers with the file, and fails when HACS changes them.
+2. `frontend/test/hacs-contract.test.ts` replays the file through `HacsClient`: each command must be the recorded one, in the recorded
+   order, and the adapter must reach the expected state or error.
+
+After a change of HACS, check the adapter, then record the answers with `pytest tests/test_hacs_contract.py --update-hacs-answers`. The
+test is skipped when `external/hacs` is missing.

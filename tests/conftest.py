@@ -69,6 +69,7 @@ def setup_dashboard_fixture(hass: HomeAssistant, frontend_module):  # pylint: di
 def pytest_addoption(parser) -> None:
     """Options of the tests of the dashboard."""
     parser.addoption("--update-schemas", action="store_true", default=False, help="Write the description of the forms of Versatile Thermostat in shared/.")
+    parser.addoption("--update-hacs-answers", action="store_true", default=False, help="Write the answers of the real HACS in shared/hacs-answers.json.")
 
 
 @pytest.fixture(name="api")
