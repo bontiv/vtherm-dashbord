@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.loader import async_get_integration
 from vtherm_api import VThermAPI
 
-from .const import DOMAIN
+from .const import DATA_DEV_SERVER, DOMAIN
 from .config_flow_driver import FlowConfigWriter, SaveResult
 from .complements import ERROR_UNAVAILABLE as ERROR_CATALOG_UNAVAILABLE, CatalogUnavailableError, async_complements
 from .plugin_list import build_plugin_list
@@ -80,7 +80,7 @@ async def ws_get_ui_plugins(hass: HomeAssistant, connection: websocket_api.Activ
         return
     dashboard_version = (await async_get_integration(hass, DOMAIN)).version
     registered = VThermAPI.get_vtherm_api(hass).get_ui_plugins()
-    plugins = build_plugin_list(registered, str(dashboard_version), dev_plugins)
+    plugins = build_plugin_list(registered, str(dashboard_version), dev_plugins, hass.data.get(DOMAIN, {}).get(DATA_DEV_SERVER))
     connection.send_result(msg["id"], {"dashboard_version": str(dashboard_version), "plugins": [plugin.as_dict() for plugin in plugins]})
 
 

@@ -174,12 +174,25 @@ def _collect(registered: Iterable[UiPlugin], dev_entries: Iterable[Mapping[str, 
     return items
 
 
-def _validate(item: _Item, dashboard_version: str) -> None:
+def _is_url_valid(item: _Item, dev_server: str | None) -> bool:
+    """Return whether the URL of a plugin is allowed for its source.
+
+    A development entry gives an absolute address. A registered plugin is served by this Home Assistant instance. A native plugin may
+    also be served by the development server of the frontend that the integration was started with, and by no other host.
+    """
+    if item.source == SOURCE_DEVELOPMENT:
+        return _is_development_url(item.js_url)
+    if item.source == SOURCE_NATIVE and dev_server is not None and item.js_url.startswith(f"{dev_server}/"):
+        return True
+    return _is_local_url(item.js_url)
+
+
+def _validate(item: _Item, dashboard_version: str, dev_server: str | None = None) -> None:
     """Check the identifier, the URL and the compatibility of a plugin with the dashboard version."""
     if _is_reserved(item.id) and item.id not in NATIVE_PLUGIN_IDS:
         item.fail(STATE_INVALID, REASON_RESERVED_ID)
         return
-    url_is_valid = _is_development_url(item.js_url) if item.source == SOURCE_DEVELOPMENT else _is_local_url(item.js_url)
+    url_is_valid = _is_url_valid(item, dev_server)
     if not url_is_valid:
         item.fail(STATE_INVALID, REASON_INVALID_URL, url=item.js_url)
         return
@@ -310,6 +323,7 @@ def build_plugin_list(
     registered: Iterable[UiPlugin],
     dashboard_version: str,
     dev_entries: Iterable[Mapping[str, Any]] | None = None,
+    dev_server: str | None = None,
 ) -> list[PluginEntry]:
     """Build the list of plugins for the frontend.
 
@@ -319,6 +333,8 @@ def build_plugin_list(
         dev_entries: The development entries sent by an administrator. An entry whose id is registered replaces the
             URL of that plugin. Otherwise it is a full declaration with `js_url`, `dashboard_version` and optional
             `requires`, `load_after` and `load_before`.
+        dev_server: The URL of the development server of the frontend, when the integration was started with one. The native
+            plugins may then have their module on that server.
 
     Returns:
         The plugins to load, in load order, followed by the other plugins ordered by identifier.
@@ -329,7 +345,7 @@ def build_plugin_list(
     parse_version(dashboard_version)
     items = _collect(registered, dev_entries)
     for item in items.values():
-        _validate(item, dashboard_version)
+        _validate(item, dashboard_version, dev_server)
     _propagate_missing_dependencies(items)
     _exclude_cycles(items)
     _assign_order(items)

@@ -82,7 +82,7 @@ states when an import fails (see the plugin status page of the dashboard).
 | --- | --- | --- | --- |
 | `ready` | `null` | `{}` | The plugin is valid, compatible and its dependencies are ready. |
 | `invalid` | `reserved_id` | `{}` | The identifier is `core` or starts with `core_` and does not belong to a native plugin. |
-| `invalid` | `invalid_url` | `{"url": "<url>"}` | An installed plugin must give a path that starts with `/` and is not another host. A development entry must give an absolute `http` or `https` URL. |
+| `invalid` | `invalid_url` | `{"url": "<url>"}` | An installed plugin must give a path that starts with `/` and is not another host. A development entry must give an absolute `http` or `https` URL. A native plugin may also be on the development server of the frontend that Home Assistant was started with (`VTHERM_DASHBOARD_DEV_SERVER`), see [Development environment](../contributing/development-environment.md#the-development-server-of-the-frontend). |
 | `invalid` | `invalid_constraint` | `{"fault": "<comparator>"}` | `dashboard_version` has an unsupported operator or an invalid version. `fault` is the faulty comparator. |
 | `invalid` | `missing_constraint` | `{}` | A development entry for an unknown plugin has no `dashboard_version`. |
 | `dashboard_incompatible` | `too_old` or `too_new` | `{"constraint": "<constraint>", "dashboard_version": "<version>"}` | The dashboard version does not satisfy the constraint. `too_old` means the dashboard is older than the plugin supports, `too_new` that it is more recent. |

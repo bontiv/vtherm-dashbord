@@ -266,3 +266,30 @@ def test_entries_are_json_serializable() -> None:
     """The list is sent through the WebSocket."""
     entries = build_plugin_list([plugin("a", load_after=["b"]), plugin("b", load_after=["a"]), plugin("c", ">=2.0"), plugin("d")], DASHBOARD)
     assert json.loads(json.dumps([entry.as_dict() for entry in entries]))[0]["id"] == "d"
+
+
+DEV_SERVER = "http://localhost:5198"
+
+
+def test_a_native_plugin_may_be_served_by_the_development_server_of_the_frontend() -> None:
+    """With the development server of the frontend, the native plugins load their sources from it."""
+    entries = {entry.id: entry for entry in build_plugin_list([plugin("core", js_url=f"{DEV_SERVER}/src/native/plugins/core.ts")], DASHBOARD, None, DEV_SERVER)}
+    assert (entries["core"].state, entries["core"].source) == (STATE_READY, SOURCE_NATIVE)
+
+
+@pytest.mark.parametrize(
+    ("plugin_id", "js_url", "dev_server"),
+    [
+        # Without the development server, a native plugin is served by Home Assistant only.
+        ("core", f"{DEV_SERVER}/src/native/plugins/core.ts", None),
+        # Another host, or a host whose name only starts like the one of the server.
+        ("core", "http://evil.example/src/native/plugins/core.ts", DEV_SERVER),
+        ("core", "http://localhost:51980/src/native/plugins/core.ts", DEV_SERVER),
+        # A plugin of another integration never gets the address of the development server.
+        ("other", f"{DEV_SERVER}/src/other.ts", DEV_SERVER),
+    ],
+)
+def test_the_development_server_of_the_frontend_is_allowed_for_the_native_plugins_only(plugin_id, js_url, dev_server) -> None:
+    """Any other absolute address of a registered plugin stays refused."""
+    entries = {entry.id: entry for entry in build_plugin_list([plugin(plugin_id, js_url=js_url)], DASHBOARD, None, dev_server)}
+    assert (entries[plugin_id].state, entries[plugin_id].reason) == (STATE_INVALID, "invalid_url")
