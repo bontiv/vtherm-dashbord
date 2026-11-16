@@ -41,6 +41,10 @@ describe("the theme", () => {
       "--ha-card-border-radius",
       "--ha-card-box-shadow",
       "--paper-font-body1_-_font-family",
+      // The margins of a phone screen, that the frontend of Home Assistant defines for the notch and the navigation bar of the system.
+      "--safe-area-inset-bottom",
+      "--safe-area-inset-left",
+      "--safe-area-inset-right",
     ]);
     expect(usedVariables().filter((name) => !known.has(name))).toEqual([]);
   });

@@ -6,6 +6,7 @@ import { t } from "../shell-translations.ts";
 import { followLink } from "./events.ts";
 import { renderIcon } from "./icon.ts";
 import { defineElement } from "./define.ts";
+import { narrowStyles } from "./narrow-styles.ts";
 
 /** The event sent when the user chooses another thermostat in the selector. Its detail is the identifier of the thermostat. */
 export const THERMOSTAT_SELECTED_EVENT = "vtherm-thermostat-selected";
@@ -25,7 +26,9 @@ export class VThermSideMenu extends LitElement {
     label: { type: String },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       box-sizing: border-box;
@@ -80,7 +83,8 @@ export class VThermSideMenu extends LitElement {
       outline: 2px solid var(--primary-color);
       outline-offset: -2px;
     }
-  `;
+  `,
+  ];
 
   /** The sections of the menu. */
   declare sections: readonly NavSection[];

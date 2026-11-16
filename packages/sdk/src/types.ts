@@ -125,6 +125,15 @@ export interface BaseProps {
   hass: Hass;
 }
 
+/** What every component of a contribution is told about the display. Visibility conditions do not receive it. */
+export interface DisplayProps {
+  /**
+   * Whether the dashboard is shown on a narrow screen, such as a phone: its menu is then a drawer and its pages take the whole width.
+   * It changes without a reload when the width of the window crosses the threshold, so a component that uses it must draw again.
+   */
+  narrow: boolean;
+}
+
 /** The properties of the components that are shown for one thermostat. */
 export interface ThermostatProps extends BaseProps {
   /** The identifier of the thermostat. */
@@ -153,17 +162,17 @@ export interface ThermostatConfigProps extends ThermostatProps, ConfigProps {
 /** The properties that the dashboard gives to the custom element of a contribution, by hook. */
 export interface HookPropsMap {
   /** The properties of the pages of the left menu of a top tab. */
-  tab_page: BaseProps;
+  tab_page: BaseProps & DisplayProps;
   /** The properties of the pages of the Dashboard tab. */
-  global_page: BaseProps;
+  global_page: BaseProps & DisplayProps;
   /** The properties of the widgets of the Overview page. */
-  global_widget: BaseProps;
+  global_widget: BaseProps & DisplayProps;
   /** The properties of the sections of the general configuration. */
-  general_config: GeneralConfigProps;
+  general_config: GeneralConfigProps & DisplayProps;
   /** The properties of the entries of the menu of a thermostat. */
-  thermostat_config: ThermostatConfigProps;
+  thermostat_config: ThermostatConfigProps & DisplayProps;
   /** The properties of the widgets of the overview of a thermostat. */
-  thermostat_widget: ThermostatProps;
+  thermostat_widget: ThermostatProps & DisplayProps;
 }
 
 /** The properties of the custom element of a contribution of the hook `H`. */

@@ -9,6 +9,7 @@ import "../dev/dev-plugins-page.ts";
 import { navigate } from "../components/events.ts";
 import { buildPath } from "../router.ts";
 import { t } from "../shell-translations.ts";
+import { narrowStyles } from "../components/narrow-styles.ts";
 
 /** The address of the assistant that creates a thermostat or the central configuration. */
 export const NEW_THERMOSTAT = "new";
@@ -25,7 +26,9 @@ export class CoreOverviewPage extends LitElement {
 /** The overview of a thermostat: its type, then the widgets of the plugins for the thermostat. */
 export class CoreThermostatOverviewPage extends LitElement {
   static override properties = { hass: { attribute: false }, thermostatId: { type: String }, values: { attribute: false }, language: { type: String } };
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
     }
@@ -33,7 +36,8 @@ export class CoreThermostatOverviewPage extends LitElement {
       padding: 16px 16px 0;
       color: var(--secondary-text-color);
     }
-  `;
+  `,
+  ];
   declare hass: Hass | undefined;
   declare thermostatId: string;
   declare values: ConfigValues;

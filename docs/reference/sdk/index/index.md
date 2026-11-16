@@ -18,6 +18,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [ConfigProps](interfaces/ConfigProps.md)
 - [ContributionMap](interfaces/ContributionMap.md)
 - [CoreTopTabs](interfaces/CoreTopTabs.md)
+- [DisplayProps](interfaces/DisplayProps.md)
 - [EngineIssue](interfaces/EngineIssue.md)
 - [GeneralConfigContribution](interfaces/GeneralConfigContribution.md)
 - [GeneralConfigProps](interfaces/GeneralConfigProps.md)

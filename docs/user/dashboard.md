@@ -42,8 +42,17 @@ your own, the dashboard shows the pages that come with it, and nothing else.
 
 ## On a phone
 
-On a narrow screen the menu is hidden. A **Menu** button opens it as a drawer, and the drawer closes when you choose a page.
-The tabs scroll sideways, and the Configuration gear always stays visible. The breadcrumb only shows its last two parts.
+On a phone, in the Home Assistant app or in a browser, the dashboard is laid out for a narrow screen (under 700 px):
+
+- The bar at the top starts with the button of the Home Assistant menu, to reach the other pages of Home Assistant. The title of the
+  dashboard is not shown, so that the tabs have the whole width. The tabs scroll sideways, a shade shows on the side where tabs are
+  hidden, and the open tab is always brought into view. The Configuration gear always stays visible.
+- The menu of the pages is hidden. The **Menu of the pages** button, at the left of the breadcrumb, opens it as a drawer over the page,
+  which is darkened.
+  The drawer closes when you choose a page, when you touch the darkened page, or with the Escape key.
+- The breadcrumb only shows its last two parts.
+- Buttons, fields and lists are large enough to be touched, and long texts such as addresses wrap instead of widening the page.
+- The bar that saves a configuration stays at the bottom of the screen; its buttons go under its message.
 
 ## The plugin status
 

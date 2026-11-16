@@ -7,6 +7,7 @@ import type { ThermostatInfo } from "../navigation.ts";
 import { t } from "../shell-translations.ts";
 import { followLink } from "./events.ts";
 import { defineElement } from "./define.ts";
+import { narrowStyles } from "./narrow-styles.ts";
 
 /** The list of the thermostats, shown in full width in the Thermostats tab, with a message when there is none. */
 export class VThermThermostatList extends LitElement {
@@ -15,7 +16,9 @@ export class VThermThermostatList extends LitElement {
     thermostats: { attribute: false },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 16px;
@@ -62,7 +65,8 @@ export class VThermThermostatList extends LitElement {
       text-align: center;
       color: var(--secondary-text-color);
     }
-  `;
+  `,
+  ];
 
   /** The thermostats. */
   declare thermostats: readonly ThermostatInfo[];

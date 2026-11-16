@@ -20,6 +20,7 @@ import type { NavigateDetail } from "./components/events.ts";
 import "./components/side-menu.ts";
 import { THERMOSTAT_SELECTED_EVENT } from "./components/side-menu.ts";
 import "./components/thermostat-list.ts";
+import { renderIcon } from "./components/icon.ts";
 import "./components/top-bar.ts";
 import { createLanguageController } from "./i18n.ts";
 import type { LanguageController } from "./i18n.ts";
@@ -34,13 +35,14 @@ import { translateErrorCode } from "./i18n.ts";
 import { DASHBOARD_VERSION } from "./version.ts";
 import { defineElement } from "./components/define.ts";
 import { DevStore } from "./dev/dev-store.ts";
+import { NARROW_QUERY, narrowStyles } from "./components/narrow-styles.ts";
 import type { DevelopmentEntry } from "./plugin-list.ts";
 
 /** The tag name of the panel. The integration registers the panel with this name. */
 export const PANEL_ELEMENT = "vtherm-dashboard-panel";
 
-/** The width under which the screen is narrow: the menu becomes a drawer. */
-export const NARROW_QUERY = "(max-width: 700px)";
+/** The width under which the screen is narrow: the menu becomes a drawer. Defined with the styles of the narrow screen. */
+export { NARROW_QUERY } from "./components/narrow-styles.ts";
 
 /** Gives the thermostats of Versatile Thermostat. */
 export type ThermostatProvider = (hass: Hass) => Promise<readonly ThermostatInfo[]>;
@@ -68,11 +70,16 @@ export class VThermDashboardPanel extends LitElement {
     configRevision: { state: true },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: flex;
       flex-direction: column;
-      height: 100%;
+      /* Home Assistant gives no definite height to the element around a custom panel: 100% would be the height of the content. The
+         panel takes the height of the window, so that its page scrolls inside it and the drawer and the save bar reach the bottom. */
+      height: 100vh;
+      height: 100dvh;
       color: var(--primary-text-color);
       background-color: var(--primary-background-color);
       font-family: var(--paper-font-body1_-_font-family, inherit);
@@ -86,8 +93,13 @@ export class VThermDashboardPanel extends LitElement {
       flex: 1 1 auto;
     }
     .menu-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
       margin: 0 0 0 8px;
-      padding: 6px 12px;
+      padding: 0 10px;
       font: inherit;
       color: var(--primary-text-color);
       background-color: var(--card-background-color);
@@ -139,13 +151,26 @@ export class VThermDashboardPanel extends LitElement {
       display: flex;
     }
     .drawer vtherm-side-menu {
+      flex: 0 0 auto;
+      max-width: 85%;
+      height: 100%;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       box-shadow: var(--ha-card-box-shadow, 0 2px 8px var(--divider-color));
     }
     .drawer .scrim {
       flex: 1 1 auto;
+      padding: 0;
+      border: 0;
       background-color: var(--divider-color);
       opacity: 0.6;
-      border: 0;
+      cursor: pointer;
+    }
+    @supports (background-color: color-mix(in srgb, red 50%, transparent)) {
+      .drawer .scrim {
+        background-color: color-mix(in srgb, var(--primary-text-color) 40%, transparent);
+        opacity: 1;
+      }
     }
     .message {
       padding: 32px 16px;
@@ -163,11 +188,14 @@ export class VThermDashboardPanel extends LitElement {
       align-items: center;
       gap: 8px 16px;
       padding: 8px 16px;
+      /* Above the navigation bar of the system on a phone. */
+      padding-bottom: max(8px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
       background-color: var(--card-background-color);
       border-top: 1px solid var(--divider-color);
     }
     .savebar .text {
-      flex: 1 1 auto;
+      /* On a phone, the buttons go under the message rather than squeezing it. */
+      flex: 1 1 12em;
     }
     .savebar .error {
       color: var(--error-color);
@@ -194,7 +222,8 @@ export class VThermDashboardPanel extends LitElement {
       border: 1px solid var(--warning-color);
       border-radius: 4px;
     }
-  `;
+  `,
+  ];
 
   /** The state of Home Assistant, set by Home Assistant. */
   declare hass: Hass | undefined;
@@ -313,6 +342,7 @@ export class VThermDashboardPanel extends LitElement {
     this.addEventListener(PAGE_TITLE_EVENT, this.onPageTitle as EventListener);
     this.addEventListener(CREATED_EVENT, this.onCreated as EventListener);
     this.addEventListener(CANCELLED_EVENT, this.onCancelled as EventListener);
+    this.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("beforeunload", this.onBeforeUnload);
     this.query = window.matchMedia(NARROW_QUERY);
     this.compact = this.query.matches;
@@ -460,6 +490,33 @@ export class VThermDashboardPanel extends LitElement {
     return [PANEL_PATH, ...[route.tab, route.thermostat, route.entry, ...route.rest].filter((segment): segment is string => segment !== undefined).map(encodeURIComponent)].join("/");
   }
 
+  /** Close the drawer of the menu with the key Escape. */
+  private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && this.drawerOpen) {
+      event.stopPropagation();
+      this.drawerOpen = false;
+    }
+  };
+
+  protected override updated(changed: PropertyValues): void {
+    super.updated(changed);
+    if (changed.has("drawerOpen") && changed.get("drawerOpen") !== undefined) {
+      void this.moveFocusWithDrawer();
+    }
+  }
+
+  /** When the drawer opens, the focus goes to the active entry of its menu; when it closes, back to the button that opened it. */
+  private async moveFocusWithDrawer(): Promise<void> {
+    if (this.drawerOpen) {
+      const menu = this.renderRoot.querySelector<HTMLElement & { updateComplete?: Promise<unknown> }>(".drawer vtherm-side-menu");
+      await menu?.updateComplete;
+      const links = [...(menu?.shadowRoot?.querySelectorAll<HTMLElement>("a, select") ?? [])];
+      (links.find((link) => link.getAttribute("aria-current") === "page") ?? links[0])?.focus();
+    } else {
+      this.renderRoot.querySelector<HTMLElement>(".menu-button")?.focus();
+    }
+  }
+
   protected override willUpdate(changed: PropertyValues): void {
     if (changed.has("hass") && this.hass !== undefined) {
       this.pluginHass = this.hass;
@@ -582,7 +639,7 @@ export class VThermDashboardPanel extends LitElement {
       }
       draft.propose(tab, changes);
     };
-    const common = { hass, values: this.valuesOf(entryId), errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab), proposeChanges };
+    const common = { hass, narrow: this.compact, values: this.valuesOf(entryId), errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab), proposeChanges };
     return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
   }
 
@@ -676,11 +733,26 @@ export class VThermDashboardPanel extends LitElement {
       ];
     }
     const hasMenu = !creating && model.mode === "page" && (model.sections.length > 0 || model.thermostat !== undefined);
-    return html`<vtherm-top-bar .tabs=${model.tabs} .heading=${t("shell.title")}></vtherm-top-bar>
+    return html`<vtherm-top-bar
+        .tabs=${model.tabs}
+        .heading=${t("shell.title")}
+        ?compact=${this.compact}
+        ?ha-menu=${this.narrow}
+        .haMenuLabel=${t("shell.ha_menu")}
+        .hass=${this.hass}
+      ></vtherm-top-bar>
       ${this.developmentPlugins.length === 0 ? undefined : html`<div class="devbanner" role="status">${t("dev.banner", { plugins: this.developmentPlugins.join(", ") })}</div>`}
       <div class="toolbar">
         ${this.compact && hasMenu
-          ? html`<button class="menu-button" aria-expanded=${this.drawerOpen ? "true" : "false"} @click=${() => (this.drawerOpen = !this.drawerOpen)}>${t("shell.menu.toggle")}</button>`
+          ? html`<button
+              class="menu-button"
+              aria-expanded=${this.drawerOpen ? "true" : "false"}
+              aria-label=${t("shell.menu.toggle")}
+              title=${t("shell.menu.toggle")}
+              @click=${() => (this.drawerOpen = !this.drawerOpen)}
+            >
+              ${renderIcon("mdi:format-list-bulleted")}
+            </button>`
           : undefined}
         <vtherm-breadcrumb .crumbs=${model.breadcrumb} .narrow=${this.compact} .label=${t("shell.breadcrumb.label")}></vtherm-breadcrumb>
       </div>
@@ -692,7 +764,7 @@ export class VThermDashboardPanel extends LitElement {
         : undefined}
       <div class="body">
         ${!this.compact && hasMenu ? html`<aside>${this.renderMenu(model)}</aside>` : undefined}
-        <main>${this.renderBody(model)}</main>
+        <main ?inert=${this.compact && hasMenu && this.drawerOpen}>${this.renderBody(model)}</main>
         ${this.compact && hasMenu && this.drawerOpen
           ? html`<div class="drawer">
               ${this.renderMenu(model)}

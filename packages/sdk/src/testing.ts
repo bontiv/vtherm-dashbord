@@ -129,10 +129,11 @@ export interface FakeHost extends UiPluginRegistry {
    * Show the component of a contribution with properties, in the document.
    *
    * @param entry - The contribution, from `resolved`.
-   * @param props - The properties the dashboard gives to the component of this hook. `hass` is the fake `hass` by default.
+   * @param props - The properties the dashboard gives to the component of this hook. `hass` is the fake `hass` by default, and `narrow`
+   *   is false by default: give `narrow: true` to see the component as on a phone.
    * @returns The element, once it has rendered.
    */
-  render<H extends ComponentHookName>(entry: PlacedEntry, props: Omit<HookProps<H>, "hass"> & { hass?: Hass }): Promise<HTMLElement>;
+  render<H extends ComponentHookName>(entry: PlacedEntry, props: Omit<HookProps<H>, "hass" | "narrow"> & { hass?: Hass; narrow?: boolean }): Promise<HTMLElement>;
   /** Every problem found while placing the contributions, since the start. */
   issues(): readonly EngineIssue[];
 }
@@ -198,7 +199,7 @@ export function createFakeHost(options: FakeHostOptions = {}): FakeHost {
       }
       const element = document.createElement(tag);
       // The properties are set before the element is connected, so its first render already has them.
-      Object.assign(element, { hass, ...props });
+      Object.assign(element, { hass, narrow: false, ...props });
       document.body.append(element);
       await (element as { updateComplete?: Promise<unknown> }).updateComplete;
       return element;

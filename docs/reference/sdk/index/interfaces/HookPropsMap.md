@@ -10,7 +10,7 @@ The properties that the dashboard gives to the custom element of a contribution,
 
 ### general\_config
 
-> **general\_config**: [`GeneralConfigProps`](GeneralConfigProps.md)
+> **general\_config**: [`GeneralConfigProps`](GeneralConfigProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the sections of the general configuration.
 
@@ -18,7 +18,7 @@ The properties of the sections of the general configuration.
 
 ### global\_page
 
-> **global\_page**: [`BaseProps`](BaseProps.md)
+> **global\_page**: [`BaseProps`](BaseProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the pages of the Dashboard tab.
 
@@ -26,7 +26,7 @@ The properties of the pages of the Dashboard tab.
 
 ### global\_widget
 
-> **global\_widget**: [`BaseProps`](BaseProps.md)
+> **global\_widget**: [`BaseProps`](BaseProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the widgets of the Overview page.
 
@@ -34,7 +34,7 @@ The properties of the widgets of the Overview page.
 
 ### tab\_page
 
-> **tab\_page**: [`BaseProps`](BaseProps.md)
+> **tab\_page**: [`BaseProps`](BaseProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the pages of the left menu of a top tab.
 
@@ -42,7 +42,7 @@ The properties of the pages of the left menu of a top tab.
 
 ### thermostat\_config
 
-> **thermostat\_config**: [`ThermostatConfigProps`](ThermostatConfigProps.md)
+> **thermostat\_config**: [`ThermostatConfigProps`](ThermostatConfigProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the entries of the menu of a thermostat.
 
@@ -50,6 +50,6 @@ The properties of the entries of the menu of a thermostat.
 
 ### thermostat\_widget
 
-> **thermostat\_widget**: [`ThermostatProps`](ThermostatProps.md)
+> **thermostat\_widget**: [`ThermostatProps`](ThermostatProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the widgets of the overview of a thermostat.

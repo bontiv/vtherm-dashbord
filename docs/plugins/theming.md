@@ -44,6 +44,9 @@ These are the variables that the components of the dashboard use. They are defin
 | `--ha-card-border-radius` | Rounded corners of a card. |
 | `--ha-card-box-shadow` | Shadow of a card. |
 | `--paper-font-body1_-_font-family` | Font of the text. |
+| `--safe-area-inset-bottom` | The margin of a phone screen that the navigation bar of the system covers, given by the Home Assistant app. The save bar stays above it. |
+| `--safe-area-inset-left` | The margin of a phone screen on the left, under a notch in landscape. The top bar stays out of it. |
+| `--safe-area-inset-right` | The margin of a phone screen on the right, under a notch in landscape. The top bar stays out of it. |
 
 ## Other things to do
 

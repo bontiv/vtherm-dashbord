@@ -6,6 +6,7 @@ import { currentState, STATE_CHANGED_EVENT } from "../state.ts";
 import { t } from "../shell-translations.ts";
 import { DevStore } from "./dev-store.ts";
 import type { DevEntry, DevEntryProblem } from "./dev-store.ts";
+import { narrowStyles } from "../components/narrow-styles.ts";
 
 const translate = t as (key: string, params?: Readonly<Record<string, string | number>>) => string;
 
@@ -22,7 +23,9 @@ export class VThermDevPluginsPage extends LitElement {
     changed: { state: true },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 16px;
@@ -91,7 +94,8 @@ export class VThermDevPluginsPage extends LitElement {
     .hint {
       color: var(--secondary-text-color);
     }
-  `;
+  `,
+  ];
 
   /** The language of the user. It only changes to make the page draw its texts again. */
   declare language: string;

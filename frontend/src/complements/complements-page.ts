@@ -15,6 +15,7 @@ import { configFlowPath } from "./states.ts";
 import { text } from "./translations.ts";
 import { COMPLEMENT_STATES } from "./types.ts";
 import type { Complement, ComplementState } from "./types.ts";
+import { narrowStyles } from "../components/narrow-styles.ts";
 
 /** The identifiers of the contributions of the plugin. */
 export const COMPLEMENTS_TOP_TAB = "core_complements.top.complements";
@@ -48,7 +49,9 @@ class ComplementsPageBase extends LitElement {
     revision: { state: true },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 16px;
@@ -183,7 +186,7 @@ class ComplementsPageBase extends LitElement {
     }
     dl {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: auto minmax(0, 1fr);
       gap: 4px 16px;
     }
     dt {
@@ -192,7 +195,8 @@ class ComplementsPageBase extends LitElement {
     dd {
       margin: 0;
     }
-  `;
+  `,
+  ];
 
   declare hass: Hass | undefined;
   /** The segments after the page in the address: the identifier of an add-on opens its page. */
@@ -357,7 +361,7 @@ class ComplementsPageBase extends LitElement {
             ${visible.map((complement) => {
               const path = this.pathOf(complement);
               return html`<li class="card">
-                <a class="name" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${complement.name}</a>
+                <a class="name touch-target" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${complement.name}</a>
                 <div class="meta">
                   <span class="badge">${text(typeKey(complement))}</span>
                   <span class="badge">${this.known("family", complement.family)}</span>
@@ -375,7 +379,7 @@ class ComplementsPageBase extends LitElement {
     const complement = complementsModel.response?.complements.find((candidate) => candidate.id === id);
     if (complement === undefined) {
       return html`<div class="message" role="status">${text("detail.not_found")}</div>
-        <a href=${this.pathOf()} @click=${(event: MouseEvent) => followLink(this, event, this.pathOf())}>${text("detail.back")}</a>`;
+        <a class="touch-target" href=${this.pathOf()} @click=${(event: MouseEvent) => followLink(this, event, this.pathOf())}>${text("detail.back")}</a>`;
     }
     if (this.titled !== complement.name) {
       this.titled = complement.name;
@@ -388,7 +392,7 @@ class ComplementsPageBase extends LitElement {
     const description = this.descriptionOf(complement);
     const installFailure = progress.error === undefined ? undefined : this.installFailure(progress.error.code, progress.error.message);
     const outcome = progress.outcome;
-    return html`<a href=${this.pathOf()} @click=${(event: MouseEvent) => followLink(this, event, this.pathOf())}>${text("detail.back")}</a>
+    return html`<a class="touch-target" href=${this.pathOf()} @click=${(event: MouseEvent) => followLink(this, event, this.pathOf())}>${text("detail.back")}</a>
       <h2>${complement.name}</h2>
       <div class="meta">
         <span class="badge">${text(typeKey(complement))}</span>
@@ -400,7 +404,7 @@ class ComplementsPageBase extends LitElement {
       <div class="description">${description === "" ? nothing : unsafeHTML(sanitizeDescription(description))}</div>
       <dl>
         ${complement.author === null ? nothing : html`<dt>${text("detail.author")}</dt><dd>${complement.author}</dd>`}
-        ${complement.link === null ? nothing : html`<dt>${text("detail.source")}</dt><dd><a href=${complement.link} target="_blank" rel="noopener noreferrer">${complement.link}</a></dd>`}
+        ${complement.link === null ? nothing : html`<dt>${text("detail.source")}</dt><dd><a class="breakable touch-target" href=${complement.link} target="_blank" rel="noopener noreferrer">${complement.link}</a></dd>`}
       </dl>
       ${state === "link_only" ? html`<p>${text("detail.link_only")}</p>` : nothing}
       ${progress.running || progress.step !== undefined ? html`<div class="panel steps" role="status">${progress.step === undefined ? nothing : text(`step.${progress.step}`)}</div>` : nothing}
@@ -461,7 +465,7 @@ class ComplementsPageBase extends LitElement {
     return html`<div class="overlay"><div class="dialog" role="dialog" aria-modal="true" aria-label=${text("confirm.title", { name: complement.name })}>
       <h2>${text("confirm.title", { name: complement.name })}</h2>
       <dl>
-        <dt>${text("confirm.repository")}</dt><dd>${complement.repository ?? ""}</dd>
+        <dt>${text("confirm.repository")}</dt><dd class="breakable">${complement.repository ?? ""}</dd>
         <dt>${text("confirm.category")}</dt><dd>${complement.hacs_category ?? ""}</dd>
         <dt>${text("confirm.certification")}</dt><dd>${this.known("certification", complement.certification)}</dd>
         <dt>${text("confirm.author")}</dt><dd>${complement.author ?? text("confirm.unknown_author")}</dd>

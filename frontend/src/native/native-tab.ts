@@ -10,6 +10,7 @@ import { autoTpiDefaults, entityChoices, formatInput, parseInput, shownValue } f
 import type { FieldSpec } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
 import type { ConfigKind, TabDefinition, TabLayout } from "./tab-definitions.ts";
+import { narrowStyles } from "../components/narrow-styles.ts";
 
 /** Translate a key that is built at run time. The catalogs of the native plugins have every key of their fields. */
 type Translate = (key: string, params?: Readonly<Record<string, string | number>>) => string;
@@ -29,7 +30,9 @@ export class NativeTabElement extends LitElement {
     suggestion: { state: true },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 16px;
@@ -137,7 +140,8 @@ export class NativeTabElement extends LitElement {
       border-radius: 4px;
       cursor: pointer;
     }
-  `;
+  `,
+  ];
 
   /** The tab that the element shows. Set by the class that `defineNativeTab` creates. */
   static definition: TabDefinition;
@@ -317,7 +321,7 @@ export class NativeTabElement extends LitElement {
           aria-invalid=${error === undefined ? "false" : "true"}
           @change=${(event: Event) => this.onFieldChange(field, (event.target as HTMLInputElement).checked)}
         />
-        <label for=${id}>${this.label(field)}</label>
+        <label class="touch-target" for=${id}>${this.label(field)}</label>
         ${this.help(field)} ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${errorLine}
       </div>`;
     }

@@ -11,12 +11,16 @@ A hook is a place of the dashboard. A plugin gives its contributions grouped by 
 | Hook | What it adds | Component properties |
 | --- | --- | --- |
 | `top_tab` | A tab of the top bar. It has no component: its pages are `tab_page` contributions. | none |
-| `tab_page` | An entry of the left menu of a top tab, chosen with `tab`. | `hass` |
-| `global_page` | An entry of the left menu of the Dashboard tab. | `hass` |
-| `global_widget` | A widget of the Overview page. | `hass` |
-| `general_config` | A section of the general configuration of Versatile Thermostat. | `hass`, `values`, `errors`, `proposeChanges` |
-| `thermostat_config` | An entry of the menu of a thermostat, in particular a configuration section. | `hass`, `thermostatId`, `values`, `centralValues`, `errors`, `proposeChanges` |
-| `thermostat_widget` | A widget of the overview of a thermostat. | `hass`, `thermostatId` |
+| `tab_page` | An entry of the left menu of a top tab, chosen with `tab`. | `hass`, `narrow` |
+| `global_page` | An entry of the left menu of the Dashboard tab. | `hass`, `narrow` |
+| `global_widget` | A widget of the Overview page. | `hass`, `narrow` |
+| `general_config` | A section of the general configuration of Versatile Thermostat. | `hass`, `narrow`, `values`, `errors`, `proposeChanges` |
+| `thermostat_config` | An entry of the menu of a thermostat, in particular a configuration section. | `hass`, `narrow`, `thermostatId`, `values`, `centralValues`, `errors`, `proposeChanges` |
+| `thermostat_widget` | A widget of the overview of a thermostat. | `hass`, `narrow`, `thermostatId` |
+
+`narrow` is true when the dashboard is shown on a narrow screen, such as a phone (under 700 px): the menu is then a drawer and the
+page takes the whole width. It changes without a reload when the width of the window crosses the threshold, so draw again when it
+changes, for example by declaring it as a reactive property of a Lit element. Visibility conditions do not receive it.
 
 A contribution has an `id` that starts with the identifier of your plugin and a dot (`smartpi.tab.main`). The identifier
 must be unique in its hook. A contribution that shows something also has a `component`, the tag name of a custom element

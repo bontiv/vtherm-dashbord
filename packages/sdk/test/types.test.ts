@@ -4,6 +4,7 @@ import { HOOK_NAMES, defineTranslations } from "../src/index.ts";
 import type {
   ComponentHookName,
   Contribution,
+  DisplayProps,
   GeneralConfigProps,
   HookName,
   HookProps,
@@ -46,15 +47,24 @@ describe("placement", () => {
 
 describe("properties of the components", () => {
   it("gives the thermostat identifier to the components that are shown for a thermostat", () => {
-    expectTypeOf<HookProps<"thermostat_widget">>().toEqualTypeOf<ThermostatProps>();
+    expectTypeOf<HookProps<"thermostat_widget">>().toEqualTypeOf<ThermostatProps & DisplayProps>();
     expectTypeOf<HookProps<"thermostat_widget">>().toHaveProperty("hass");
     expectTypeOf<HookProps<"thermostat_widget">>().toHaveProperty("thermostatId");
     expectTypeOf<HookProps<"thermostat_config">>().toHaveProperty("thermostatId");
     expectTypeOf<HookProps<"thermostat_config">>().toHaveProperty("centralValues");
   });
 
+  it("tells every component whether the screen is narrow", () => {
+    expectTypeOf<HookProps<"tab_page">["narrow"]>().toEqualTypeOf<boolean>();
+    expectTypeOf<HookProps<"global_page">["narrow"]>().toEqualTypeOf<boolean>();
+    expectTypeOf<HookProps<"global_widget">["narrow"]>().toEqualTypeOf<boolean>();
+    expectTypeOf<HookProps<"general_config">["narrow"]>().toEqualTypeOf<boolean>();
+    expectTypeOf<HookProps<"thermostat_config">["narrow"]>().toEqualTypeOf<boolean>();
+    expectTypeOf<HookProps<"thermostat_widget">["narrow"]>().toEqualTypeOf<boolean>();
+  });
+
   it("gives no thermostat identifier to the general configuration", () => {
-    expectTypeOf<HookProps<"general_config">>().toEqualTypeOf<GeneralConfigProps>();
+    expectTypeOf<HookProps<"general_config">>().toEqualTypeOf<GeneralConfigProps & DisplayProps>();
     expectTypeOf<HookProps<"general_config">>().not.toHaveProperty("thermostatId");
     expectTypeOf<HookProps<"general_config">>().not.toHaveProperty("centralValues");
     expectTypeOf<HookProps<"global_widget">>().not.toHaveProperty("thermostatId");

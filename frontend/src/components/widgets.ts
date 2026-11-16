@@ -5,6 +5,7 @@ import type { Hass, PlacedEntry } from "@vtherm/dashboard-sdk";
 
 import "./contribution-host.ts";
 import { defineElement } from "./define.ts";
+import { narrowStyles } from "./narrow-styles.ts";
 
 /** A grid of widgets: the contributions of the hook `global_widget` or `thermostat_widget`, each shown with its properties. */
 export class VThermWidgets extends LitElement {
@@ -14,7 +15,9 @@ export class VThermWidgets extends LitElement {
     thermostatId: { type: String },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -27,7 +30,8 @@ export class VThermWidgets extends LitElement {
       border: 1px solid var(--divider-color);
       border-radius: var(--ha-card-border-radius, 12px);
     }
-  `;
+  `,
+  ];
 
   /** The widgets to show, in order. */
   declare entries: readonly PlacedEntry[];

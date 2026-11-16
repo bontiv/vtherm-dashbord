@@ -150,6 +150,17 @@ describe("rendering a component", () => {
     expect(document.body.textContent).toBe("thermostat climate.salon");
   });
 
+  it("tells the component that the screen is wide, unless the test says that it is narrow", async () => {
+    const host = createFakeHost();
+    host.registerPlugin(core);
+    const [entry] = host.resolved("thermostat_config");
+    const props = { thermostatId: "climate.salon", values: {}, centralValues: {}, errors: {}, proposeChanges: () => undefined };
+    const wide = (await host.render<"thermostat_config">(entry as never, props)) as TestPage & { narrow: boolean };
+    expect(wide.narrow).toBe(false);
+    const narrow = (await host.render<"thermostat_config">(entry as never, { ...props, narrow: true })) as TestPage & { narrow: boolean };
+    expect(narrow.narrow).toBe(true);
+  });
+
   it("explains an element that is not defined", async () => {
     const host = createFakeHost();
     host.registerPlugin(plugin("smartpi", { global_widget: [{ id: "smartpi.w", component: "never-defined-el" }] }));

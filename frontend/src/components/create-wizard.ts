@@ -13,6 +13,7 @@ import { TAB_DEFINITIONS } from "../native/tab-definitions.ts";
 import type { ConfigKind, TabDefinition } from "../native/tab-definitions.ts";
 import { shell, t } from "../shell-translations.ts";
 import { defineElement } from "./define.ts";
+import { narrowStyles } from "./narrow-styles.ts";
 
 /** The event sent when the assistant created a configuration. Its detail is the identifier of the new entry. */
 export const CREATED_EVENT = "vtherm-config-created";
@@ -48,7 +49,9 @@ export class VThermCreateWizard extends LitElement {
     revision: { state: true },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 16px;
@@ -109,7 +112,8 @@ export class VThermCreateWizard extends LitElement {
       background: none;
       border: 1px solid var(--primary-color);
     }
-  `;
+  `,
+  ];
 
   declare hass: Hass | undefined;
   declare api: ConfigApi | undefined;

@@ -4,6 +4,7 @@ import type { TemplateResult } from "lit";
 import type { Crumb } from "../navigation.ts";
 import { followLink } from "./events.ts";
 import { defineElement } from "./define.ts";
+import { narrowStyles } from "./narrow-styles.ts";
 
 /** The number of segments that the breadcrumb keeps on a narrow screen. */
 export const NARROW_SEGMENTS = 2;
@@ -16,7 +17,9 @@ export class VThermBreadcrumb extends LitElement {
     label: { type: String },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 8px 16px;
@@ -46,7 +49,8 @@ export class VThermBreadcrumb extends LitElement {
     [aria-current="page"] {
       color: var(--primary-text-color);
     }
-  `;
+  `,
+  ];
 
   /** The segments. */
   declare crumbs: readonly Crumb[];
@@ -71,7 +75,7 @@ export class VThermBreadcrumb extends LitElement {
         ${shown.map((crumb) =>
           crumb.path === undefined
             ? html`<li aria-current="page">${crumb.label}</li>`
-            : html`<li><a href=${crumb.path} @click=${(event: MouseEvent) => followLink(this, event, crumb.path as string)}>${crumb.label}</a></li>`,
+            : html`<li><a class="touch-target" href=${crumb.path} @click=${(event: MouseEvent) => followLink(this, event, crumb.path as string)}>${crumb.label}</a></li>`,
         )}
       </ol>
     </nav>`;

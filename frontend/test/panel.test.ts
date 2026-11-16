@@ -45,7 +45,8 @@ describe("the frame", () => {
 
   it("scrolls the menu on its own and stays inside its column", async () => {
     const { panel } = await mountPanel();
-    const css = String((find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.constructor as { styles?: { cssText: string } }).styles?.cssText);
+    const styles = (find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.constructor as { styles?: { cssText: string } | readonly { cssText: string }[] }).styles;
+    const css = (Array.isArray(styles) ? styles : [styles]).map((style) => String(style?.cssText)).join("\n");
     expect(css).toContain("overflow-y: auto");
   });
 });

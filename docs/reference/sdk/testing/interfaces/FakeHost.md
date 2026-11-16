@@ -153,9 +153,10 @@ The contribution, from `resolved`.
 
 ##### props
 
-`Omit`\<[`HookProps`](../../index/type-aliases/HookProps.md)\<`H`\>, `"hass"`\> & `object`
+`Omit`\<[`HookProps`](../../index/type-aliases/HookProps.md)\<`H`\>, `"hass"` \| `"narrow"`\> & `object`
 
-The properties the dashboard gives to the component of this hook. `hass` is the fake `hass` by default.
+The properties the dashboard gives to the component of this hook. `hass` is the fake `hass` by default, and `narrow`
+  is false by default: give `narrow: true` to see the component as on a phone.
 
 #### Returns
 

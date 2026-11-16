@@ -6,6 +6,7 @@ import type { EngineIssue, TranslationWarning } from "@vtherm/dashboard-sdk";
 import type { PluginStatus } from "../loader.ts";
 import { t } from "../shell-translations.ts";
 import { defineElement } from "./define.ts";
+import { narrowStyles } from "./narrow-styles.ts";
 
 /** Translate a key whose name is built from a state or a reason. The catalog is complete for the ones that exist. */
 const translate = t as (key: string, params?: Readonly<Record<string, string | number>>) => string;
@@ -107,7 +108,9 @@ export class VThermPluginStatus extends LitElement {
     dashboardVersion: { type: String },
   };
 
-  static override styles = css`
+  static override styles = [
+    narrowStyles,
+    css`
     :host {
       display: block;
       padding: 16px;
@@ -161,7 +164,8 @@ export class VThermPluginStatus extends LitElement {
       margin: 0;
       padding-left: 20px;
     }
-  `;
+  `,
+  ];
 
   /** The status of every plugin. */
   declare statuses: readonly PluginStatus[];

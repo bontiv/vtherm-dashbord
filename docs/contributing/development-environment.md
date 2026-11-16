@@ -127,6 +127,19 @@ server above, on port 5198, serves it to a real Home Assistant). The parameters 
 address are `theme` (the themes of `frontend/preview/themes.ts`), `path`, `drawer` and `empty`. `frontend/preview/frame.html?width=420&query=...`
 shows a narrow screen. It is how the screenshots of the three themes are made.
 
+### Checking a phone screen
+The tests run without layout (happy-dom), so the sizes on a phone are checked in a browser. With the development server and Home
+Assistant started with `--dev-frontend`, open the dashboard at the width of a phone (360 or 375 px, with the device mode of the browser),
+then run in the console of the page:
+
+```
+await (await import("http://localhost:5198/preview/mobile-check.ts")).checkMobile()
+```
+
+`frontend/preview/mobile-check.ts` opens each native page in turn and returns, for each one, the elements wider than the screen and the
+controls whose touch target is lower than 44 px. Every list must be empty. Pass other paths to check other pages, for example the
+configuration of a thermostat: `checkMobile(["core.top.thermostats/climate.salon/core_tpi.tab.main"])`.
+
 ### hassfest
 ```
 docker run --rm --platform linux/amd64 -v "$PWD":/github/workspace ghcr.io/home-assistant/hassfest
