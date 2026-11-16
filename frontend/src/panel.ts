@@ -54,7 +54,7 @@ export class VThermDashboardPanel extends LitElement {
     developmentEntries: { attribute: false },
     importModule: { attribute: false },
     phase: { state: true },
-    route: { state: true },
+    currentRoute: { state: true },
     compact: { state: true },
     drawerOpen: { state: true },
     noticeDismissed: { state: true },
@@ -214,8 +214,13 @@ export class VThermDashboardPanel extends LitElement {
   /** What the panel is doing: `loading` the plugins, `ready`, or `error`. */
   declare phase: "loading" | "ready" | "error";
 
-  /** The route that the address designates. */
-  declare route: Route;
+  /**
+   * The route that the address designates.
+   *
+   * It is not named `route`: Home Assistant sets a property `route` (`{ prefix, path }`) on every custom panel at each navigation, which
+   * would replace this one. The panel reads the address itself, with the `location-changed` and `popstate` events.
+   */
+  declare currentRoute: Route;
 
   /** Whether the screen is narrow. */
   declare compact: boolean;
@@ -274,7 +279,7 @@ export class VThermDashboardPanel extends LitElement {
     this.developmentEntries = [];
     this.importModule = undefined;
     this.phase = "loading";
-    this.route = parseRoute(window.location.pathname, CORE_TOP_TABS.thermostats);
+    this.currentRoute = parseRoute(window.location.pathname, CORE_TOP_TABS.thermostats);
     this.compact = false;
     this.drawerOpen = false;
     this.noticeDismissed = false;
@@ -328,11 +333,11 @@ export class VThermDashboardPanel extends LitElement {
     const route = parseRoute(window.location.pathname, CORE_TOP_TABS.thermostats);
     if (!this.confirmLeave(route)) {
       // The user stays: the address of the page that is shown comes back.
-      window.history.pushState(null, "", buildPath(this.route));
+      window.history.pushState(null, "", buildPath(this.currentRoute));
       return;
     }
-    if (route !== this.route) {
-      this.route = route;
+    if (route !== this.currentRoute) {
+      this.currentRoute = route;
       this.pageTitle = "";
       this.noticeDismissed = false;
       this.drawerOpen = false;
@@ -359,11 +364,11 @@ export class VThermDashboardPanel extends LitElement {
     if (this.hass === undefined) {
       return;
     }
-    const model = this.navigationModel(this.route);
+    const model = this.navigationModel(this.currentRoute);
     if (model.activeTab === undefined) {
       return;
     }
-    const target = routeForThermostat(this.navigationInput(this.route), event.detail);
+    const target = routeForThermostat(this.navigationInput(this.currentRoute), event.detail);
     this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: this.pathOf(target) } }));
   };
 
@@ -384,7 +389,7 @@ export class VThermDashboardPanel extends LitElement {
    * @returns Whether the panel can go to the route. When the user leaves, the draft is dropped.
    */
   private confirmLeave(target: Route): boolean {
-    const current = this.entryOf(this.route);
+    const current = this.entryOf(this.currentRoute);
     const draft = this.session?.get(current)?.draft;
     if (current === null || draft === undefined || !draft.dirty || this.entryOf(target) === current) {
       return true;
@@ -564,7 +569,7 @@ export class VThermDashboardPanel extends LitElement {
   private propsOf(entry: PlacedEntry, thermostat: ThermostatInfo | undefined): Readonly<Record<string, unknown>> {
     const hass = this.pluginHass ?? this.hass;
     if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
-      return { hass, narrow: this.compact, language: String(this.languageVersion), subpath: this.route.rest };
+      return { hass, narrow: this.compact, language: String(this.languageVersion), subpath: this.currentRoute.rest };
     }
     const entryId = entry.hook === "thermostat_config" ? (thermostat?.id ?? null) : (this.session?.centralId ?? null);
     const draft = this.session?.get(entryId)?.draft;
@@ -598,8 +603,8 @@ export class VThermDashboardPanel extends LitElement {
   }
 
   private renderBody(model: NavigationModel): TemplateResult {
-    if (this.route.tab === CORE_TOP_TABS.thermostats && this.route.thermostat === NEW_THERMOSTAT) {
-      const central = this.route.entry === "central";
+    if (this.currentRoute.tab === CORE_TOP_TABS.thermostats && this.currentRoute.thermostat === NEW_THERMOSTAT) {
+      const central = this.currentRoute.entry === "central";
       return html`<vtherm-create-wizard
         .hass=${this.pluginHass ?? this.hass}
         .api=${this.session?.api}
@@ -617,7 +622,7 @@ export class VThermDashboardPanel extends LitElement {
     }
     const entry = model.current.entry;
     const isConfig = entry.hook === "thermostat_config" || entry.hook === "general_config";
-    const entryId = isConfig ? this.entryOf(this.route) : null;
+    const entryId = isConfig ? this.entryOf(this.currentRoute) : null;
     const opened = this.config(entryId);
     if (entryId !== null && opened === undefined) {
       return html`<div class="message" role="status">${t("config.loading")}</div>`;
@@ -652,21 +657,21 @@ export class VThermDashboardPanel extends LitElement {
     if (this.phase === "error") {
       return html`<div class="message error" role="alert">${t("shell.plugins_error", { message: this.failure })}</div>`;
     }
-    const creating = this.route.tab === CORE_TOP_TABS.thermostats && this.route.thermostat === NEW_THERMOSTAT;
+    const creating = this.currentRoute.tab === CORE_TOP_TABS.thermostats && this.currentRoute.thermostat === NEW_THERMOSTAT;
     // The assistant has its own page in the Thermostats tab: the navigation is the one of the tab.
-    const model = this.navigationModel(creating ? { tab: CORE_TOP_TABS.thermostats, rest: [] } : this.route);
+    const model = this.navigationModel(creating ? { tab: CORE_TOP_TABS.thermostats, rest: [] } : this.currentRoute);
     if (creating) {
       (model as { breadcrumb: unknown }).breadcrumb = [
         { label: model.activeTab?.title ?? "", path: buildPath({ tab: CORE_TOP_TABS.thermostats, rest: [] }) },
-        { label: t(this.route.entry === "central" ? "wizard.title_central" : "wizard.title"), path: undefined },
+        { label: t(this.currentRoute.entry === "central" ? "wizard.title_central" : "wizard.title"), path: undefined },
       ];
     }
-    if (!creating && this.pageTitle !== "" && this.route.rest.length > 0 && model.breadcrumb.length > 0) {
+    if (!creating && this.pageTitle !== "" && this.currentRoute.rest.length > 0 && model.breadcrumb.length > 0) {
       // A page that shows one item of a list adds it to the breadcrumb, and the page of the list becomes a link.
       const last = model.breadcrumb[model.breadcrumb.length - 1] as { label: string; path: string | undefined };
       (model as { breadcrumb: unknown }).breadcrumb = [
         ...model.breadcrumb.slice(0, -1),
-        { label: last.label, path: buildPath({ ...(this.route.tab === undefined ? {} : { tab: this.route.tab }), ...(this.route.thermostat === undefined ? {} : { thermostat: this.route.thermostat }), ...(this.route.entry === undefined ? {} : { entry: this.route.entry }), rest: [] }) },
+        { label: last.label, path: buildPath({ ...(this.currentRoute.tab === undefined ? {} : { tab: this.currentRoute.tab }), ...(this.currentRoute.thermostat === undefined ? {} : { thermostat: this.currentRoute.thermostat }), ...(this.currentRoute.entry === undefined ? {} : { entry: this.currentRoute.entry }), rest: [] }) },
         { label: this.pageTitle, path: undefined },
       ];
     }

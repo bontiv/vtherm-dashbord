@@ -83,6 +83,10 @@ When a source changes, the server reloads the page by itself: the entry module c
 by the build). If the page does not reload, for example because the WebSocket of Vite cannot pass through the forwarding, reload it by
 hand. If the server is stopped, the panel does not load and the rest of Home Assistant works: start the server and reload the page.
 
+Vite polls the sources for changes (every 300 ms) instead of waiting for file events: a dev container on a Windows host mounts the
+repository through 9p, which sends none, and Vite would keep serving the old modules. A change of `vite.config.ts` needs a restart of
+`npm run dev`.
+
 The modules served one by one are not the bundles of the build. Before a pull request, check the built files once with `npm run build`
 and a Home Assistant started without `--dev-frontend`. To keep the built files up to date while you work, without the server,
 `npx vite build --watch` in `frontend/` rebuilds them at each change; reload the page afterwards.

@@ -7,6 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 from vtherm_api import get_vtherm_logger
 
+from .api_keepalive import register_api_keepalive, unregister_api_keepalive
 from .complements import ComplementCatalog
 from .const import DATA_DEV_SERVER, DOMAIN
 from .dev_server import read_dev_server_url
@@ -28,6 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  #
     await async_register_panel(hass, dev_server)
     integration = await async_get_integration(hass, DOMAIN)
     register_native_plugins(hass, str(integration.version), dev_server)
+    register_api_keepalive(hass)
     _LOGGER.info("The %s integration is set up", DOMAIN)
     return True
 
@@ -38,4 +40,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  
     hass.data.get(DOMAIN, {}).pop(DATA_DEV_SERVER, None)
     remove_panel(hass)
     unregister_native_plugins(hass)
+    unregister_api_keepalive(hass)
     return True

@@ -62,6 +62,21 @@ describe("the routes", () => {
     expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Configuration", "core.page.plugins"]);
   });
 
+  it("follows the address when Home Assistant gives its own route to the panel, as it does at each navigation", async () => {
+    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    // Home Assistant sets `route` on every custom panel, before the panel reads the address.
+    const fromHomeAssistant = panel as unknown as { route: unknown };
+    fromHomeAssistant.route = { prefix: "/home-confort", path: `/${CORE_TOP_TABS.configuration}` };
+    await settle(panel);
+    expect(find(panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
+    window.history.pushState(null, "", `/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
+    fromHomeAssistant.route = { prefix: "/home-confort", path: `/${CORE_TOP_TABS.configuration}/core.page.plugins` };
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+    await settle(panel);
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-plugins-el")).not.toBeNull();
+    expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Configuration", "core.page.plugins"]);
+  });
+
   it("goes back with the history of the browser", async () => {
     const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;

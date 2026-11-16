@@ -16,7 +16,7 @@ Ce change s'applique après `ui-plugin-dashboard` et ne modifie pas ses exigence
 - [x] 2.4 Documenter `npm run dev`, le port 5198, le rechargement et la variante `vite build --watch` dans `docs/contributing/development-environment.md`, à côté de la prévisualisation (5199) ; vérifier avec `npm run check:docs`
 
 ## 3. Environnement de développement
-- [ ] 3.1 Ajouter l'option `--dev-frontend` à `.devcontainer/start-ha.sh` : elle exporte `VTHERM_DASHBOARD_DEV_SERVER=http://localhost:5198` si la variable n'est pas déjà définie ; sans l'option, rien ne change ; vérifier avec `bash -n` et en lançant le script avec et sans l'option (journal de Home Assistant)
+- [x] 3.1 Ajouter l'option `--dev-frontend` à `.devcontainer/start-ha.sh` : elle exporte `VTHERM_DASHBOARD_DEV_SERVER=http://localhost:5198` si la variable n'est pas déjà définie ; sans l'option, rien ne change ; vérifier avec `bash -n` et en lançant le script avec et sans l'option (journal de Home Assistant)
 - [x] 3.2 Ajouter le port 5198 à `forwardPorts` et `portsAttributes` de `.devcontainer/devcontainer.json`, en préservant les modifications locales existantes du fichier ; vérifier que le JSONC reste valide
 - [x] 3.3 Documenter l'option, le port redirigé, le cas où le navigateur n'atteint pas `localhost` (Codespaces : définir la variable à l'URL redirigée) et le contenu mixte HTTPS/HTTP dans `docs/contributing/development-environment.md` ; vérifier avec `npm run check:docs`
 
@@ -27,4 +27,14 @@ Ce change s'applique après `ui-plugin-dashboard` et ne modifie pas ses exigence
 
 ## Notes d'application
 - 2.3 et 4.3 : `npm run check` signale R0903 sur `complements.py` et `npm test` dépasse le délai dans `frontend/test/docs.test.ts` (variables du thème) ; les deux échouent aussi sans ce change (lecture lente des fichiers par le montage du dev container).
-- 2.2, 3.1, 4.1 et 4.2 restent à vérifier dans un navigateur avec Home Assistant redémarré (`start-ha.sh` avec et sans `--dev-frontend`) ; le code est en place, le build ne contient pas le client Vite, et `start-ha.sh` refuse une option inconnue.
+- 3.1 : vérifié avec `start-ha.sh --dev-frontend` (avertissement dans le journal, panneau chargé depuis Vite).
+- 2.2 : le serveur détecte une modification et envoie le rechargement de la page (vérifié sur une instance temporaire) ; le rechargement automatique dans le navigateur n'a pas encore été observé.
+- 4.1 : vérifié sans build — entrée chargée, 16 plugins natifs `ready` et importés depuis Vite, onglets, navigation et pages de configuration. Restent : modification visible après rechargement (plugin natif, SDK), serveur arrêté, entrée d'un plugin tiers.
+- 4.2 : pas encore vérifié.
+
+## Corrections trouvées pendant l'essai
+- [x] 5.1 Vite écoutait seulement sur `::1` dans le conteneur alors que la redirection de VS Code se connecte à `127.0.0.1` : `server.host: "127.0.0.1"` ; vérifié depuis l'hôte Windows
+- [x] 5.2 La liste des plugins refusait l'URL du serveur pour les plugins natifs (`invalid_url`) : `build_plugin_list` accepte l'adresse du serveur de développement pour les plugins natifs seulement ; tests dans `tests/test_plugin_list.py` et `tests/test_native_plugins.py`, docs `websocket-api.md` et spec mises à jour
+- [x] 5.3 Le montage 9p du dépôt (hôte Windows) n'envoie pas d'événements de fichier : `server.watch.usePolling` ; vérifié sur une instance temporaire, documenté
+- [x] 5.4 Bug existant, aussi présent avec le build : Home Assistant écrit `route` sur le panneau et écrasait sa route interne, renommée `currentRoute` ; test dans `frontend/test/panel.test.ts`, navigation vérifiée dans le navigateur
+- [x] 5.5 Bug existant, hors serveur de développement : quand la configuration centrale est la seule entrée de Versatile Thermostat et qu'elle est enregistrée, Versatile Thermostat supprime l'instance de `vtherm_api` et les plugins UI sont perdus. Contournement : `api_keepalive.py` enregistre une factory de feature manager qui ne s'applique à aucun thermostat ; tests avec le vrai Versatile Thermostat dans `tests/test_api_keepalive.py`. La correction de fond reste à faire dans Versatile Thermostat (compter `get_ui_plugins()` dans `remove_entry`).

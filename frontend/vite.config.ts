@@ -36,6 +36,9 @@ export default defineConfig({
     strictPort: true,
     // In the dev container, `localhost` is `::1` only, and the port forwarding of VS Code connects to 127.0.0.1: listen there.
     host: "127.0.0.1",
+    // The dev container mounts the repository of a Windows host through 9p, which sends no file events: without polling, Vite would
+    // keep serving the old modules after a change. The watched sources are few, so polling costs little elsewhere.
+    watch: { usePolling: true, interval: 300 },
     // The page is the one of Home Assistant, on another origin (port 8123): the browser must be allowed to import the modules.
     cors: true,
     // The address of this server as the browser sees it, for the absolute URLs that Vite writes. It is the value given to Home
