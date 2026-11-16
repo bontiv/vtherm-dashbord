@@ -11,7 +11,7 @@ Ce change s'applique après `ui-plugin-dashboard` et ne modifie pas ses exigence
 
 ## 2. Serveur de développement du frontend (TypeScript)
 - [x] 2.1 Ajouter à `frontend/vite.config.ts` la section `server` (port 5198, `strictPort`, CORS, `origin`, `host`, `hmr` sur le port du serveur) et les scripts `dev` dans `frontend/package.json` (`vite`) et à la racine (`npm run dev -w frontend`) ; vérifier que `npm run dev` démarre, que `curl -i -H "Origin: http://localhost:8123" http://localhost:5198/src/index.ts` renvoie du JavaScript avec `Access-Control-Allow-Origin`, qu'un second `npm run dev` échoue sur le port occupé, et que `npm run build` produit toujours les mêmes fichiers dans `www/`
-- [ ] 2.2 Rendre le rechargement automatique possible : importer le client Vite depuis le point d'entrée uniquement en développement (code absent du build) ; vérifier que `npm run build` ne contient pas `@vite/client` (test dans `frontend/test/build.test.ts`), et qu'avec Home Assistant ouvert la sauvegarde d'un fichier de `frontend/src/` recharge la page ; si la redirection de port l'empêche, consigner la limite dans la documentation plutôt que de bloquer
+- [x] 2.2 Rendre le rechargement automatique possible : importer le client Vite depuis le point d'entrée uniquement en développement (code absent du build) ; vérifier que `npm run build` ne contient pas `@vite/client` (test dans `frontend/test/build.test.ts`), et qu'avec Home Assistant ouvert la sauvegarde d'un fichier de `frontend/src/` recharge la page ; si la redirection de port l'empêche, consigner la limite dans la documentation plutôt que de bloquer
 - [x] 2.3 Vérifier `npm run typecheck`, `npm run lint`, `npm run check:js` et `npm test`
 - [x] 2.4 Documenter `npm run dev`, le port 5198, le rechargement et la variante `vite build --watch` dans `docs/contributing/development-environment.md`, à côté de la prévisualisation (5199) ; vérifier avec `npm run check:docs`
 
@@ -21,8 +21,8 @@ Ce change s'applique après `ui-plugin-dashboard` et ne modifie pas ses exigence
 - [x] 3.3 Documenter l'option, le port redirigé, le cas où le navigateur n'atteint pas `localhost` (Codespaces : définir la variable à l'URL redirigée) et le contenu mixte HTTPS/HTTP dans `docs/contributing/development-environment.md` ; vérifier avec `npm run check:docs`
 
 ## 4. Vérification de bout en bout
-- [ ] 4.1 Dans le dev container, sans build (`www/` absent) : `npm run dev`, puis `bash .devcontainer/start-ha.sh --dev-frontend` ; vérifier que l'entrée se charge, que « Home confort » s'affiche avec ses onglets natifs, qu'une modification d'un fichier de `frontend/src/`, d'un plugin natif et de `packages/sdk/src/` apparaît après rechargement sans redémarrage, que le serveur arrêté n'empêche pas le reste de Home Assistant de fonctionner, et que l'entrée de mode développement d'un plugin tiers garde son URL
-- [ ] 4.2 Sans l'option : vérifier que le message « The frontend module … is missing » revient sans build, puis disparaît après `npm run build`
+- [x] 4.1 Dans le dev container, sans build (`www/` absent) : `npm run dev`, puis `bash .devcontainer/start-ha.sh --dev-frontend` ; vérifier que l'entrée se charge, que « Home confort » s'affiche avec ses onglets natifs, qu'une modification d'un fichier de `frontend/src/`, d'un plugin natif et de `packages/sdk/src/` apparaît après rechargement sans redémarrage, que le serveur arrêté n'empêche pas le reste de Home Assistant de fonctionner, et que l'entrée de mode développement d'un plugin tiers garde son URL
+- [x] 4.2 Sans l'option : vérifier que le message « The frontend module … is missing » revient sans build, puis disparaît après `npm run build`
 - [x] 4.3 Ajouter une entrée au `CHANGELOG.md` (contributeurs : serveur de développement du frontend) et lancer `npm run check`, `npm test` et `pytest`
 
 ## Notes d'application
