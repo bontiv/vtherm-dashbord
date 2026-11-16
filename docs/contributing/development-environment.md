@@ -31,14 +31,61 @@ bash .devcontainer/post-create.sh   # needs a virtual environment: python3.14 -m
 The script uses `python -m pip`, so activate the virtual environment first. Later shells need `. .venv/bin/activate`.
 
 ## Run Home Assistant
-1. Build the frontend: `npm run build`. It writes the modules into `custom_components/vtherm_dashboard/www/`, which the integration
-   refuses to start without. Run it again after a change of the frontend, or use the preview below.
-2. Start: `bash .devcontainer/start-ha.sh`. It links Versatile Thermostat and the dashboard into `config/custom_components/` and
-   runs `hass --config config --debug` on port 8123.
+The integration loads the frontend in one of two ways:
+
+| Way | Start | After a change of the TypeScript code |
+| --- | --- | --- |
+| Development server (to work on the frontend, the native plugins or the SDK) | `npm run dev`, then `bash .devcontainer/start-ha.sh --dev-frontend` | Reload the page. |
+| Built files (what a release contains) | `npm run build`, then `bash .devcontainer/start-ha.sh` | `npm run build` again, then reload the page. |
+
+1. Start the frontend:
+   - **Development server**: `npm run dev` in its own terminal. Vite serves the TypeScript sources of the panel, of the native
+     plugins and of the SDK on port 5198, compiled when the browser asks for them. Nothing is written into `www/`.
+   - **Built files**: `npm run build`. It writes the modules into `custom_components/vtherm_dashboard/www/`, which the integration
+     refuses to start without ("The frontend module … is missing").
+2. Start Home Assistant: `bash .devcontainer/start-ha.sh`, with `--dev-frontend` for the development server. The script links Versatile
+   Thermostat and the dashboard into `config/custom_components/` and runs `hass --config config --debug` on port 8123.
 3. At the first start, create the user in the browser (onboarding). To skip the login screen on your computer, add `trusted_networks` with
    `allow_bypass_login` to `auth_providers` in `config/configuration.yaml`, see the documentation of Home Assistant.
 4. **Settings > Devices & services > Add integration**: add "Versatile Thermostat" (create a thermostat or the central
    configuration), then "VTherm Dashboard". "Home confort" appears in the side menu.
+
+A change of the Python code still needs a restart of Home Assistant.
+
+### The development server of the frontend
+`--dev-frontend` sets the environment variable `VTHERM_DASHBOARD_DEV_SERVER` of Home Assistant to `http://localhost:5198`. With it,
+the integration:
+
+- loads the module of the panel from `<server>/src/index.ts` instead of the built files;
+- registers each native plugin with `<server>/src/native/plugins/<id>.ts`, with the same version constraint and dependencies. The
+  list of plugins accepts this address for the native plugins only: a plugin of another integration must still give a path of Home
+  Assistant;
+- starts without `www/`, and does not serve it;
+- writes a warning with the address of the server in the log, at each start.
+
+The variable is read when the integration is set up: to switch between the two ways, restart Home Assistant. A value that is not an
+absolute `http` or `https` URL is refused with an error in the log, and the integration uses the built files. Without the variable,
+nothing changes. Plugins of other integrations and the entries of the [development mode of plugins](../plugins/dev-mode.md) keep their
+addresses.
+
+The value is the address of the server **as the browser sees it**, since the browser imports the modules:
+
+- In the dev container, VS Code forwards port 5198 as it forwards 8123, so `http://localhost:5198` works on your computer. Vite listens
+  on `127.0.0.1`, where the forwarding connects (`localhost` is only `::1` in the container).
+- In a Codespace or from another computer, set the variable yourself to the forwarded address before starting:
+  `VTHERM_DASHBOARD_DEV_SERVER=https://<name>-5198.app.github.dev bash .devcontainer/start-ha.sh --dev-frontend`, and run
+  `npm run dev` with the same variable, so that Vite writes this address in its absolute URLs. Make the forwarded port public or
+  reachable by your browser.
+- A Home Assistant opened in `https` cannot import modules from an `http` server (mixed content): open Home Assistant in `http` on your
+  computer, or use an `https` address for the server.
+
+When a source changes, the server reloads the page by itself: the entry module connects the page to Vite (`import.meta.hot`, removed
+by the build). If the page does not reload, for example because the WebSocket of Vite cannot pass through the forwarding, reload it by
+hand. If the server is stopped, the panel does not load and the rest of Home Assistant works: start the server and reload the page.
+
+The modules served one by one are not the bundles of the build. Before a pull request, check the built files once with `npm run build`
+and a Home Assistant started without `--dev-frontend`. To keep the built files up to date while you work, without the server,
+`npx vite build --watch` in `frontend/` rebuilds them at each change; reload the page afterwards.
 
 `config/configuration.yaml` has a test switch (`input_boolean.dev_switch`) and a test number so that you can create thermostats without
 hardware. The file is yours: git ignores `config/`.
@@ -68,7 +115,8 @@ Useful variants: `npx vitest run frontend/test/panel.test.ts`, `pytest tests/tes
 | `UPDATE_NATIVE_DOCS=1 npx vitest run frontend/test/native-docs.test.ts` | The table of the contributions in [Native plugins](../plugins/native-plugins.md). |
 
 ### The preview
-`npm run preview -w frontend` serves the panel on port 5199 with a fake Home Assistant, without Home Assistant. The parameters of the
+`npm run preview -w frontend` serves the panel on port 5199 with a fake Home Assistant, without Home Assistant (the development
+server above, on port 5198, serves it to a real Home Assistant). The parameters of the
 address are `theme` (the themes of `frontend/preview/themes.ts`), `path`, `drawer` and `empty`. `frontend/preview/frame.html?width=420&query=...`
 shows a narrow screen. It is how the screenshots of the three themes are made.
 

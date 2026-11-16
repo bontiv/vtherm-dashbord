@@ -8,6 +8,10 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### For contributors
+- `npm run dev` and `start-ha.sh --dev-frontend`: Home Assistant loads the panel and the native plugins from the TypeScript sources
+  served by Vite (`VTHERM_DASHBOARD_DEV_SERVER`), so that a change is seen after a reload of the page, without a build or a restart.
+
 ## [0.1.0]
 The first version.
 

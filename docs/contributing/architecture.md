@@ -31,6 +31,7 @@ the user.
 | --- | --- |
 | `__init__.py` | Sets up the entry: the catalog, the commands, the panel and the native plugins. |
 | `panel.py` | Serves `www/` under `/vtherm_dashboard_static` and adds the panel "Home confort" to the side menu, for administrators only. |
+| `dev_server.py` | Reads `VTHERM_DASHBOARD_DEV_SERVER`: the panel and the native plugins then load their sources from the development server of the frontend. See [Development environment](development-environment.md#the-development-server-of-the-frontend). |
 | `native_plugins.py` | Registers the 16 native plugins in `vtherm_api`, in the order of the menu of the config flow, each one after the previous. |
 | `plugin_list.py` | Builds the list of plugins to load. See below. |
 | `version_constraints.py` | The grammar of `dashboard_version`. |

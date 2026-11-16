@@ -8,7 +8,7 @@ from pathlib import Path
 from homeassistant.core import HomeAssistant
 from vtherm_api import VThermAPI
 
-from custom_components.vtherm_dashboard.const import NATIVE_PLUGIN_IDS
+from custom_components.vtherm_dashboard.const import DEV_SERVER_ENV, NATIVE_PLUGIN_IDS
 from custom_components.vtherm_dashboard.native_plugins import NATIVE_PLUGIN_ORDER, register_native_plugins
 from custom_components.vtherm_dashboard.plugin_list import build_plugin_list
 
@@ -51,6 +51,37 @@ async def test_a_third_party_that_took_a_native_identifier_first_does_not_preven
     assert registered == list(NATIVE_PLUGIN_ORDER)
     assert next(plugin for plugin in api.get_ui_plugins() if plugin.id == "core_lock").js_url.startswith("/vtherm_dashboard_static/")
     assert "could not be registered" not in caplog.text
+
+
+async def test_the_development_server_changes_only_the_urls(hass: HomeAssistant) -> None:
+    """With a development server, each native plugin loads its TypeScript source from it, and keeps its constraint and dependencies."""
+    api = VThermAPI.get_vtherm_api(hass)
+    register_native_plugins(hass, VERSION)
+    built = {plugin.id: plugin for plugin in api.get_ui_plugins()}
+    register_native_plugins(hass, VERSION, "http://localhost:5198")
+    served = {plugin.id: plugin for plugin in api.get_ui_plugins()}
+
+    assert list(served) == list(built)
+    for plugin_id, plugin in served.items():
+        assert plugin.js_url == f"http://localhost:5198/src/native/plugins/{plugin_id}.ts"
+        assert (plugin.dashboard_version, plugin.requires, plugin.load_after) == (built[plugin_id].dashboard_version, built[plugin_id].requires, built[plugin_id].load_after)
+
+
+async def test_the_native_plugins_from_the_development_server_are_ready(hass: HomeAssistant, setup_dashboard, monkeypatch, hass_ws_client) -> None:
+    """Started with the development server of the frontend, the dashboard gets its native plugins ready to load from that server."""
+    monkeypatch.setenv(DEV_SERVER_ENV, "http://localhost:5198")
+    await setup_dashboard()
+    client = await hass_ws_client(hass)
+    await client.send_json_auto_id({"type": "vtherm_dashboard/get_ui_plugins"})
+    plugins = (await client.receive_json())["result"]["plugins"]
+    assert [(entry["id"], entry["state"]) for entry in plugins] == [(plugin_id, "ready") for plugin_id in NATIVE_PLUGIN_ORDER]
+    assert all(entry["js_url"].startswith("http://localhost:5198/src/native/plugins/") for entry in plugins)
+
+
+def test_every_native_plugin_has_a_source_for_the_development_server() -> None:
+    """The development server serves `frontend/src/native/plugins/<id>.ts`: each native plugin must have that file."""
+    sources = Path(__file__).resolve().parent.parent / "frontend" / "src" / "native" / "plugins"
+    assert [plugin_id for plugin_id in NATIVE_PLUGIN_ORDER if not (sources / f"{plugin_id}.ts").is_file()] == []
 
 
 def test_every_native_plugin_of_the_configuration_is_a_reserved_identifier() -> None:

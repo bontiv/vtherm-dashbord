@@ -29,6 +29,18 @@ FRONTEND_MODULE = "vtherm-dashboard.js"
 WWW_DIR = Path(__file__).parent / "www"
 """The folder of the built frontend files."""
 
+DEV_SERVER_ENV = "VTHERM_DASHBOARD_DEV_SERVER"
+"""The environment variable that loads the frontend from a development server instead of the built files of the www folder."""
+
+DATA_DEV_SERVER = "dev_server"
+"""The key of `hass.data[DOMAIN]` that holds the URL of the development server of the frontend, or None."""
+
+DEV_PANEL_MODULE = "src/index.ts"
+"""The source of the frontend module on the development server."""
+
+DEV_NATIVE_PLUGINS_DIR = "src/native/plugins"
+"""The folder of the sources of the native plugins on the development server."""
+
 CORE_PLUGIN_ID = "core"
 """The identifier of the base native plugin, always loaded first."""
 

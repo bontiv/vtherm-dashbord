@@ -10,7 +10,7 @@ from __future__ import annotations
 from homeassistant.core import HomeAssistant
 from vtherm_api import VThermAPI, get_vtherm_logger
 
-from .const import CORE_PLUGIN_ID, STATIC_URL
+from .const import CORE_PLUGIN_ID, DEV_NATIVE_PLUGINS_DIR, STATIC_URL
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -35,16 +35,23 @@ NATIVE_PLUGIN_ORDER: tuple[str, ...] = (
 """The native plugins, in their load order: `core`, the sections of the config flow in the order of its menu, then the add-ons."""
 
 
-def native_js_url(plugin_id: str, version: str) -> str:
-    """Return the URL of the module of a native plugin. The version makes the browser load a new module after an update."""
+def native_js_url(plugin_id: str, version: str, dev_server: str | None = None) -> str:
+    """Return the URL of the module of a native plugin.
+
+    The version makes the browser load a new module after an update. With a development server of the frontend, the URL is the one of
+    the TypeScript source on that server, which handles the invalidation of the modules itself.
+    """
+    if dev_server is not None:
+        return f"{dev_server}/{DEV_NATIVE_PLUGINS_DIR}/{plugin_id}.ts"
     return f"{STATIC_URL}/plugins/{plugin_id}.js?v={version}"
 
 
-def register_native_plugins(hass: HomeAssistant, version: str) -> list[str]:
+def register_native_plugins(hass: HomeAssistant, version: str, dev_server: str | None = None) -> list[str]:
     """Register the native plugins in `vtherm_api`.
 
     A native plugin that is already registered is registered again, so that a reload of the integration gives the new version.
     An identifier that another integration took first cannot be registered: the error is logged and the other plugins are registered.
+    With a development server of the frontend, only the URLs of the modules change.
 
     Returns:
         The identifiers that were registered.
@@ -56,7 +63,7 @@ def register_native_plugins(hass: HomeAssistant, version: str) -> list[str]:
         requires = [] if plugin_id == CORE_PLUGIN_ID else [CORE_PLUGIN_ID]
         load_after = [] if index == 0 else [NATIVE_PLUGIN_ORDER[index - 1]]
         try:
-            api.register_ui_plugin(plugin_id, native_js_url(plugin_id, version), f"=={version}", requires=requires, load_after=load_after)
+            api.register_ui_plugin(plugin_id, native_js_url(plugin_id, version, dev_server), f"=={version}", requires=requires, load_after=load_after)
         except ValueError as err:
             _LOGGER.error("The native UI plugin %s could not be registered: %s", plugin_id, err)
             continue

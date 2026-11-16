@@ -19,6 +19,9 @@ describe("the frontend build", () => {
       expect(code).toContain(JSON.stringify(readManifestVersion()).slice(1, -1));
       expect(code).toContain("vtherm-dashboard-panel");
       expect(code).not.toContain("__DASHBOARD_VERSION__");
+      // The connection to the development server (`npm run dev`) exists only when Vite serves the sources.
+      expect(code).not.toContain("@vite/client");
+      expect(code).not.toContain("vite:beforeFullReload");
       expect(readdirSync(join(output, "plugins")).sort()).toEqual(NATIVE_LOAD_ORDER.map((id) => `${id}.js`).sort());
       // The registry of the plugins is in one shared chunk, not copied in each plugin.
       const registryCopies = readdirSync(join(output, "plugins")).filter((file) => readFileSync(join(output, "plugins", file), "utf8").includes("window.VThermUiPluginRegistry is missing"));

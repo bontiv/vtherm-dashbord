@@ -9,14 +9,24 @@
         "ghcr.io/devcontainers/features/github-cli:1": {}
     },
     "forwardPorts": [
-        8123
+        8123,
+        5198
     ],
     "portsAttributes": {
         "8123": {
             "label": "Home Assistant",
             "onAutoForward": "notify"
+        },
+        // npm run dev: the browser imports the frontend of the dashboard from it (start-ha.sh --dev-frontend)
+        "5198": {
+            "label": "Dashboard frontend (Vite)",
+            "onAutoForward": "silent"
         }
     },
+    "mounts": [
+        "type=bind,source=C:\\VS-Projects\\versatile_thermostat,target=/workspaces/vtherm_dashboard/external/versatile_thermostat",
+        "type=bind,source=C:\\VS-Projects\\vtherm_api,target=/workspaces/vtherm_dashboard/external/vtherm_api"
+    ],
     "postCreateCommand": "bash .devcontainer/post-create.sh",
     "containerEnv": {
         "PYTHONDONTWRITEBYTECODE": "1"

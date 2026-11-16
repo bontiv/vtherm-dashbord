@@ -17,6 +17,7 @@
     "examples/vtherm_sample_plugin/ui"
   ],
   "scripts": {
+    "dev": "npm run dev -w frontend",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p docs/examples/tsconfig.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",

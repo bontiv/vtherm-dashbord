@@ -1,9 +1,30 @@
 #!/usr/bin/env bash
 # Start Home Assistant with Versatile Thermostat and the dashboard linked into config/custom_components.
+#
+# Usage: start-ha.sh [--dev-frontend]
+#   --dev-frontend  Load the frontend of the dashboard from the development server (`npm run dev`) instead of the built files, by
+#                   setting VTHERM_DASHBOARD_DEV_SERVER to http://localhost:5198. A value that is already set, for example the
+#                   forwarded address of a Codespace, is kept.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
+
+DEV_FRONTEND_URL="http://localhost:5198"
+
+for argument in "$@"; do
+    case "$argument" in
+        --dev-frontend)
+            export VTHERM_DASHBOARD_DEV_SERVER="${VTHERM_DASHBOARD_DEV_SERVER:-$DEV_FRONTEND_URL}"
+            echo "The dashboard frontend is loaded from $VTHERM_DASHBOARD_DEV_SERVER: run 'npm run dev' in another terminal."
+            ;;
+        *)
+            echo "Unknown option: $argument" >&2
+            echo "Usage: $0 [--dev-frontend]" >&2
+            exit 2
+            ;;
+    esac
+done
 
 mkdir -p config/custom_components
 
