@@ -1,6 +1,6 @@
 /** Start the plugins of the dashboard: ask the server, put the registry in the page, import the modules. */
 
-import type { Hass } from "@vtherm/dashboard-sdk";
+import type { Hass, UiPluginDefinition } from "@vtherm/dashboard-sdk";
 
 import { loadPlugins } from "./loader.ts";
 import type { PluginStatus } from "./loader.ts";
@@ -29,6 +29,46 @@ export interface BootstrapOptions {
   readonly onStatus?: (statuses: readonly PluginStatus[]) => void;
 }
 
+type ImportModule = (url: string) => Promise<unknown>;
+
+const importWithBrowser: ImportModule = (url) => import(/* @vite-ignore */ url);
+
+/**
+ * The definitions that each module registered when it was evaluated, by way of importing and by URL.
+ *
+ * A module is evaluated once in the page: the browser gives the same module to a second `import()` without running it again. Home
+ * Assistant destroys the panel when the user leaves it and creates a new one when the user comes back, and the new panel has a new
+ * registry. Without this memory, the plugins would not register in it, and the dashboard would be empty.
+ */
+const evaluated = new WeakMap<ImportModule, Map<string, readonly UiPluginDefinition[]>>();
+
+/**
+ * Import a module, or give its definitions again to the registry when the module was already evaluated in this page.
+ *
+ * @returns The function that the loader uses to import a module.
+ */
+function importOnce(importModule: ImportModule, registry: DashboardRegistry): ImportModule {
+  let modules = evaluated.get(importModule);
+  if (modules === undefined) {
+    modules = new Map();
+    evaluated.set(importModule, modules);
+  }
+  const known = modules;
+  return async (url) => {
+    const definitions = known.get(url);
+    if (definitions !== undefined) {
+      definitions.forEach((definition) => registry.register(definition));
+      return;
+    }
+    const before = new Set(registry.definitions());
+    await importModule(url);
+    known.set(
+      url,
+      registry.definitions().filter((definition) => !before.has(definition)),
+    );
+  };
+}
+
 /**
  * Load the plugins of the dashboard.
  *
@@ -42,7 +82,7 @@ export async function bootstrap(hass: Pick<Hass, "callWS">, options: BootstrapOp
   installRegistry(registry);
   const statuses = await loadPlugins(list, {
     isRegistered: registry.isRegistered,
-    ...(options.importModule === undefined ? {} : { importModule: options.importModule }),
+    importModule: importOnce(options.importModule ?? importWithBrowser, registry),
     ...(options.onStatus === undefined ? {} : { onStatus: options.onStatus }),
   });
   return { list, registry, statuses };

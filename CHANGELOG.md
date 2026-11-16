@@ -12,6 +12,8 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 - The UI plugins are no longer lost when the central configuration of Versatile Thermostat is the only entry and is saved: the
   dashboard keeps the instance of `vtherm_api` that holds them.
 - The panel follows the navigation again: Home Assistant set a property `route` on it that replaced the route of the panel.
+- The dashboard is no longer empty when the user leaves it and comes back: the new panel gives the plugins whose modules the browser
+  already evaluated to its registry again.
 
 ### For contributors
 - `npm run dev` and `start-ha.sh --dev-frontend`: Home Assistant loads the panel and the native plugins from the TypeScript sources

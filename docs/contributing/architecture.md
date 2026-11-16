@@ -71,7 +71,9 @@ The browser imports the ready plugins in that order and does not sort. See [Load
 2. asks the server for the plugin list (`bootstrap`), with the development entries of an administrator;
 3. puts the registry in the page (`globalThis.VThermUiPluginRegistry`) before importing any module, since a module registers when it
    is evaluated, with `registerUiPlugin` of the SDK, which finds the registry there;
-4. imports the modules in order (`loader`). An import that fails is isolated and kept in the status of the plugin;
+4. imports the modules in order (`loader`). An import that fails is isolated and kept in the status of the plugin. A module that the
+   browser already evaluated in the page is not evaluated again: Home Assistant creates a new panel when the user comes back to it, and
+   `bootstrap` gives the definitions that the module registered the first time to the new registry;
 5. reads the thermostats and draws the page of the address.
 
 ### Registry and placement

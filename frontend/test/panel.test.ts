@@ -160,6 +160,28 @@ describe("the language", () => {
   });
 });
 
+describe("a panel created again", () => {
+  it("shows the plugins again when the user comes back, although the browser does not evaluate their modules twice", async () => {
+    // As the browser: a module is evaluated at its first import only, and the same function imports for every panel of the page.
+    const evaluated = new Set<string>();
+    let browser: ((url: string) => Promise<unknown>) | undefined;
+    const importModule = (evaluate: (url: string) => void) =>
+      (browser ??= async (url: string) => {
+        if (!evaluated.has(url)) {
+          evaluated.add(url);
+          evaluate(url);
+        }
+      });
+    const first = await mountPanel({ importModule, path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    expect(first.panel.statuses.every((status) => status.state === "loaded")).toBe(true);
+    // Home Assistant destroys the panel when the user opens another page, and creates a new one when the user comes back.
+    first.panel.remove();
+    const second = await mountPanel({ importModule, path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    expect(second.panel.statuses.map((status) => [status.id, status.state])).toEqual(first.panel.statuses.map((status) => [status.id, "loaded"]));
+    expect(find(second.panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
+  });
+});
+
 describe("the version", () => {
   it("shows the version of the frontend on the panel, and warns when the server has another one", async () => {
     const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);

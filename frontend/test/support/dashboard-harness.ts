@@ -203,6 +203,11 @@ export interface MountOptions {
   readonly handlers?: readonly ((message: Record<string, unknown>) => Promise<unknown>)[];
   /** Whether the user is an administrator. By default, yes. */
   readonly admin?: boolean;
+  /**
+   * Build the way to import a module, from the function that evaluates a module of the test. The default evaluates the module at
+   * each import; a test can give the same function to two panels, to behave as the browser, which evaluates a module once.
+   */
+  readonly importModule?: (evaluate: (url: string) => void) => (url: string) => Promise<unknown>;
 }
 
 /** Mount the panel with plugins and wait for it to be ready. */
@@ -230,13 +235,14 @@ export async function mountPanel(options: MountOptions = {}) {
     });
   }
   hass.user = { is_admin: options.admin ?? true };
-  panel.importModule = async (url) => {
+  const evaluate = (url: string): void => {
     const failure = options.failing?.[url.split("/")[1] as string];
     if (failure !== undefined) {
       throw failure;
     }
     registerUiPlugin(byUrl.get(url) as UiPluginDefinition);
   };
+  panel.importModule = options.importModule?.(evaluate) ?? (async (url) => evaluate(url));
   if (options.realThermostats !== true) {
     panel.thermostatProvider = async () => options.thermostats ?? thermostats;
   }
