@@ -8,6 +8,7 @@ import { t } from "../shell-translations.ts";
 import { followLink } from "./events.ts";
 import { defineElement } from "./define.ts";
 import { narrowStyles } from "./narrow-styles.ts";
+import { isDefined, renderAlert } from "./ha.ts";
 
 /** The list of the thermostats, shown in full width in the Thermostats tab, with a message when there is none. */
 export class VThermThermostatList extends LitElement {
@@ -82,13 +83,29 @@ export class VThermThermostatList extends LitElement {
 
   private renderCreate(): TemplateResult {
     const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: "new", rest: [] });
+    if (isDefined("ha-button")) {
+      return html`<p><ha-button class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("wizard.create_thermostat")}</ha-button></p>`;
+    }
+    // fallback: a plain link, when ha-button is not defined.
     return html`<p><a class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("wizard.create_thermostat")}</a></p>`;
   }
 
   protected override render(): TemplateResult {
     if (this.thermostats.length === 0) {
-      return html`${this.renderCreate()}<div class="empty" role="status">${t("shell.thermostats.empty")}</div>`;
+      return html`${this.renderCreate()}${renderAlert("info", t("shell.thermostats.empty"), "empty")}`;
     }
+    if (isDefined("ha-md-list-item")) {
+      return html`${this.renderCreate()}<div class="list" role="list">
+        ${this.thermostats.map((thermostat) => {
+          const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: thermostat.id, rest: [] });
+          return html`<ha-md-list-item type="link" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>
+            <span slot="headline">${thermostat.name}</span>
+            <span slot="supporting-text">${t(`shell.thermostats.type.${thermostat.type}`)}</span>
+          </ha-md-list-item>`;
+        })}
+      </div>`;
+    }
+    // fallback: plain links, when ha-md-list-item is not defined.
     return html`${this.renderCreate()}<ul>
       ${this.thermostats.map((thermostat) => {
         const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: thermostat.id, rest: [] });

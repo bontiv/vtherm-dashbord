@@ -12,6 +12,10 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 - The dashboard is named "Versatile Thermostat" in the side menu and in its title, instead of "Home confort". An entry of the
   integration created before keeps its title until it is renamed in Home Assistant.
 - The address of the dashboard is `/vtherm`, instead of `/home-confort`: update the links and bookmarks to its pages.
+- Every control of the dashboard is a component of Home Assistant: entity pickers filtered by domain and device class, the
+  underlyings in an ordered list, numbers with their unit, the switch commands with a service picker for each underlying, messages
+  in `ha-alert`, confirmations in `ha-dialog` (leaving unsaved changes, installing and restarting in VT add-ons), cards, menus and
+  spinners. An entity shown as text opens its card. Each control keeps a plain HTML fallback when Home Assistant does not load it.
 
 ### Fixed
 - The UI plugins are no longer lost when the central configuration of Versatile Thermostat is the only entry and is saved: the
@@ -27,6 +31,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 ### For plugin authors
 - Every component receives `narrow`, true on a narrow screen such as a phone (`DisplayProps` in the SDK). The fake host of
   `@vtherm/dashboard-sdk/testing` gives `narrow: false` unless a test gives it. The change is compatible: nothing to migrate.
+- The SDK has a contract for the fields of configuration (`FieldDefinition`, `selectorOf`) that gives the `ha-selector` of each
+  field, and a loader of the components of Home Assistant (`ensureHaControls`, `haControlsStatus`). `@vtherm/dashboard-sdk/testing`
+  adds `defineHaControlMocks`. The change is compatible: nothing to migrate.
 
 ## [0.1.0]
 The first version.

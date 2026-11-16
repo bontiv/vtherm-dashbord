@@ -7,6 +7,7 @@ import type { PluginStatus } from "../loader.ts";
 import { t } from "../shell-translations.ts";
 import { defineElement } from "./define.ts";
 import { narrowStyles } from "./narrow-styles.ts";
+import { isDefined, renderAlert } from "./ha.ts";
 
 /** Translate a key whose name is built from a state or a reason. The catalog is complete for the ones that exist. */
 const translate = t as (key: string, params?: Readonly<Record<string, string | number>>) => string;
@@ -111,6 +112,23 @@ export class VThermPluginStatus extends LitElement {
   static override styles = [
     narrowStyles,
     css`
+    .plugins {
+      display: grid;
+      gap: 12px;
+    }
+    ha-card.plugin {
+      display: block;
+    }
+    ha-card .card-content {
+      padding: 0 16px 16px;
+    }
+    .detail,
+    .source {
+      color: var(--secondary-text-color);
+    }
+    .issue {
+      margin: 8px 0;
+    }
     :host {
       display: block;
       padding: 16px;
@@ -191,7 +209,45 @@ export class VThermPluginStatus extends LitElement {
     this.dashboardVersion = "";
   }
 
+  /** The details of a plugin: why it is in its state, and the warnings of its translations in development. */
+  private detailsOf(status: PluginStatus): readonly string[] {
+    return [...describeStatus(status, this.dashboardVersion), ...(status.source === "development" ? describeTranslationWarnings(this.translationWarnings.get(status.id) ?? []) : [])];
+  }
+
+  /**
+   * The plugins and the problems with the components of Home Assistant: a card for each plugin, rather than ha-data-table, whose
+   * columns do not fit the details of several lines nor the narrow screen; and an alert for each problem.
+   */
+  private renderWithHa(): TemplateResult {
+    return html`<h1>${t("status.title")}</h1>
+      <p>${t("status.intro")}</p>
+      ${this.statuses.length === 0
+        ? renderAlert("info", t("status.empty"))
+        : html`<div class="plugins">
+            ${this.statuses.map(
+              (status) => html`<ha-card class="plugin" data-plugin=${status.id} .header=${status.id}>
+                <div class="card-content">
+                  <div><span class="source">${translate(`status.source.${status.source}`)}</span> · <span class="state ${status.state}">${translate(`status.state.${status.state}`)}</span></div>
+                  ${this.detailsOf(status).map((line) => html`<div class="detail">${line}</div>`)}
+                </div>
+              </ha-card>`,
+            )}
+          </div>`}
+      <h2>${t("status.issues.title")}</h2>
+      ${this.issues.length === 0
+        ? html`<p>${t("status.issues.none")}</p>`
+        : this.issues.map(
+            (issue) => html`<div class="issue" data-code=${issue.code}>
+              ${renderAlert(issue.level === "error" ? "error" : "warning", html`<strong>${issue.pluginId}</strong> (${issue.code}): ${issue.message}`)}
+            </div>`,
+          )}`;
+  }
+
   protected override render(): TemplateResult {
+    if (isDefined("ha-card") && isDefined("ha-alert")) {
+      return this.renderWithHa();
+    }
+    // fallback: a table and a list, when ha-card and ha-alert are not defined.
     return html`<h1>${t("status.title")}</h1>
       <p>${t("status.intro")}</p>
       ${this.statuses.length === 0
@@ -211,11 +267,7 @@ export class VThermPluginStatus extends LitElement {
                   <td>${status.id}</td>
                   <td>${translate(`status.source.${status.source}`)}</td>
                   <td class="state ${status.state}">${translate(`status.state.${status.state}`)}</td>
-                  <td>
-                    ${[...describeStatus(status, this.dashboardVersion), ...(status.source === "development" ? describeTranslationWarnings(this.translationWarnings.get(status.id) ?? []) : [])].map(
-                      (line) => html`<div>${line}</div>`,
-                    )}
-                  </td>
+                  <td>${this.detailsOf(status).map((line) => html`<div>${line}</div>`)}</td>
                 </tr>`,
               )}
             </tbody>

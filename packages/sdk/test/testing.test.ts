@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from "vitest";
 
-import { UiPluginValidationError, defineTranslations, registerUiPlugin } from "../src/index.ts";
+import { UiPluginValidationError, defineTranslations, registerUiPlugin, selectorOf } from "../src/index.ts";
 import type { UiPluginDefinition } from "../src/index.ts";
-import { assertCompleteTranslations, createFakeHass, createFakeHost, findTranslationProblems } from "../src/testing.ts";
+import { assertCompleteTranslations, createFakeHass, createFakeHost, defineHaControlMocks, findTranslationProblems } from "../src/testing.ts";
+import type { MockHaElement } from "../src/testing.ts";
 
 const translations = defineTranslations({ title: "Title" });
 
@@ -216,5 +217,52 @@ describe("the check of the translations", () => {
   it("compares the language tags without regard to case", async () => {
     const regional = defineTranslations(en, { "pt-BR": { a: "A", b: "B" } });
     await expect(assertCompleteTranslations(regional, ["pt_br"])).resolves.toBeUndefined();
+  });
+});
+
+describe("the simulated components of Home Assistant", () => {
+  class ThresholdField extends HTMLElement {
+    proposeChanges: (changes: Record<string, unknown>) => void = () => undefined;
+    connectedCallback(): void {
+      const selector = document.createElement("ha-selector") as MockHaElement;
+      selector.selector = selectorOf({ type: "entity_list", key: "underlying_entity_ids", domains: ["climate"] });
+      selector.value = ["climate.salon"];
+      selector.label = "Underlyings";
+      selector.helper = "The heaters";
+      selector.error = "Unknown entity";
+      selector.addEventListener("value-changed", (event) => this.proposeChanges({ underlying_entity_ids: (event as CustomEvent<{ value: unknown }>).detail.value }));
+      this.append(selector);
+    }
+  }
+  if (customElements.get("threshold-field") === undefined) {
+    customElements.define("threshold-field", ThresholdField);
+  }
+
+  it("keeps the selector, the value, the label, the help and the error that a component gives", () => {
+    defineHaControlMocks();
+    const field = document.createElement("threshold-field") as ThresholdField;
+    document.body.append(field);
+    const selector = field.querySelector("ha-selector") as MockHaElement;
+    expect(selector.selector).toEqual({ entity: { multiple: true, reorder: true, filter: [{ domain: ["climate"] }] } });
+    expect([selector.value, selector.label, selector.helper, selector.error]).toEqual([["climate.salon"], "Underlyings", "The heaters", "Unknown entity"]);
+  });
+
+  it("sends value-changed when the test changes the value, so that the component proposes the change", () => {
+    defineHaControlMocks();
+    const proposed: Record<string, unknown>[] = [];
+    const field = document.createElement("threshold-field") as ThresholdField;
+    field.proposeChanges = (changes) => proposed.push(changes);
+    document.body.append(field);
+    (field.querySelector("ha-selector") as MockHaElement).change(["climate.salon", "climate.chambre"]);
+    expect(proposed).toEqual([{ underlying_entity_ids: ["climate.salon", "climate.chambre"] }]);
+  });
+
+  it("turns a simulated switch on and tells it with change", () => {
+    defineHaControlMocks();
+    const toggle = document.createElement("ha-switch") as MockHaElement;
+    let changes = 0;
+    toggle.addEventListener("change", () => (changes += 1));
+    toggle.change(true);
+    expect([toggle.checked, changes]).toEqual([true, 1]);
   });
 });

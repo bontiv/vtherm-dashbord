@@ -27,6 +27,15 @@ Nothing detects the language automatically: the review and the checklist of the 
   `docs/reference/sdk/` is not the one that the code would generate.
 - Components are custom elements. Colors, spacing and fonts come from the variables of the theme of Home Assistant, never from a
   value of the code ([Theming](../plugins/theming.md)). A test checks it.
+- **A component of Home Assistant first.** A control (field, button, message, confirmation, card, list, menu, loading) is drawn
+  with the component of Home Assistant that does the job: `ha-selector` for a field, `ha-button`, `ha-alert`, `ha-dialog`, `ha-card`,
+  `ha-expansion-panel`, `ha-md-list-item`, `ha-spinner`. The helpers of `frontend/src/components/ha.ts` and the field contract of the
+  SDK do most of it ([Components of Home Assistant](architecture.md#components-of-home-assistant)). A plain HTML control is allowed
+  only in these cases, each with a comment next to it:
+  - a **fallback**, drawn when the component of Home Assistant is not defined; the comment starts with `fallback:` and names the
+    component;
+  - an **exception**, where Home Assistant has no public component: the tabs of the top bar, the breadcrumb and the darkened page
+    behind the drawer; the comment starts with `Exception to the rule "a component of Home Assistant first"` and says why.
 
 ## Python
 The rules are those of Versatile Thermostat, so that code can move between the repositories:

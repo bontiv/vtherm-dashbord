@@ -76,6 +76,15 @@ A native tab reads and proposes values like any component of a plugin: it receiv
 the keys of the flow of Versatile Thermostat. Which fields a tab shows, and when it appears, follow the forms of the flow: see
 [Driving the config flow](../contributing/config-flow-driver.md).
 
+### The controls
+The native tabs draw their fields with the components of Home Assistant: one `ha-selector` per field, whose selector comes from the
+contract of the SDK (`definitionOf` turns a field of the flow into a `FieldDefinition`, then `selectorOf` gives the selector), in a
+`ha-card`, with `ha-alert` for the errors, `ha-expansion-panel` for the long groups and `ha-button` for the actions. The commands of
+a thermostat on switch and the services of the central boiler use `ha-service-picker`. The units of the delays and the classes of
+devices of the sensors are written by hand in `shared/vtherm-config-schemas.json` (`unit`, `device_classes`); the drift test keeps
+them. When a component is not defined after `ensureHaControls()`, the tab draws plain HTML controls, the fallback, and writes one
+warning in the console. Do the same in your plugin: see [Developing a plugin](plugin-development.md#fields-of-configuration).
+
 ## Texts
 Each native plugin has English, French and German catalogs, generated from the translations of Versatile Thermostat with
 `npm run catalogs:generate`. English is the default for any other language.

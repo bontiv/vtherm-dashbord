@@ -21,6 +21,7 @@ import "./components/side-menu.ts";
 import { THERMOSTAT_SELECTED_EVENT } from "./components/side-menu.ts";
 import "./components/thermostat-list.ts";
 import { renderIcon } from "./components/icon.ts";
+import { isDefined, renderAlert, renderButton, renderDialog, renderProgress } from "./components/ha.ts";
 import "./components/top-bar.ts";
 import { createLanguageController } from "./i18n.ts";
 import type { LanguageController } from "./i18n.ts";
@@ -59,6 +60,7 @@ export class VThermDashboardPanel extends LitElement {
     currentRoute: { state: true },
     compact: { state: true },
     drawerOpen: { state: true },
+    leaving: { state: true },
     noticeDismissed: { state: true },
     thermostats: { state: true },
     failure: { state: true },
@@ -257,6 +259,9 @@ export class VThermDashboardPanel extends LitElement {
   /** Whether the drawer of the menu is open. */
   declare drawerOpen: boolean;
 
+  /** The page that the user wants to go to, while the dialog asks whether to leave the draft. */
+  declare leaving: Route | undefined;
+
   /** Whether the user closed the notice of an unknown route. */
   declare noticeDismissed: boolean;
 
@@ -311,6 +316,7 @@ export class VThermDashboardPanel extends LitElement {
     this.currentRoute = parseRoute(window.location.pathname, CORE_TOP_TABS.thermostats);
     this.compact = false;
     this.drawerOpen = false;
+    this.leaving = undefined;
     this.noticeDismissed = false;
     this.thermostats = [];
     this.failure = "";
@@ -424,11 +430,50 @@ export class VThermDashboardPanel extends LitElement {
     if (current === null || draft === undefined || !draft.dirty || this.entryOf(target) === current) {
       return true;
     }
+    if (isDefined("ha-dialog")) {
+      // The dialog of Home Assistant does not block: the panel stays on its page and goes on once the user confirms.
+      this.leaving = target;
+      return false;
+    }
+    // fallback: the confirmation of the browser, when ha-dialog is not defined.
     if (!window.confirm(t("draft.leave"))) {
       return false;
     }
     this.session?.close(current);
     return true;
+  }
+
+  /** The dialog that asks whether to leave a draft that is not saved. */
+  private renderLeaveDialog(): TemplateResult | undefined {
+    const target = this.leaving;
+    if (target === undefined) {
+      return undefined;
+    }
+    return renderDialog({
+      title: t("draft.leave_title"),
+      body: html`<p>${t("draft.leave")}</p>`,
+      confirm: {
+        label: t("draft.leave_confirm"),
+        className: "confirm-leave",
+        onClick: () => {
+          this.leaving = undefined;
+          const current = this.entryOf(this.currentRoute);
+          if (current !== null) {
+            this.session?.close(current);
+          }
+          window.history.pushState(null, "", buildPath(target));
+          window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+          this.readLocation();
+        },
+      },
+      cancel: {
+        label: t("draft.stay"),
+        className: "cancel-leave",
+        onClick: () => {
+          this.leaving = undefined;
+        },
+      },
+    });
   }
 
   private readonly onBeforeUnload = (event: BeforeUnloadEvent): void => {
@@ -510,7 +555,7 @@ export class VThermDashboardPanel extends LitElement {
     if (this.drawerOpen) {
       const menu = this.renderRoot.querySelector<HTMLElement & { updateComplete?: Promise<unknown> }>(".drawer vtherm-side-menu");
       await menu?.updateComplete;
-      const links = [...(menu?.shadowRoot?.querySelectorAll<HTMLElement>("a, select") ?? [])];
+      const links = [...(menu?.shadowRoot?.querySelectorAll<HTMLElement>("a, select, ha-md-list-item, ha-selector") ?? [])];
       (links.find((link) => link.getAttribute("aria-current") === "page") ?? links[0])?.focus();
     } else {
       this.renderRoot.querySelector<HTMLElement>(".menu-button")?.focus();
@@ -651,10 +696,10 @@ export class VThermDashboardPanel extends LitElement {
     const general = draft.generalErrors();
     return html`<div class="savebar" role="region" aria-label=${t("draft.unsaved")}>
       <span class="text">${draft.dirty ? t("draft.unsaved") : this.savedMessage}</span>
-      ${general.map((error) => html`<span class="error" role="alert">${translateErrorCode(shell, error.code)}</span>`)}
+      ${general.map((error) => renderAlert("error", translateErrorCode(shell, error.code), "error"))}
       ${draft.dirty
-        ? html`<button class="discard" ?disabled=${this.saving} @click=${() => draft.discard()}>${t("draft.discard")}</button>
-            <button class="save" ?disabled=${this.saving} @click=${() => void this.save(entryId)}>${t(this.saving ? "draft.saving" : "draft.save")}</button>`
+        ? html`${renderButton(t("draft.discard"), () => draft.discard(), { className: "discard", disabled: this.saving, plain: true })}
+          ${renderButton(t(this.saving ? "draft.saving" : "draft.save"), () => void this.save(entryId), { className: "save", disabled: this.saving })}`
         : undefined}
     </div>`;
   }
@@ -675,17 +720,17 @@ export class VThermDashboardPanel extends LitElement {
       return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
     }
     if (model.current === undefined) {
-      return html`<div class="message" role="status">${t("shell.page.empty")}</div>`;
+      return renderAlert("info", t("shell.page.empty"), "message");
     }
     const entry = model.current.entry;
     const isConfig = entry.hook === "thermostat_config" || entry.hook === "general_config";
     const entryId = isConfig ? this.entryOf(this.currentRoute) : null;
     const opened = this.config(entryId);
     if (entryId !== null && opened === undefined) {
-      return html`<div class="message" role="status">${t("config.loading")}</div>`;
+      return html`<div class="message">${renderProgress(t("config.loading"))}</div>`;
     }
     const readOnly = opened?.data.read_only === true;
-    return html`${readOnly ? html`<div class="readonly" role="status">${t("config.read_only")}</div>` : undefined}
+    return html`${readOnly ? renderAlert("warning", t("config.read_only"), "readonly") : undefined}
       <vtherm-contribution
         ?inert=${readOnly}
         .tag=${(entry.contribution as { component: string }).component}
@@ -709,10 +754,10 @@ export class VThermDashboardPanel extends LitElement {
 
   protected override render(): TemplateResult {
     if (this.phase === "loading") {
-      return html`<div class="message" role="status">${t("shell.loading")}</div>`;
+      return html`<div class="message">${renderProgress(t("shell.loading"))}</div>`;
     }
     if (this.phase === "error") {
-      return html`<div class="message error" role="alert">${t("shell.plugins_error", { message: this.failure })}</div>`;
+      return renderAlert("error", t("shell.plugins_error", { message: this.failure }), "message error");
     }
     const creating = this.currentRoute.tab === CORE_TOP_TABS.thermostats && this.currentRoute.thermostat === NEW_THERMOSTAT;
     // The assistant has its own page in the Thermostats tab: the navigation is the one of the tab.
@@ -741,10 +786,21 @@ export class VThermDashboardPanel extends LitElement {
         .haMenuLabel=${t("shell.ha_menu")}
         .hass=${this.hass}
       ></vtherm-top-bar>
-      ${this.developmentPlugins.length === 0 ? undefined : html`<div class="devbanner" role="status">${t("dev.banner", { plugins: this.developmentPlugins.join(", ") })}</div>`}
+      ${this.developmentPlugins.length === 0 ? undefined : renderAlert("warning", t("dev.banner", { plugins: this.developmentPlugins.join(", ") }), "devbanner")}
       <div class="toolbar">
-        ${this.compact && hasMenu
-          ? html`<button
+        ${this.compact && hasMenu && isDefined("ha-icon-button")
+          ? html`<ha-icon-button
+              class="menu-button"
+              aria-expanded=${this.drawerOpen ? "true" : "false"}
+              .label=${t("shell.menu.toggle")}
+              title=${t("shell.menu.toggle")}
+              @click=${() => (this.drawerOpen = !this.drawerOpen)}
+              >${renderIcon("mdi:format-list-bulleted")}</ha-icon-button
+            >`
+          : undefined}
+        ${this.compact && hasMenu && !isDefined("ha-icon-button")
+          ? // fallback: a plain button, when ha-icon-button is not defined.
+            html`<button
               class="menu-button"
               aria-expanded=${this.drawerOpen ? "true" : "false"}
               aria-label=${t("shell.menu.toggle")}
@@ -757,17 +813,17 @@ export class VThermDashboardPanel extends LitElement {
         <vtherm-breadcrumb .crumbs=${model.breadcrumb} .narrow=${this.compact} .label=${t("shell.breadcrumb.label")}></vtherm-breadcrumb>
       </div>
       ${model.notice !== undefined && !this.noticeDismissed
-        ? html`<div class="notice" role="status">
-            <span>${t("shell.notice.route_unknown")}</span>
-            <button @click=${() => (this.noticeDismissed = true)}>${t("shell.notice.dismiss")}</button>
-          </div>`
+        ? renderAlert("warning", html`<span>${t("shell.notice.route_unknown")}</span> ${renderButton(t("shell.notice.dismiss"), () => (this.noticeDismissed = true), { plain: true })}`, "notice")
         : undefined}
+      ${this.renderLeaveDialog()}
       <div class="body">
         ${!this.compact && hasMenu ? html`<aside>${this.renderMenu(model)}</aside>` : undefined}
         <main ?inert=${this.compact && hasMenu && this.drawerOpen}>${this.renderBody(model)}</main>
         ${this.compact && hasMenu && this.drawerOpen
           ? html`<div class="drawer">
               ${this.renderMenu(model)}
+              <!-- Exception to the rule "a component of Home Assistant first": Home Assistant has no public scrim, so the darkened page
+                   is a plain button that closes the drawer. -->
               <button class="scrim" aria-label=${t("shell.notice.dismiss")} @click=${() => (this.drawerOpen = false)}></button>
             </div>`
           : undefined}

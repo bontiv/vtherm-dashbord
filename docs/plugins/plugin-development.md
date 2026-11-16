@@ -237,6 +237,65 @@ export function define(tag: string, element: CustomElementConstructor): void {
 ```
 <!-- /example -->
 
+### Fields of configuration
+A section of configuration draws its fields with the components of Home Assistant, as the native tabs do, so that the user finds the
+same pickers, filters and themes as in the rest of Home Assistant. Describe each field with the contract of the SDK
+(`FieldDefinition`: `boolean`, `number`, `integer`, `text`, `text_list`, `entity`, `entity_list`, `select`, `duration`, `time`,
+`template`), give `selectorOf(field)` to the `selector` of a `ha-selector`, and propose the value of its event `value-changed`.
+
+- An `entity` or `entity_list` field filters by `domains`, and by `device_classes` for the domains that have one (`sensor`,
+  `binary_sensor`): `input_number` or `number` stay offered without a class. A list can be put in order by the user (`reorder`).
+- A delay stored as a number (minutes, seconds) is a `number` or an `integer` with its `unit`, not a `duration`, which holds an object.
+- `ensureHaControls()` waits until the components of Home Assistant are defined, which may take a moment when the page is opened
+  directly, and tells whether they are (`loaded`). Without them, draw a plain control as a fallback, with a comment that names the
+  component of Home Assistant it replaces.
+
+<!-- example: docs/examples/typescript/config-fields.ts -->
+```typescript
+import { ensureHaControls, selectorOf } from "@vtherm/dashboard-sdk";
+import type { FieldDefinition, HookProps } from "@vtherm/dashboard-sdk";
+
+type Props = HookProps<"thermostat_config">;
+
+/** The fields of the section, described with the contract of the SDK. Each type is a control of Home Assistant. */
+export const FIELDS: readonly FieldDefinition[] = [
+  { type: "entity", key: "my_plugin_sensor", domains: ["sensor", "input_number"], device_classes: ["temperature"] },
+  { type: "entity_list", key: "my_plugin_heaters", domains: ["climate"] },
+  { type: "integer", key: "my_plugin_delay", min: 0, max: 600, unit: "s" },
+  { type: "boolean", key: "my_plugin_enabled" },
+];
+
+/** A section of the configuration of a thermostat, drawn with the `ha-selector` of Home Assistant. */
+export class MyPluginFields extends HTMLElement implements Partial<Props> {
+  hass?: Props["hass"];
+  values: Props["values"] = {};
+  proposeChanges: Props["proposeChanges"] = () => undefined;
+
+  async connectedCallback(): Promise<void> {
+    // The components of Home Assistant may not be defined yet when the page is opened directly: wait for them.
+    const controls = await ensureHaControls();
+    this.replaceChildren(...FIELDS.map((field) => (controls.loaded ? this.selector(field) : this.fallback(field))));
+  }
+
+  private selector(field: FieldDefinition): HTMLElement {
+    const element = document.createElement("ha-selector") as HTMLElement & Record<string, unknown>;
+    Object.assign(element, { hass: this.hass, selector: selectorOf(field), value: this.values[field.key], label: field.key });
+    // Home Assistant sends the new value with `value-changed`; the dashboard saves the draft.
+    element.addEventListener("value-changed", (event) => this.proposeChanges({ [field.key]: (event as CustomEvent<{ value: unknown }>).detail.value }));
+    return element;
+  }
+
+  /** Without `ha-selector` (a version of Home Assistant that does not have it), a plain input keeps the value editable. */
+  private fallback(field: FieldDefinition): HTMLElement {
+    const input = document.createElement("input"); // fallback: ha-selector is not defined
+    input.value = String(this.values[field.key] ?? "");
+    input.addEventListener("change", () => this.proposeChanges({ [field.key]: input.value }));
+    return input;
+  }
+}
+```
+<!-- /example -->
+
 ## 4. Write the translations
 Every text comes from a catalog. The English catalog is required and gives the keys, so an unknown key does not compile. The French
 and German catalogs can be partial: a missing key is shown in English. Add a language by adding an entry to the second argument of

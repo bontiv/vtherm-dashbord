@@ -4,6 +4,8 @@
  * Kept apart from the drawing, so that the rules can be tested.
  */
 
+import type { FieldDefinition } from "@vtherm/dashboard-sdk";
+
 import type { FieldSpec } from "./schemas.ts";
 
 /** The defaults of the temperatures that depend on the unit of Home Assistant, as Versatile Thermostat applies them. */
@@ -80,6 +82,94 @@ export function formatInput(field: FieldSpec, value: unknown): string {
     return value.join("\n");
   }
   return String(value);
+}
+
+/** A key with its value, or nothing when the value is absent. */
+function optional<Key extends string, Value>(key: Key, value: Value | undefined): { readonly [K in Key]?: Value } {
+  return (value === undefined ? {} : { [key]: value }) as { readonly [K in Key]?: Value };
+}
+
+/**
+ * Describe a field of a form of Versatile Thermostat with the contract of the SDK, so that `selectorOf` gives its control of Home
+ * Assistant.
+ *
+ * @param field - The field.
+ * @param optionLabel - The translated label of an option of a `select`.
+ * @param extraOptions - Options that the form does not list but the configuration holds, such as an algorithm that a plugin added.
+ */
+export function definitionOf(field: FieldSpec, optionLabel: (option: string) => string = (option) => option, extraOptions: readonly string[] = []): FieldDefinition {
+  const base = { key: field.key, required: field.required };
+  switch (field.kind) {
+    case "boolean":
+      return { type: "boolean", ...base };
+    case "number":
+    case "integer":
+      return {
+        type: field.kind,
+        ...base,
+        ...optional("min", field.min),
+        ...optional("max", field.max),
+        ...optional("step", field.step),
+        ...optional("unit", field.unit_of_measurement ?? field.unit),
+      };
+    case "entity": {
+      const filter = { ...optional("domains", field.domain === undefined ? undefined : domainsOf(field)), ...optional("device_classes", field.device_classes) };
+      return field.multiple === true ? { type: "entity_list", ...base, ...filter } : { type: "entity", ...base, ...filter };
+    }
+    case "select": {
+      const known = field.options ?? [];
+      const options = [...known, ...extraOptions.filter((option) => !known.includes(option))];
+      return { type: "select", ...base, options: options.map((option) => ({ value: option, label: optionLabel(option) })) };
+    }
+    case "template":
+      return { type: "template", ...base };
+    case "string":
+    case "text":
+      if (field.multiple === true) {
+        return { type: "text_list", ...base };
+      }
+      return { type: "text", ...base, ...optional("multiline", field.multiline) };
+  }
+}
+
+/**
+ * Turn a value of the configuration into the value of the control of Home Assistant: a list for a list, nothing for no value.
+ *
+ * @param field - The field.
+ * @param value - The value shown, from `shownValue`.
+ */
+export function valueForSelector(field: FieldSpec, value: unknown): unknown {
+  if (isList(field)) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value === undefined || value === null || value === "" ? [] : [value];
+  }
+  return value === null ? undefined : value;
+}
+
+/**
+ * Turn the value that the control of Home Assistant gives into the value of the configuration. An empty optional field is cleared
+ * (`null`), as the forms of Versatile Thermostat do; a list keeps its order and loses its empty items.
+ *
+ * @param field - The field.
+ * @param value - The `detail.value` of the event `value-changed`.
+ */
+export function valueFromSelector(field: FieldSpec, value: unknown): unknown {
+  if (field.kind === "boolean") {
+    return value === true;
+  }
+  if (isList(field)) {
+    const items: unknown[] = Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
+    return items.map((item) => String(item).trim()).filter((item) => item !== "");
+  }
+  if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) {
+    return null;
+  }
+  if ((field.kind === "number" || field.kind === "integer") && typeof value === "string") {
+    return parseInput(field, value);
+  }
+  return value;
 }
 
 /** The domains of the entities that a field accepts. */

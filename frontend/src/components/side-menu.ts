@@ -7,6 +7,7 @@ import { followLink } from "./events.ts";
 import { renderIcon } from "./icon.ts";
 import { defineElement } from "./define.ts";
 import { narrowStyles } from "./narrow-styles.ts";
+import { isDefined } from "./ha.ts";
 
 /** The event sent when the user chooses another thermostat in the selector. Its detail is the identifier of the thermostat. */
 export const THERMOSTAT_SELECTED_EVENT = "vtherm-thermostat-selected";
@@ -29,6 +30,15 @@ export class VThermSideMenu extends LitElement {
   static override styles = [
     narrowStyles,
     css`
+    ha-selector.thermostat {
+      display: block;
+      margin: 12px;
+    }
+    ha-md-list-item.active {
+      --md-list-item-label-text-color: var(--primary-color);
+      --md-list-item-leading-icon-color: var(--primary-color);
+      background-color: var(--secondary-background-color);
+    }
     :host {
       display: block;
       box-sizing: border-box;
@@ -110,13 +120,34 @@ export class VThermSideMenu extends LitElement {
     this.label = "";
   }
 
+  private select(thermostatId: string): void {
+    this.dispatchEvent(new CustomEvent<string>(THERMOSTAT_SELECTED_EVENT, { detail: thermostatId, bubbles: true, composed: true }));
+  }
+
   private renderSelector(): TemplateResult | undefined {
     if (this.selected === "" || this.thermostats.length === 0) {
       return undefined;
     }
+    if (isDefined("ha-selector")) {
+      return html`<ha-selector
+        class="thermostat"
+        .selector=${{ select: { options: this.thermostats.map((thermostat) => ({ value: thermostat.id, label: thermostat.name })), mode: "dropdown" } }}
+        .value=${this.selected}
+        .label=${t("shell.thermostats.select")}
+        .required=${true}
+        @value-changed=${(event: CustomEvent<{ value: unknown }>) => {
+          event.stopPropagation();
+          const value = String(event.detail.value ?? "");
+          if (value !== "" && value !== this.selected) {
+            this.select(value);
+          }
+        }}
+      ></ha-selector>`;
+    }
+    // fallback: a plain list, when ha-selector is not defined.
     return html`<select
       aria-label=${t("shell.thermostats.select")}
-      @change=${(event: Event) => this.dispatchEvent(new CustomEvent<string>(THERMOSTAT_SELECTED_EVENT, { detail: (event.target as HTMLSelectElement).value, bubbles: true, composed: true }))}
+      @change=${(event: Event) => this.select((event.target as HTMLSelectElement).value)}
     >
       ${this.thermostats.map((thermostat) => html`<option value=${thermostat.id} ?selected=${thermostat.id === this.selected}>${thermostat.name}</option>`)}
     </select>`;
@@ -127,13 +158,27 @@ export class VThermSideMenu extends LitElement {
       ${this.renderSelector()}
       ${this.sections.map(
         (section) => html`${section.heading === undefined ? undefined : html`<h2>${section.heading}</h2>`}
-          <ul>
-            ${section.items.map(
-              (item) => html`<li>
-                <a href=${item.path} aria-current=${item.active ? "page" : "false"} @click=${(event: MouseEvent) => followLink(this, event, item.path)}>${renderIcon(item.icon)}${item.title}</a>
-              </li>`,
-            )}
-          </ul>`,
+          ${isDefined("ha-md-list-item")
+            ? html`<div class="list" role="list">
+                ${section.items.map(
+                  (item) => html`<ha-md-list-item
+                    type="link"
+                    href=${item.path}
+                    class=${item.active ? "active" : ""}
+                    aria-current=${item.active ? "page" : "false"}
+                    @click=${(event: MouseEvent) => followLink(this, event, item.path)}
+                    >${item.icon === undefined ? undefined : html`<ha-icon slot="start" .icon=${item.icon}></ha-icon>`}<span slot="headline">${item.title}</span></ha-md-list-item
+                  >`,
+                )}
+              </div>`
+            : // fallback: plain links, when ha-md-list-item is not defined.
+              html`<ul>
+                ${section.items.map(
+                  (item) => html`<li>
+                    <a href=${item.path} aria-current=${item.active ? "page" : "false"} @click=${(event: MouseEvent) => followLink(this, event, item.path)}>${renderIcon(item.icon)}${item.title}</a>
+                  </li>`,
+                )}
+              </ul>`}`,
       )}
     </nav>`;
   }

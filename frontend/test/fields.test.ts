@@ -1,6 +1,7 @@
+import { selectorOf } from "@vtherm/dashboard-sdk";
 import { describe, expect, it } from "vitest";
 
-import { autoTpiDefaults, defaultOf, entityChoices, formatInput, missingRequired, parseInput, shownValue } from "../src/native/fields.ts";
+import { autoTpiDefaults, defaultOf, definitionOf, entityChoices, formatInput, missingRequired, parseInput, shownValue, valueForSelector, valueFromSelector } from "../src/native/fields.ts";
 import type { FieldSpec } from "../src/native/schemas.ts";
 import { fieldsOf } from "../src/native/schemas.ts";
 
@@ -79,5 +80,51 @@ describe("Auto TPI", () => {
   it("matches the defaults of the advanced EMA form of Versatile Thermostat", () => {
     const ema = fieldsOf("STEP_AUTO_TPI_EMA_SETTINGS_SCHEMA");
     expect(Object.fromEntries(ema.map((item) => [item.key, [item.default, item.min, item.max]]))).toMatchObject({ auto_tpi_continuous_kext_alpha: [0.04, 0.005, 0.2] });
+  });
+});
+
+describe("the controls of Home Assistant", () => {
+  const optionLabel = (option: string) => `label ${option}`;
+
+  it("describes a temperature sensor with its domains and the class temperature, so that the picker filters it", () => {
+    const sensor = field("temperature_sensor_entity_id", "STEP_MAIN_DATA_SCHEMA");
+    expect(definitionOf(sensor)).toEqual({
+      type: "entity",
+      key: "temperature_sensor_entity_id",
+      required: sensor.required,
+      domains: ["sensor", "input_number", "number"],
+      device_classes: ["temperature"],
+    });
+    expect(selectorOf(definitionOf(sensor))).toEqual({ entity: { filter: [{ domain: ["sensor"], device_class: ["temperature"] }, { domain: ["input_number", "number"] }] } });
+  });
+
+  it("describes the underlyings of a thermostat as an ordered list of the entities that its type accepts", () => {
+    expect(selectorOf(definitionOf(field("underlying_entity_ids", "STEP_THERMOSTAT_CLIMATE")))).toEqual({ entity: { multiple: true, reorder: true, filter: [{ domain: ["climate"] }] } });
+    expect(selectorOf(definitionOf(field("underlying_entity_ids", "STEP_THERMOSTAT_VALVE")))).toEqual({ entity: { multiple: true, reorder: true, filter: [{ domain: ["number", "input_number"] }] } });
+  });
+
+  it("gives a delay its unit, in minutes or in seconds", () => {
+    const cycle = selectorOf(definitionOf(field("cycle_min", "STEP_MAIN_DATA_SCHEMA"))) as unknown as { number: Record<string, unknown> };
+    expect(cycle.number).toMatchObject({ mode: "box", unit_of_measurement: "min" });
+    const relock = selectorOf(definitionOf(field("auto_relock_sec", "STEP_CENTRAL_LOCK_DATA_SCHEMA"))) as unknown as { number: Record<string, unknown> };
+    expect(relock.number["unit_of_measurement"]).toBe("s");
+  });
+
+  it("gives the options of a choice their translated labels, and keeps an option that the configuration holds", () => {
+    const definition = definitionOf(field("auto_regulation_mode", "STEP_THERMOSTAT_CLIMATE"), optionLabel, ["auto_regulation_plugin"]);
+    const options = (definition as unknown as { options: { value: string; label: string }[] }).options;
+    expect(definition.type).toBe("select");
+    expect(options[0]?.label).toBe(`label ${options[0]?.value}`);
+    expect(options.at(-1)).toEqual({ value: "auto_regulation_plugin", label: "label auto_regulation_plugin" });
+  });
+
+  it("converts the values of the controls: an empty field becomes null, a list keeps its order", () => {
+    const sensor = field("temperature_sensor_entity_id", "STEP_MAIN_DATA_SCHEMA");
+    const underlyings = field("underlying_entity_ids", "STEP_THERMOSTAT_CLIMATE");
+    const cycle = field("cycle_min", "STEP_MAIN_DATA_SCHEMA");
+    expect([valueFromSelector(sensor, ""), valueFromSelector(sensor, undefined), valueFromSelector(sensor, "sensor.salon")]).toEqual([null, null, "sensor.salon"]);
+    expect(valueFromSelector(underlyings, ["climate.b", "", "climate.a"])).toEqual(["climate.b", "climate.a"]);
+    expect([valueFromSelector(cycle, 7), valueFromSelector(cycle, "8"), valueFromSelector(cycle, undefined)]).toEqual([7, 8, null]);
+    expect([valueForSelector(underlyings, "climate.a"), valueForSelector(underlyings, null), valueForSelector(sensor, null)]).toEqual([["climate.a"], [], undefined]);
   });
 });

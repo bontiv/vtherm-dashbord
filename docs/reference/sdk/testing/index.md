@@ -16,12 +16,19 @@ same in the dashboard. The main entry point of the SDK never imports this module
 - [FakeHassOptions](interfaces/FakeHassOptions.md)
 - [FakeHost](interfaces/FakeHost.md)
 - [FakeHostOptions](interfaces/FakeHostOptions.md)
+- [MockHaElement](interfaces/MockHaElement.md)
 - [ServiceCall](interfaces/ServiceCall.md)
 - [TranslationProblems](interfaces/TranslationProblems.md)
+
+## Variables
+
+- [MOCKED\_HA\_CONTROLS](variables/MOCKED_HA_CONTROLS.md)
 
 ## Functions
 
 - [assertCompleteTranslations](functions/assertCompleteTranslations.md)
 - [createFakeHass](functions/createFakeHass.md)
 - [createFakeHost](functions/createFakeHost.md)
+- [defineHaControlMocks](functions/defineHaControlMocks.md)
 - [findTranslationProblems](functions/findTranslationProblems.md)
+- [resetHaControls](functions/resetHaControls.md)

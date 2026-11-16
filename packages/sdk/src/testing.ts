@@ -267,3 +267,102 @@ export async function assertCompleteTranslations(translations: AnyTranslations, 
     );
   }
 }
+
+/** A simulated component of Home Assistant: it keeps the properties that it receives, so that a test can read them. */
+export interface MockHaElement extends HTMLElement {
+  /** The state of Home Assistant. */
+  hass: unknown;
+  /** The selector of `ha-selector`, from `selectorOf`. */
+  selector: unknown;
+  /** The value of `ha-selector`. */
+  value: unknown;
+  /** The label, as the component translates it. */
+  label: string | undefined;
+  /** The help shown under the control. */
+  helper: string | undefined;
+  /** The error shown on the control. */
+  error: string | undefined;
+  /** Whether a value is required. */
+  required: boolean;
+  /** Whether the control cannot be changed. */
+  disabled: boolean;
+  /** Whether `ha-switch` is on. */
+  checked: boolean;
+  /** Whether `ha-dialog` is open. */
+  open: boolean;
+  /** Whether `ha-expansion-panel` is open. */
+  expanded: boolean;
+  /** The title of `ha-dialog`. */
+  heading: string | undefined;
+  /** The title of `ha-card` and `ha-expansion-panel`. */
+  header: string | undefined;
+  /** The type of `ha-alert`: `error`, `warning`, `info` or `success`. */
+  alertType: string | undefined;
+  /**
+   * Change the value as the user would: the new value is kept and sent with the event that Home Assistant sends, `value-changed`
+   * (`change` for `ha-switch`).
+   *
+   * @param value - The new value.
+   */
+  change(value: unknown): void;
+}
+
+/** The components of Home Assistant that `defineHaControlMocks` simulates: those of the contract of the fields and of the dashboard. */
+export const MOCKED_HA_CONTROLS = [
+  "ha-selector",
+  "ha-switch",
+  "ha-button",
+  "ha-icon",
+  "ha-alert",
+  "ha-card",
+  "ha-dialog",
+  "ha-expansion-panel",
+  "ha-service-picker",
+  "ha-data-table",
+  "ha-md-list-item",
+  "ha-spinner",
+] as const;
+
+/**
+ * Define simulated components of Home Assistant in the page of a test, so that a component that draws `ha-selector`, `ha-switch`,
+ * `ha-button`... can be tested without Home Assistant. A component that is already defined is left as it is. The test needs a DOM
+ * (`happy-dom` or `jsdom`).
+ *
+ * Read a simulated component as a `MockHaElement` to check what it received, and call `change(value)` to act as the user.
+ */
+export function defineHaControlMocks(): void {
+  class Mock extends HTMLElement {
+    hass: unknown = undefined;
+    selector: unknown = undefined;
+    value: unknown = undefined;
+    label: string | undefined = undefined;
+    helper: string | undefined = undefined;
+    error: string | undefined = undefined;
+    required = false;
+    disabled = false;
+    checked = false;
+    open = false;
+    expanded = false;
+    heading: string | undefined = undefined;
+    header: string | undefined = undefined;
+    alertType: string | undefined = undefined;
+
+    change(value: unknown): void {
+      this.value = value;
+      if (this.localName === "ha-switch") {
+        this.checked = value === true;
+        this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+        return;
+      }
+      this.dispatchEvent(new CustomEvent("value-changed", { detail: { value }, bubbles: true, composed: true }));
+    }
+  }
+  for (const tag of MOCKED_HA_CONTROLS) {
+    if (customElements.get(tag) === undefined) {
+      customElements.define(tag, class extends Mock {});
+    }
+  }
+}
+
+/** Forget the shared load of `ensureHaControls`, so that a test can start a new one, for example after `defineHaControlMocks`. */
+export { resetHaControls } from "./ha-controls.js";

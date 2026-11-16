@@ -128,11 +128,28 @@ describe("the tab main", () => {
 });
 
 describe("the tab type", () => {
-  it("shows the fields of a thermostat over a switch, TPI by default, and the custom commands as lists", async () => {
+  it("shows the fields of a thermostat over a switch, TPI by default, and the custom commands", async () => {
     const { root } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch" });
     expect(labels(root)).toEqual(["underlying_entity_ids", "heater_keep_alive", "proportional_function", "ac_mode", "inverse_switch_command", "vswitch_on_command", "vswitch_off_command"]);
     expect(find<HTMLSelectElement>(root, "#field-proportional_function")?.value).toBe("tpi");
-    expect(find(root, "#field-vswitch_on_command")?.tagName).toBe("TEXTAREA");
+  });
+
+  it("gives each underlying its own command, in front of it, rather than one text with a command per line", async () => {
+    const { root, proposals } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch", underlying_entity_ids: ["switch.heater", "climate.ac"], vswitch_on_command: ["turn_on", "set_hvac_mode/hvac_mode:heat"] });
+    const commands = find(root, '.commands[data-key="vswitch_on_command"]') as HTMLElement;
+    const inputs = findAll<HTMLInputElement>(commands, "input");
+    expect(find(root, "textarea#field-vswitch_on_command")).toBeNull();
+    expect(inputs.map((item) => item.value)).toEqual(["turn_on", "set_hvac_mode/hvac_mode:heat"]);
+    expect(findAll(commands, ".requirement").map((item) => item.textContent)).toEqual(["Optional: the default command of the switch is used", "Required: this entity is not a switch"]);
+    change(inputs[1] as HTMLInputElement, "set_hvac_mode/hvac_mode:cool");
+    expect(proposals.at(-1)).toEqual({ vswitch_on_command: ["turn_on", "set_hvac_mode/hvac_mode:cool"] });
+  });
+
+  it("stores no command at all as an empty list, so that the underlyings use their default commands", async () => {
+    const { root, proposals } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch", underlying_entity_ids: ["switch.heater", "switch.other"], vswitch_off_command: ["", "turn_off"] });
+    const inputs = findAll<HTMLInputElement>(find(root, '.commands[data-key="vswitch_off_command"]') as HTMLElement, "input");
+    change(inputs[1] as HTMLInputElement, "");
+    expect(proposals.at(-1)).toEqual({ vswitch_off_command: [] });
   });
 
   it("keeps an algorithm that a thermostat plugin added", async () => {

@@ -23,6 +23,8 @@ export const TOGGLE_HA_MENU_EVENT = "hass-toggle-menu";
  * Assistant hides its side menu (`haMenu`), the bar starts with the button that opens it: the `ha-menu-button` of Home Assistant when
  * the page has it, else a button that sends the same event.
  */
+// Exception to the rule "a component of Home Assistant first": Home Assistant has no stable public component for the tabs of a
+// panel (its own tabs are internal to each page), so they are plain links with the roles of tabs. The menu button is ha-menu-button.
 export class VThermTopBar extends LitElement {
   static override properties = {
     tabs: { attribute: false },
@@ -266,6 +268,7 @@ export class VThermTopBar extends LitElement {
     if (customElements.get("ha-menu-button") !== undefined) {
       return html`<div class="ha-menu"><ha-menu-button .hass=${this.hass} .narrow=${true}></ha-menu-button></div>`;
     }
+    // fallback: a plain button that sends the same event, when ha-menu-button is not defined.
     return html`<div class="ha-menu">
       <button aria-label=${this.haMenuLabel} title=${this.haMenuLabel} @click=${this.openHaMenu}>${renderIcon("mdi:menu")}</button>
     </div>`;

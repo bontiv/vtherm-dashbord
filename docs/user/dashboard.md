@@ -35,6 +35,20 @@ When you choose another thermostat, the page you are on stays open if the new th
 
 Under the tabs, the breadcrumb shows where you are, for example `Thermostats > Salon > TPI`. Click a part of it to go back to that level.
 
+## Fields, messages and windows
+
+The dashboard uses the controls of Home Assistant, so they look and work as in the rest of Home Assistant:
+
+- A field that takes an entity offers a search among your entities, limited to the right kind (for example temperature sensors). A
+  list of entities, such as the underlyings of a thermostat, can be put in order by dragging.
+- A delay or a temperature is a number with its unit.
+- A message (an error, a warning, a field that is read only) is shown in a colored box with an icon.
+- An entity shown as text, such as a value inherited from the central configuration, opens its card when you click it.
+- When you leave a page with changes that are not saved, a window asks you to confirm. **Stay** keeps the page and your changes.
+
+While Home Assistant loads its controls, the page shows a spinner for a moment. If they do not load, the page shows simpler fields that
+do the same thing. See [the fields of the configuration](configuration.md#the-fields).
+
 ## No thermostat, no plugin
 
 If you have no thermostat, the Thermostats tab says so and tells you to create one from the Configuration. Without any plugin of
@@ -72,7 +86,7 @@ it comes from, its state and, when it did not load, why. A plugin that does not 
 The **Source** says whether a plugin is installed with an integration, comes with the dashboard (native), or is a plugin that a
 developer tests from his own computer (development, with its address).
 
-Under the table, the warnings and errors list the contributions that a plugin made but that the dashboard could not place as
+Each plugin has its own card. Under the plugins, the warnings and errors list the contributions that a plugin made but that the dashboard could not place as
 asked, for example a menu entry placed after a page that does not exist.
 
 ## Colors

@@ -3,6 +3,7 @@ import type { PropertyValues, TemplateResult } from "lit";
 
 import { t } from "../shell-translations.ts";
 import { defineElement } from "./define.ts";
+import { renderAlert } from "./ha.ts";
 
 /**
  * Shows the custom element of a contribution and gives it its properties.
@@ -57,7 +58,7 @@ export class VThermContributionHost extends LitElement {
   protected override render(): TemplateResult {
     return this.failure === undefined
       ? html`<div id="mount"></div>`
-      : html`<div class="error" role="alert">${t("shell.page.error", { id: this.contributionId, message: this.failure })}</div>`;
+      : renderAlert("error", t("shell.page.error", { id: this.contributionId, message: this.failure }), "error");
   }
 
   protected override updated(changed: PropertyValues): void {

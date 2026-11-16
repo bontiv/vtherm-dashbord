@@ -19,7 +19,7 @@ Search by name or description, and filter by type, family, certification and sta
 or in English when the catalog has no text in your language. Descriptions only keep simple formatting: paragraphs, links, emphasis,
 lists and code. A link opens in a new tab.
 
-Open an add-on to see its full description, its author, and the link to its repository. The address of the page is yours to keep: you
+Each add-on is a card. Open an add-on to see its full description, its author, and the link to its repository. The address of the page is yours to keep: you
 can bookmark it or reload it.
 
 ## The states
@@ -40,17 +40,18 @@ You need HACS, installed, configured and enabled. Without it, the catalog stays 
 explains why, with a link to the documentation of HACS. When HACS is disabled, the message gives the reason that HACS reports.
 
 1. Open the add-on and click **Install**.
-2. A window shows the repository, the category in HACS, the certification and the author. An add-on that comes from the community adds
+2. A window of Home Assistant shows the repository, the category in HACS, the certification and the author. An add-on that comes from the community adds
    a warning: it is third-party code that will run on your Home Assistant. **Cancel** changes nothing in HACS.
 3. The page shows each step: looking for the repository in HACS, adding it if HACS does not have it, checking that HACS added it, and
    downloading.
 
-An error of HACS is shown with its message, with **Try again** and a link that opens the repository in HACS. The dashboard only installs
+Messages, such as an error, a warning about the catalog or the absence of HACS, are shown in a colored box with an icon. An error of HACS
+is shown with its message, with **Try again** and a link that opens the repository in HACS. The dashboard only installs
 add-ons of the catalog. It does not take any other repository.
 
 ### Restart
 After an integration is downloaded, the page proposes to restart Home Assistant and does not do it. **Restart Home Assistant** asks
-once more. **Later** leaves the add-on in "Restart required", and you can install other add-ons meanwhile. While Home Assistant
+once more, in a window of Home Assistant, and **Cancel** closes it without restarting. **Later** leaves the add-on in "Restart required", and you can install other add-ons meanwhile. While Home Assistant
 restarts, the page says that it is reconnecting, then reads the states again. If Home Assistant is not back after five minutes, the
 page says so: check it and reload the page.
 

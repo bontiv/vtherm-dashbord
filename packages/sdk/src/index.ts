@@ -27,3 +27,29 @@ export type {
 } from "./translations.js";
 export { CORE_TOP_TABS, createPlacementEngine, groupMenu } from "./placement.js";
 export type { CoreTopTabs, EngineIssue, MenuSection, PlacedEntry, PlacementEngine, PluginRelations, ShownContribution, TopTabZones } from "./placement.js";
+export { selectorOf } from "./fields.js";
+export type {
+  BooleanField,
+  DurationField,
+  EntityField,
+  EntityListField,
+  FieldBase,
+  FieldDefinition,
+  FieldType,
+  HaEmptySelector,
+  HaEntityFilter,
+  HaEntitySelector,
+  HaNumberSelector,
+  HaSelectSelector,
+  HaSelector,
+  HaTextSelector,
+  NumberField,
+  SelectField,
+  SelectOption,
+  TemplateField,
+  TextField,
+  TextListField,
+  TimeField,
+} from "./fields.js";
+export { HA_CONTROLS, HA_SPINNERS, ensureHaControls, haControlsStatus } from "./ha-controls.js";
+export type { ElementRegistry, HaControl, HaControlsOptions, HaControlsResult } from "./ha-controls.js";

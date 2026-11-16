@@ -7,6 +7,7 @@ import { t } from "../shell-translations.ts";
 import { DevStore } from "./dev-store.ts";
 import type { DevEntry, DevEntryProblem } from "./dev-store.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
+import { haState, isDefined, renderAlert, renderButton, renderProgress } from "../components/ha.ts";
 
 const translate = t as (key: string, params?: Readonly<Record<string, string | number>>) => string;
 
@@ -26,6 +27,25 @@ export class VThermDevPluginsPage extends LitElement {
   static override styles = [
     narrowStyles,
     css`
+    .entries,
+    .form {
+      display: grid;
+      gap: 12px;
+    }
+    ha-card.entry {
+      display: block;
+    }
+    ha-card .card-content {
+      display: grid;
+      gap: 8px;
+      padding: 0 16px 16px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
     :host {
       display: block;
       padding: 16px;
@@ -145,10 +165,11 @@ export class VThermDevPluginsPage extends LitElement {
     return new Set(ids);
   }
 
-  private add(event: SubmitEvent): void {
-    event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    const field = (name: string): string => (form.elements.namedItem(name) as HTMLInputElement | null)?.value ?? "";
+  /** The values typed in the form of Home Assistant. */
+  private typed: Record<string, string> = {};
+
+  /** Add the entry of the form. */
+  private addEntry(field: (name: string) => string): boolean {
     const result = this.store.add(
       { id: field("id"), js_url: field("js_url"), dashboard_version: field("dashboard_version"), requires: field("requires"), load_after: field("load_after"), load_before: field("load_before") },
       this.installedIds(),
@@ -157,10 +178,83 @@ export class VThermDevPluginsPage extends LitElement {
       this.problem = undefined;
       this.changed = true;
       this.entries = this.store.list();
-      form.reset();
-    } else {
-      this.problem = result.problem;
+      return true;
     }
+    this.problem = result.problem;
+    return false;
+  }
+
+  private add(event: SubmitEvent): void {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    if (this.addEntry((name) => (form.elements.namedItem(name) as HTMLInputElement | null)?.value ?? "")) {
+      form.reset();
+    }
+  }
+
+  private addTyped(): void {
+    if (this.addEntry((name) => this.typed[name] ?? "")) {
+      this.typed = {};
+      this.requestUpdate();
+    }
+  }
+
+  /** A field of the form, with the text selector of Home Assistant. */
+  private renderTypedField(name: string, label: string, helper?: string): TemplateResult {
+    return html`<ha-selector
+      data-name=${name}
+      .hass=${undefined}
+      .selector=${{ text: {} }}
+      .value=${this.typed[name] ?? ""}
+      .label=${label}
+      .helper=${helper}
+      .required=${name === "id" || name === "js_url"}
+      @value-changed=${(event: CustomEvent<{ value: unknown }>) => {
+        event.stopPropagation();
+        this.typed = { ...this.typed, [name]: String(event.detail.value ?? "") };
+      }}
+    ></ha-selector>`;
+  }
+
+  /** The page with the components of Home Assistant: a card for each entry, with its switch, rather than a table. */
+  private renderWithHa(): TemplateResult {
+    return html`<h1>${t("dev.title")}</h1>
+      <p>${t("dev.intro")}</p>
+      ${this.changed ? renderAlert("info", html`${t("dev.reload_needed")} ${renderButton(t("dev.reload"), () => this.reload(), { className: "primary reload" })}`, "notice") : nothing}
+      ${this.entries.length === 0
+        ? renderAlert("info", t("dev.empty"), "empty")
+        : html`<div class="entries">
+            ${this.entries.map(
+              (entry) => html`<ha-card class="entry" data-plugin=${entry.id} .header=${entry.id}>
+                <div class="card-content">
+                  <div class="breakable">${entry.js_url}</div>
+                  <div>${translate(entry.dashboard_version === undefined ? "dev.kind.replace" : "dev.kind.declared")} · <span class="state">${this.stateOf(entry)}</span></div>
+                  <div class="actions">
+                    <ha-selector
+                      class="enable"
+                      .selector=${{ boolean: {} }}
+                      .value=${entry.enabled}
+                      .label=${t("dev.enable")}
+                      @value-changed=${(event: CustomEvent<{ value: unknown }>) => {
+                        event.stopPropagation();
+                        this.change(() => this.store.setEnabled(entry.id, event.detail.value === true));
+                      }}
+                    ></ha-selector>
+                    ${renderButton(t("dev.remove"), () => this.change(() => this.store.remove(entry.id)), { className: "remove", plain: true })}
+                  </div>
+                </div>
+              </ha-card>`,
+            )}
+          </div>`}
+      <h2>${t("dev.add.title")}</h2>
+      <div class="form">
+        ${this.renderTypedField("id", t("dev.field.id"))} ${this.renderTypedField("js_url", t("dev.field.url"), "http://localhost:5173/src/main.ts")}
+        ${this.renderTypedField("dashboard_version", t("dev.field.constraint"), ">=0.1,<1.0")} ${this.renderTypedField("requires", t("dev.field.requires"), t("dev.field.lists_hint"))}
+        ${this.renderTypedField("load_after", t("dev.field.load_after"), t("dev.field.lists_hint"))}
+        ${this.renderTypedField("load_before", t("dev.field.load_before"), t("dev.field.lists_hint"))}
+        ${this.problem === undefined ? nothing : renderAlert("error", translate(`dev.error.${this.problem}`), "error")}
+        <div>${renderButton(t("dev.add"), () => this.addTyped(), { className: "primary add" })}</div>
+      </div>`;
   }
 
   private change(change: () => void): void {
@@ -178,6 +272,14 @@ export class VThermDevPluginsPage extends LitElement {
   }
 
   protected override render(): TemplateResult {
+    const state = haState(this);
+    if (state === "waiting") {
+      return renderProgress(t("config.waiting"));
+    }
+    if (state === "ready" && isDefined("ha-card")) {
+      return this.renderWithHa();
+    }
+    // fallback: a table and a form of plain controls, when the components of Home Assistant are not defined.
     return html`<h1>${t("dev.title")}</h1>
       <p>${t("dev.intro")}</p>
       ${this.changed
@@ -203,6 +305,7 @@ export class VThermDevPluginsPage extends LitElement {
                   <td>${translate(entry.dashboard_version === undefined ? "dev.kind.replace" : "dev.kind.declared")}</td>
                   <td class="state">${this.stateOf(entry)}</td>
                   <td>
+                    <!-- fallback: a plain checkbox and button, when the components of Home Assistant are not defined. -->
                     <label
                       ><input type="checkbox" class="enable" .checked=${entry.enabled} @change=${(event: Event) => this.change(() => this.store.setEnabled(entry.id, (event.target as HTMLInputElement).checked))} />
                       ${t("dev.enable")}</label
@@ -214,6 +317,7 @@ export class VThermDevPluginsPage extends LitElement {
             </tbody>
           </table>`}
       <h2>${t("dev.add.title")}</h2>
+      <!-- fallback: a form of plain inputs, when ha-selector is not defined. -->
       <form @submit=${(event: SubmitEvent) => this.add(event)}>
         <label>${t("dev.field.id")}<input name="id" required autocomplete="off" /></label>
         <label>${t("dev.field.url")}<input name="js_url" required placeholder="http://localhost:5173/src/main.ts" autocomplete="off" /></label>

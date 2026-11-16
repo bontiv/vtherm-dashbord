@@ -21,6 +21,26 @@ A change is kept in a draft. The bar at the bottom of the page then says "Unsave
 A thermostat saved by a newer Versatile Thermostat than the dashboard knows is shown read-only, with a message. Change it in the
 screens of Home Assistant, or update the dashboard.
 
+## The fields
+The fields are those of Home Assistant, as in its own settings:
+
+- An entity is chosen in the entity picker, with its search, its name, its device and its area. Each field only offers the entities
+  that Versatile Thermostat accepts there: a temperature sensor offers the `sensor` entities of class temperature and the
+  `input_number` and `number` entities. An entity already saved stays shown even if the picker would not offer it.
+- The underlyings of a thermostat are a list of entities, in an order that you can change by dragging. The commands and the opening
+  degrees go with the underlyings by position.
+- The commands of a thermostat on switch are given for each underlying, in front of it: a service, chosen in the service picker of
+  Home Assistant, and an optional attribute with its value (`option:comfort`). They are required for an underlying that is not a
+  switch; a switch uses its default commands. A command that the picker cannot show (another format, a service that Home Assistant
+  does not list) is shown as it is, in a text field.
+- The services of the central boiler are an entity, a service and an optional attribute.
+- A delay is a number with its unit, minutes or seconds, as Versatile Thermostat stores it.
+- Long groups of settings, such as those of Auto TPI, are in a panel that opens; it is open when one of its fields is refused.
+- An entity of the central configuration shown in a section opens its card of Home Assistant when you click it.
+
+When the dashboard is opened directly, its sections may show "Loading the controls of Home Assistant" for a moment. A version of
+Home Assistant without these controls (they were checked on Home Assistant 2026.10) shows plain fields instead, with the same values.
+
 ## Create the central configuration
 Until it exists, the section "Central configuration" of the gear offers to create it. Its assistant asks for the main
 attributes, then creates the central configuration with the default TPI and advanced parameters, so that the thermostats that use

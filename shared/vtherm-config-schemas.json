@@ -58,13 +58,15 @@
       "key": "heater_heating_time",
       "required": false,
       "default": 5,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "heater_cooling_time",
       "required": false,
       "default": 5,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "auto_tpi_heating_rate",
@@ -119,7 +121,8 @@
       "key": "safety_delay_min",
       "required": true,
       "default": 60,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "safety_min_on_percent",
@@ -143,7 +146,8 @@
       "key": "manual_override_duration_min",
       "required": false,
       "default": 0,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     }
   ],
   "STEP_CENTRAL_BOILER_SCHEMA": [
@@ -154,7 +158,8 @@
       "kind": "number",
       "min": 0.0,
       "max": 600.0,
-      "step": 10.0
+      "step": 10.0,
+      "unit": "s"
     },
     {
       "key": "central_boiler_activation_service",
@@ -176,7 +181,8 @@
       "min": 0.0,
       "max": 3600.0,
       "step": 10.0,
-      "unit_of_measurement": "s"
+      "unit_of_measurement": "s",
+      "unit": "s"
     }
   ],
   "STEP_CENTRAL_FEATURES_DATA_SCHEMA": [
@@ -240,7 +246,8 @@
       "key": "heating_failure_detection_delay",
       "required": true,
       "default": 15,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "temperature_change_tolerance",
@@ -281,7 +288,8 @@
       "key": "auto_relock_sec",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     }
   ],
   "STEP_CENTRAL_MAIN_DATA_SCHEMA": [
@@ -295,7 +303,10 @@
         "input_number"
       ],
       "reorder": false,
-      "multiple": false
+      "multiple": false,
+      "device_classes": [
+        "temperature"
+      ]
     },
     {
       "key": "temp_min",
@@ -321,13 +332,15 @@
       "key": "motion_delay",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "motion_off_delay",
       "required": false,
       "default": 300,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "motion_preset",
@@ -369,7 +382,10 @@
         "input_number"
       ],
       "reorder": false,
-      "multiple": false
+      "multiple": false,
+      "device_classes": [
+        "power"
+      ]
     },
     {
       "key": "max_power_sensor_entity_id",
@@ -381,7 +397,10 @@
         "input_number"
       ],
       "reorder": false,
-      "multiple": false
+      "multiple": false,
+      "device_classes": [
+        "power"
+      ]
     },
     {
       "key": "power_unit",
@@ -429,7 +448,10 @@
         "input_number"
       ],
       "reorder": false,
-      "multiple": false
+      "multiple": false,
+      "device_classes": [
+        "temperature"
+      ]
     },
     {
       "key": "temp_min",
@@ -473,13 +495,15 @@
       "key": "minimal_activation_delay",
       "required": true,
       "default": 10,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "minimal_deactivation_delay",
       "required": true,
       "default": 0,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "tpi_threshold_low",
@@ -529,13 +553,15 @@
       "key": "minimal_activation_delay",
       "required": true,
       "default": 10,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "minimal_deactivation_delay",
       "required": true,
       "default": 0,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "tpi_threshold_low",
@@ -561,13 +587,15 @@
       "key": "window_delay",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "window_off_delay",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "window_auto_open_threshold",
@@ -585,7 +613,8 @@
       "key": "window_auto_max_duration",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "window_action",
@@ -607,13 +636,15 @@
       "key": "window_delay",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "window_off_delay",
       "required": false,
       "default": 30,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "s"
     },
     {
       "key": "window_action",
@@ -752,7 +783,10 @@
         "number"
       ],
       "reorder": false,
-      "multiple": false
+      "multiple": false,
+      "device_classes": [
+        "humidity"
+      ]
     }
   ],
   "STEP_LOCK_DATA_SCHEMA": [
@@ -781,7 +815,10 @@
         "number"
       ],
       "reorder": false,
-      "multiple": false
+      "multiple": false,
+      "device_classes": [
+        "temperature"
+      ]
     },
     {
       "key": "last_seen_temperature_sensor_entity_id",
@@ -803,7 +840,8 @@
       "kind": "number",
       "min": 1.0,
       "max": 1000.0,
-      "step": 1.0
+      "step": 1.0,
+      "unit": "min"
     },
     {
       "key": "device_power",
@@ -965,7 +1003,8 @@
       "key": "auto_regulation_periode_min",
       "required": false,
       "default": 5,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "auto_fan_mode",
@@ -1103,7 +1142,8 @@
       "key": "auto_regulation_periode_min",
       "required": false,
       "default": 5,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "opening_threshold_degree",
@@ -1355,7 +1395,8 @@
       "key": "auto_regulation_periode_min",
       "required": false,
       "default": 5,
-      "kind": "integer"
+      "kind": "integer",
+      "unit": "min"
     },
     {
       "key": "opening_threshold_degree",

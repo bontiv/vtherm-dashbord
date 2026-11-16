@@ -96,6 +96,48 @@ it("shows the component with the properties that the dashboard gives it", async 
 ```
 <!-- /example -->
 
+## The components of Home Assistant
+A component that draws `ha-selector`, `ha-switch`, `ha-button` or another component of Home Assistant is tested without Home
+Assistant: `defineHaControlMocks()` of `@vtherm/dashboard-sdk/testing` defines simulated components in the page of the test (it needs
+`happy-dom` or `jsdom`). A simulated component keeps what it receives (`selector`, `value`, `label`, `helper`, `error`, `disabled`...),
+and its method `change(value)` acts as the user: it sends `value-changed` with the new value (`change` for `ha-switch`). Call
+`resetHaControls()` after each test, so that `ensureHaControls()` looks again at the components of the page.
+
+<!-- example: docs/examples/typescript/config-fields.test.ts -->
+```typescript
+// @vitest-environment happy-dom
+import { selectorOf } from "@vtherm/dashboard-sdk";
+import { defineHaControlMocks, resetHaControls } from "@vtherm/dashboard-sdk/testing";
+import type { MockHaElement } from "@vtherm/dashboard-sdk/testing";
+import { afterEach, expect, it, vi } from "vitest";
+
+import { FIELDS, MyPluginFields } from "./config-fields.ts";
+
+customElements.define("my-plugin-fields", MyPluginFields);
+
+afterEach(() => {
+  document.body.replaceChildren();
+  resetHaControls();
+});
+
+it("draws each field with ha-selector, and proposes the value that the user chose", async () => {
+  // The page of the test has no Home Assistant: the simulated components stand for it.
+  defineHaControlMocks();
+  const proposed: Record<string, unknown>[] = [];
+  const element = document.createElement("my-plugin-fields") as MyPluginFields;
+  element.values = { my_plugin_heaters: ["climate.salon"] };
+  element.proposeChanges = (changes) => void proposed.push(changes);
+  document.body.append(element);
+  await vi.waitFor(() => expect(element.querySelectorAll("ha-selector")).toHaveLength(FIELDS.length));
+
+  const heaters = element.querySelectorAll<MockHaElement>("ha-selector")[1] as MockHaElement;
+  expect(heaters.selector).toEqual(selectorOf(FIELDS[1]!));
+  expect(heaters.value).toEqual(["climate.salon"]);
+  heaters.change(["climate.salon", "climate.chambre"]);
+  expect(proposed).toEqual([{ my_plugin_heaters: ["climate.salon", "climate.chambre"] }]);
+});
+```
+
 ## Check the translations
 
 `assertCompleteTranslations(translations, languages)` fails when a catalog that must be complete omits a key of the English
@@ -111,3 +153,4 @@ it("has complete French and German catalogs", async () => {
   await assertCompleteTranslations(translations, ["fr", "de"]);
 });
 ```
+<!-- /example -->

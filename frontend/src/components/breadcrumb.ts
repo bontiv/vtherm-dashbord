@@ -10,6 +10,8 @@ import { narrowStyles } from "./narrow-styles.ts";
 export const NARROW_SEGMENTS = 2;
 
 /** The breadcrumb: the tab, the thermostat and the page. Every segment but the last is a link. On a narrow screen it keeps its last two segments. */
+// Exception to the rule "a component of Home Assistant first": Home Assistant has no public component for a breadcrumb, so it is
+// drawn with plain links.
 export class VThermBreadcrumb extends LitElement {
   static override properties = {
     crumbs: { attribute: false },

@@ -14,6 +14,7 @@ import type { ConfigKind, TabDefinition } from "../native/tab-definitions.ts";
 import { shell, t } from "../shell-translations.ts";
 import { defineElement } from "./define.ts";
 import { narrowStyles } from "./narrow-styles.ts";
+import { haState, isDefined, renderAlert, renderProgress } from "./ha.ts";
 
 /** The event sent when the assistant created a configuration. Its detail is the identifier of the new entry. */
 export const CREATED_EVENT = "vtherm-config-created";
@@ -228,32 +229,67 @@ export class VThermCreateWizard extends LitElement {
     return html`${element}`;
   }
 
+  /** The type of the thermostat: the selector of Home Assistant as a list of choices, or radio buttons as the fallback. */
+  private renderType(ha: boolean): TemplateResult {
+    const label = (type: string) => (t as (key: string) => string)(`shell.thermostats.type.${type.replace("thermostat_", "")}`);
+    if (ha) {
+      return html`<ha-selector
+        class="type"
+        .hass=${this.hass}
+        .selector=${{ select: { options: THERMOSTAT_TYPES.map((type) => ({ value: type, label: label(type) })), mode: "list" } }}
+        .value=${this.thermostatType}
+        .label=${t("wizard.type")}
+        .required=${true}
+        @value-changed=${(event: CustomEvent<{ value: unknown }>) => {
+          event.stopPropagation();
+          if (THERMOSTAT_TYPES.includes(event.detail.value as (typeof THERMOSTAT_TYPES)[number])) {
+            this.thermostatType = event.detail.value as (typeof THERMOSTAT_TYPES)[number];
+          }
+        }}
+      ></ha-selector>`;
+    }
+    // fallback: radio buttons, when ha-selector is not defined.
+    return html`<fieldset>
+      <legend>${t("wizard.type")}</legend>
+      ${THERMOSTAT_TYPES.map(
+        (type) =>
+          html`<label><input type="radio" name="type" .value=${type} .checked=${type === this.thermostatType} @change=${() => (this.thermostatType = type)} /> ${label(type)}</label>`,
+      )}
+    </fieldset>`;
+  }
+
+  private renderActions(missing: readonly string[]): TemplateResult {
+    const create = () => void this.create();
+    const cancel = () => this.dispatchEvent(new CustomEvent(CANCELLED_EVENT, { bubbles: true, composed: true }));
+    const createLabel = t(this.busy ? "wizard.creating" : "wizard.create");
+    if (isDefined("ha-button")) {
+      return html`<div class="actions">
+        <ha-button class="primary" .disabled=${this.busy || missing.length > 0} @click=${create}>${createLabel}</ha-button>
+        <ha-button class="secondary" appearance="plain" @click=${cancel}>${t("wizard.cancel")}</ha-button>
+      </div>`;
+    }
+    // fallback: plain buttons, when ha-button is not defined.
+    return html`<div class="actions">
+      <button class="primary" ?disabled=${this.busy || missing.length > 0} @click=${create}>${createLabel}</button>
+      <button class="secondary" @click=${cancel}>${t("wizard.cancel")}</button>
+    </div>`;
+  }
+
   protected override render(): TemplateResult {
+    const state = haState(this);
+    if (state === "waiting") {
+      return renderProgress(t("config.waiting"));
+    }
     const missing = this.missing();
     const general = this.draft.generalErrors();
     // The fields of the assistant belong to the native plugin of their tab, whose catalog the registry translates.
     const registry = (globalThis as { VThermUiPluginRegistry?: Partial<DashboardRegistry> }).VThermUiPluginRegistry;
     const labelOf = (key: string): string => registry?.translate?.(this.definitions()[0]?.plugin ?? "core", `field.${key}`) ?? key;
     return html`<h1>${t(this.central ? "wizard.title_central" : "wizard.title")}</h1>
-      ${this.central
-        ? undefined
-        : html`<fieldset>
-            <legend>${t("wizard.type")}</legend>
-            ${THERMOSTAT_TYPES.map(
-              (type) =>
-                html`<label
-                  ><input type="radio" name="type" .value=${type} .checked=${type === this.thermostatType} @change=${() => (this.thermostatType = type)} />
-                  ${(t as (key: string) => string)(`shell.thermostats.type.${type.replace("thermostat_", "")}`)}</label
-                >`,
-            )}
-          </fieldset>`}
-      ${this.definitions().map((definition) => this.renderTab(definition))}
-      ${missing.length === 0 ? undefined : html`<p class="missing" role="status">${t("wizard.missing", { fields: missing.map(labelOf).join(", ") })}</p>`}
-      ${general.length === 0 ? undefined : html`<p class="error" role="alert">${t("wizard.refused")} ${general.map((error) => translateErrorCode(shell, error.code)).join(" ")}</p>`}
-      <div class="actions">
-        <button class="primary" ?disabled=${this.busy || missing.length > 0} @click=${() => void this.create()}>${t(this.busy ? "wizard.creating" : "wizard.create")}</button>
-        <button class="secondary" @click=${() => this.dispatchEvent(new CustomEvent(CANCELLED_EVENT, { bubbles: true, composed: true }))}>${t("wizard.cancel")}</button>
-      </div>`;
+      ${this.central ? undefined : this.renderType(state === "ready")} ${this.definitions().map((definition) => this.renderTab(definition))}
+      ${missing.length === 0 ? undefined : renderAlert("info", t("wizard.missing", { fields: missing.map(labelOf).join(", ") }), "missing")}
+      ${general.length === 0 ? undefined : renderAlert("error", `${t("wizard.refused")} ${general.map((error) => translateErrorCode(shell, error.code)).join(" ")}`, "error")}
+      ${this.renderActions(missing)}`;
   }
 }
 

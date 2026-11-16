@@ -21,6 +21,21 @@ pytestmark = requires_vtherm
 
 DESCRIPTION = Path(__file__).resolve().parent.parent / "shared" / "vtherm-config-schemas.json"
 
+MANUAL_KEYS = ("device_classes", "unit")
+"""Keys written by hand in the description, that the forms of Versatile Thermostat do not give: the classes of devices that filter an
+entity field, and the unit of a delay. The comparison ignores them, and an update keeps them."""
+
+
+def without_manual_keys(description: dict) -> dict:
+    """The description as the forms give it, without the keys written by hand."""
+    return {name: [{key: value for key, value in field.items() if key not in MANUAL_KEYS} for field in fields] for name, fields in description.items()}
+
+
+def with_manual_keys(actual: dict, previous: dict) -> dict:
+    """The new description, with the keys written by hand in the previous one, for the fields that still exist."""
+    manual = {(name, field["key"]): {key: field[key] for key in MANUAL_KEYS if key in field} for name, fields in previous.items() for field in fields}
+    return {name: [{**field, **manual.get((name, field["key"]), {})} for field in fields] for name, fields in actual.items()}
+
 
 @pytest.fixture(name="schemas")
 def schemas_fixture(real_vtherm):  # pylint: disable=unused-argument
@@ -53,8 +68,9 @@ def test_the_forms_are_those_that_the_native_tabs_were_written_for(schemas, requ
     """The fields of every form (key, kind, default, limits) are the expected ones."""
     actual = describe_module(schemas)
     if request.config.getoption("--update-schemas"):
-        DESCRIPTION.write_text(json.dumps(actual, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    expected = json.loads(DESCRIPTION.read_text(encoding="utf-8"))
+        previous = json.loads(DESCRIPTION.read_text(encoding="utf-8"))
+        DESCRIPTION.write_text(json.dumps(with_manual_keys(actual, previous), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    expected = without_manual_keys(json.loads(DESCRIPTION.read_text(encoding="utf-8")))
     assert not differences(expected, actual), "Versatile Thermostat changed its forms:\n" + "\n".join(differences(expected, actual))
 
 
@@ -108,3 +124,13 @@ def test_the_description_names_the_defaults_of_the_specification(schemas) -> Non
         0.5,
         5,
     )
+
+
+def test_the_keys_written_by_hand_are_on_fields_that_exist_and_survive_an_update() -> None:
+    """The classes of devices and the units are on entity and number fields, and an update of the description keeps them."""
+    description = json.loads(DESCRIPTION.read_text(encoding="utf-8"))
+    manual = [field for fields in description.values() for field in fields if any(key in field for key in MANUAL_KEYS)]
+    assert {field["key"] for field in manual if "device_classes" in field} >= {"temperature_sensor_entity_id", "humidity_sensor_entity_id", "power_sensor_entity_id"}
+    assert all(field["kind"] == "entity" for field in manual if "device_classes" in field)
+    assert all(field["kind"] in ("number", "integer") and field["unit"] in ("min", "s") for field in manual if "unit" in field)
+    assert with_manual_keys(without_manual_keys(description), description) == description

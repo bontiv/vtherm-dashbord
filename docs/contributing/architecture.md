@@ -105,6 +105,12 @@ the flow. Everything is in [Driving the config flow](config-flow-driver.md), wit
 The server reads the catalog and what Home Assistant knows about each integration. The browser talks to HACS with `hass.callWS`
 through one adapter, deduces the state of each add-on and drives the installation. See [The add-ons feature](complements.md).
 
+## Components of Home Assistant
+The fields, buttons, messages, dialogs and lists of the dashboard are the components of Home Assistant (`ha-selector`, `ha-switch`,
+`ha-button`, `ha-alert`, `ha-dialog`, `ha-card`, `ha-expansion-panel`, `ha-spinner`...), so that the dashboard looks and behaves like
+the rest of Home Assistant. They were checked on Home Assistant 2026.10. `ensureHaControls()` of the SDK waits for them; a component
+that is not defined after the wait is replaced by a plain HTML control (the fallback), so an older version still works.
+
 ## What is shared
 - `shared/vtherm-config-schemas.json` describes the forms of the config flow. Python writes it, TypeScript reads it.
 - `shared/version-constraints.json` is the table of tests of the grammar of `dashboard_version`. The grammar is only in Python.

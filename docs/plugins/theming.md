@@ -48,6 +48,18 @@ These are the variables that the components of the dashboard use. They are defin
 | `--safe-area-inset-left` | The margin of a phone screen on the left, under a notch in landscape. The top bar stays out of it. |
 | `--safe-area-inset-right` | The margin of a phone screen on the right, under a notch in landscape. The top bar stays out of it. |
 
+## The components of Home Assistant
+
+The dashboard draws its controls with the components of Home Assistant: `ha-selector` for the fields, `ha-button`, `ha-card`,
+`ha-alert` for the messages, `ha-dialog` for the confirmations, `ha-expansion-panel`, `ha-md-list-item` for the menus and `ha-spinner`.
+These components follow the theme and the dark mode by themselves, so the dashboard sets no color of its own on them. Do the same in a plugin:
+
+- Draw a field of configuration with `ha-selector`, from the field contract of the SDK (`selectorOf`). See
+  [the fields of configuration](plugin-development.md#fields-of-configuration).
+- Before you draw them, wait for the components with `ensureHaControls()`: Home Assistant loads some of them only when a page needs
+  them. If they never come, draw plain HTML controls styled with the variables above.
+- Do not restyle the inside of a component of Home Assistant. Place it, give it a size, and let the theme color it.
+
 ## Other things to do
 
 - Use the elements of Home Assistant when they exist, such as `ha-icon` for an icon (`mdi:...`), so that your plugin looks the same.

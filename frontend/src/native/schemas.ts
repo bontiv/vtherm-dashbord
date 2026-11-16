@@ -28,6 +28,14 @@ export interface FieldSpec {
   readonly domain?: string | readonly string[];
   /** Whether an `entity` or a `text` holds a list. */
   readonly multiple?: boolean;
+  /** Whether a `text` has several lines. */
+  readonly multiline?: boolean;
+  /** The classes of devices that an `entity` accepts, for its domains that have one. Written by hand, see `tests/test_schema_drift.py`. */
+  readonly device_classes?: readonly string[];
+  /** The unit of a delay stored as a number, `min` or `s`. Written by hand, see `tests/test_schema_drift.py`. */
+  readonly unit?: string;
+  /** The unit that the form of Versatile Thermostat gives to a number. */
+  readonly unit_of_measurement?: string;
 }
 
 /** The names of the forms. */

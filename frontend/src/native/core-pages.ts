@@ -10,6 +10,7 @@ import { navigate } from "../components/events.ts";
 import { buildPath } from "../router.ts";
 import { t } from "../shell-translations.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
+import { isDefined } from "../components/ha.ts";
 
 /** The address of the assistant that creates a thermostat or the central configuration. */
 export const NEW_THERMOSTAT = "new";
@@ -113,8 +114,14 @@ export class CoreCreateCentralPage extends LitElement {
     this.language = "";
   }
   protected override render(): TemplateResult {
+    const create = () => navigate(this, buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: NEW_THERMOSTAT, entry: "central", rest: [] }));
+    if (isDefined("ha-button")) {
+      return html`<p>${t("config.create_central")}</p>
+        <ha-button @click=${create}>${t("wizard.create_central")}</ha-button>`;
+    }
+    // fallback: ha-button is not defined.
     return html`<p>${t("config.create_central")}</p>
-      <button @click=${() => navigate(this, buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: NEW_THERMOSTAT, entry: "central", rest: [] }))}>${t("wizard.create_central")}</button>`;
+      <button @click=${create}>${t("wizard.create_central")}</button>`;
   }
 }
 
