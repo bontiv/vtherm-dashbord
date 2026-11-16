@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Home confort",
-        "description": "Fügt das Home-confort-Dashboard für Versatile Thermostat zum Seitenmenü von Home Assistant hinzu."
+        "title": "Versatile Thermostat",
+        "description": "Fügt das Versatile-Thermostat-Dashboard zum Seitenmenü von Home Assistant hinzu."
       }
     },
     "abort": {

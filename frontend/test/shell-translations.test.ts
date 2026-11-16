@@ -11,5 +11,5 @@ it("translates a text with parameters in each language", async () => {
   expect(shell.resolve("en", "status.missing", { plugins: "a, b" })).toBe("Missing: a, b");
   expect(shell.resolve("fr", "status.missing", { plugins: "a, b" })).toBe("Manquant : a, b");
   expect(shell.resolve("de", "status.missing", { plugins: "a, b" })).toBe("Fehlt: a, b");
-  expect(shell.resolve("ja", "shell.title")).toBe("Home confort");
+  expect(shell.resolve("ja", "shell.title")).toBe("Versatile Thermostat");
 });

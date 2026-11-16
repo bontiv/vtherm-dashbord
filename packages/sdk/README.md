@@ -1,6 +1,6 @@
 # @vtherm/dashboard-sdk
 
-Types and helpers to write UI plugins for the Versatile Thermostat dashboard ("Home confort") in Home Assistant.
+Types and helpers to write UI plugins for the Versatile Thermostat dashboard in Home Assistant.
 
 A UI plugin is an integration that adds tabs, menu entries, widgets and configuration sections to the dashboard. It has
 two parts: a Python declaration with `vtherm_api`, and a JavaScript module that declares its contributions with this SDK.

@@ -5,13 +5,13 @@ from pathlib import Path
 DOMAIN = "vtherm_dashboard"
 """The domain of the integration."""
 
-TITLE = "Home confort"
+TITLE = "Versatile Thermostat"
 """The title of the configuration entry."""
 
-PANEL_URL_PATH = "home-confort"
+PANEL_URL_PATH = "vtherm"
 """The path of the panel in the Home Assistant URL."""
 
-PANEL_TITLE = "Home confort"
+PANEL_TITLE = "Versatile Thermostat"
 """The title of the panel in the side menu."""
 
 PANEL_ICON = "mdi:home-thermometer"

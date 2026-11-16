@@ -1,4 +1,4 @@
-"""The Home confort panel of the dashboard."""
+"""The panel of the dashboard, "Versatile Thermostat" in the side menu."""
 
 from __future__ import annotations
 

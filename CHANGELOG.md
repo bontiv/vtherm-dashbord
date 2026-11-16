@@ -8,6 +8,11 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### Changed
+- The dashboard is named "Versatile Thermostat" in the side menu and in its title, instead of "Home confort". An entry of the
+  integration created before keeps its title until it is renamed in Home Assistant.
+- The address of the dashboard is `/vtherm`, instead of `/home-confort`: update the links and bookmarks to its pages.
+
 ### Fixed
 - The UI plugins are no longer lost when the central configuration of Versatile Thermostat is the only entry and is saved: the
   dashboard keeps the instance of `vtherm_api` that holds them.

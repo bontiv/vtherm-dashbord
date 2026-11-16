@@ -10,7 +10,7 @@ The plugin of the guide does four things: it adds a section right after the TPI 
 "Sync device internal temperature", it adds a widget to the overview of a thermostat, and it removes a widget that another plugin adds.
 
 ## What you need
-- Home Assistant with Versatile Thermostat and the dashboard "Home confort", and an administrator account. A plugin is made of
+- Home Assistant with Versatile Thermostat and the dashboard, and an administrator account. A plugin is made of
   two parts that you write: Python that declares it, and a JavaScript module that contributes to the dashboard.
 - Node.js 24 or later and npm, to write and build the module.
 - Python code in a custom integration of Home Assistant. The integration of the sample is `vtherm_sample_plugin`.

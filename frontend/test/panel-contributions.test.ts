@@ -45,7 +45,7 @@ const withEverything: TestPlugin[] = [...natives, { definition: everything }];
 
 describe("the contributions of the seven hooks", () => {
   it("shows the top tab of a plugin with its pages, and gives hass to each page", async () => {
-    const { panel, hass } = await mountPanel({ plugins: withEverything, path: "/home-confort/smartpi.top" });
+    const { panel, hass } = await mountPanel({ plugins: withEverything, path: "/vtherm/smartpi.top" });
     const bar = find(root(panel), "vtherm-top-bar") as HTMLElement;
     expect(texts(findAll(bar.shadowRoot as ShadowRoot, "nav.start a"))).toEqual(["Dashboard", "Thermostats", "Smart"]);
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
@@ -55,7 +55,7 @@ describe("the contributions of the seven hooks", () => {
   });
 
   it("shows a global page in the menu of the Dashboard tab", async () => {
-    const { panel, hass } = await mountPanel({ plugins: withEverything, path: `/home-confort/${CORE_TOP_TABS.dashboard}/smartpi.global` });
+    const { panel, hass } = await mountPanel({ plugins: withEverything, path: `/vtherm/${CORE_TOP_TABS.dashboard}/smartpi.global` });
     expect((find(root(panel), "smartpi-global-el") as TestElement).hass).toBe(hass);
   });
 
@@ -68,7 +68,7 @@ describe("the contributions of the seven hooks", () => {
   });
 
   it("shows a section of the general configuration with the configuration context and no thermostat", async () => {
-    const { panel, hass } = await mountPanel({ plugins: withEverything, path: `/home-confort/${CORE_TOP_TABS.configuration}/smartpi.general` });
+    const { panel, hass } = await mountPanel({ plugins: withEverything, path: `/vtherm/${CORE_TOP_TABS.configuration}/smartpi.general` });
     const shown = find(root(panel), "smartpi-general-el") as TestElement & { errors: unknown; proposeChanges: unknown };
     expect(shown.hass).toBe(hass);
     expect(shown.values).toEqual({});
@@ -78,7 +78,7 @@ describe("the contributions of the seven hooks", () => {
   });
 
   it("shows an entry of the menu of a thermostat with the identifier of the thermostat", async () => {
-    const { panel, hass } = await mountPanel({ plugins: withEverything, path: `/home-confort/${CORE_TOP_TABS.thermostats}/climate.salon/smartpi.thermostat` });
+    const { panel, hass } = await mountPanel({ plugins: withEverything, path: `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon/smartpi.thermostat` });
     const shown = find(root(panel), "smartpi-thermostat-el") as TestElement & { centralValues: unknown };
     expect(shown.hass).toBe(hass);
     expect(shown.thermostatId).toBe("climate.salon");
@@ -86,7 +86,7 @@ describe("the contributions of the seven hooks", () => {
   });
 
   it("shows the widgets of a thermostat in its overview, each with the thermostat identifier", async () => {
-    const { panel } = await mountPanel({ plugins: withEverything, path: `/home-confort/${CORE_TOP_TABS.thermostats}/climate.chambre` });
+    const { panel } = await mountPanel({ plugins: withEverything, path: `/vtherm/${CORE_TOP_TABS.thermostats}/climate.chambre` });
     const shown = find(root(panel), "smartpi-widget-thermostat-el") as TestElement;
     expect(shown).not.toBeNull();
     expect(shown.thermostatId).toBe("climate.chambre");
@@ -100,7 +100,7 @@ describe("the contributions of the seven hooks", () => {
 
   it("puts a plugin page where its placement says", async () => {
     const placed = plugin("placed", { general_config: [page("placed.first", { placement: { first: true } })] });
-    const { panel } = await mountPanel({ plugins: [...natives, { definition: placed }], path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: placed }], path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
     expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))[0]).toBe("placed.first");
   });
@@ -109,7 +109,7 @@ describe("the contributions of the seven hooks", () => {
 describe("a page that cannot be shown", () => {
   it("replaces an element that is not defined by a message, and the rest of the dashboard still works", async () => {
     const broken = plugin("broken", { global_page: [{ id: "broken.page", title: "Broken", component: "Not A Valid Name" }] });
-    const { panel } = await mountPanel({ plugins: [...natives, { definition: broken }], path: `/home-confort/${CORE_TOP_TABS.dashboard}/broken.page` });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: broken }], path: `/vtherm/${CORE_TOP_TABS.dashboard}/broken.page` });
     const host = find(root(panel), "vtherm-contribution") as HTMLElement;
     await (host as unknown as { updateComplete: Promise<unknown> }).updateComplete;
     await vi.waitFor(() => expect(find(host.shadowRoot as ShadowRoot, ".error")?.textContent).toContain("broken.page"));
@@ -134,7 +134,7 @@ describe("a narrow screen", () => {
 
   it("keeps the menu in a drawer that a button opens, and closes it after a page is chosen", async () => {
     narrowScreen(true);
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     const button = find<HTMLButtonElement>(root(panel), ".menu-button") as HTMLButtonElement;
     expect(button.getAttribute("aria-expanded")).toBe("false");
@@ -145,12 +145,12 @@ describe("a narrow screen", () => {
     findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a")[1]?.click();
     await settle(panel);
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
-    expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
+    expect(window.location.pathname).toBe(`/vtherm/${CORE_TOP_TABS.configuration}/core.page.plugins`);
   });
 
   it("keeps the last two segments of the breadcrumb", async () => {
     narrowScreen(true);
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}/climate.salon/core_tpi.tab.main` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon/core_tpi.tab.main` });
     expect(texts(findAll(find(root(panel), "vtherm-breadcrumb")?.shadowRoot as ShadowRoot, "li"))).toEqual(["Salon", "core_tpi.tab.main"]);
   });
 
@@ -168,7 +168,7 @@ describe("a narrow screen", () => {
 
   it("goes back to the side menu when the screen becomes wide", async () => {
     const change = narrowScreen(true);
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     change(false);
     await settle(panel);

@@ -6,29 +6,29 @@ const THERMOSTATS = "core.top.thermostats";
 
 describe("parseRoute", () => {
   it("reads the address of the panel as the empty route", () => {
-    expect(parseRoute("/home-confort", THERMOSTATS)).toEqual(EMPTY_ROUTE);
-    expect(parseRoute("/home-confort/", THERMOSTATS)).toEqual(EMPTY_ROUTE);
+    expect(parseRoute("/vtherm", THERMOSTATS)).toEqual(EMPTY_ROUTE);
+    expect(parseRoute("/vtherm/", THERMOSTATS)).toEqual(EMPTY_ROUTE);
   });
 
   it("reads the tab and the entry", () => {
-    expect(parseRoute("/home-confort/core.top.dashboard/core.page.overview", THERMOSTATS)).toEqual({ tab: "core.top.dashboard", entry: "core.page.overview", rest: [] });
-    expect(parseRoute("/home-confort/core.top.dashboard", THERMOSTATS)).toEqual({ tab: "core.top.dashboard", rest: [] });
+    expect(parseRoute("/vtherm/core.top.dashboard/core.page.overview", THERMOSTATS)).toEqual({ tab: "core.top.dashboard", entry: "core.page.overview", rest: [] });
+    expect(parseRoute("/vtherm/core.top.dashboard", THERMOSTATS)).toEqual({ tab: "core.top.dashboard", rest: [] });
   });
 
   it("reads the thermostat of the Thermostats tab", () => {
-    expect(parseRoute(`/home-confort/${THERMOSTATS}/climate.salon/core_tpi.tab.main`, THERMOSTATS)).toEqual({ tab: THERMOSTATS, thermostat: "climate.salon", entry: "core_tpi.tab.main", rest: [] });
-    expect(parseRoute(`/home-confort/${THERMOSTATS}`, THERMOSTATS)).toEqual({ tab: THERMOSTATS, rest: [] });
-    expect(parseRoute(`/home-confort/${THERMOSTATS}/climate.salon`, THERMOSTATS)).toEqual({ tab: THERMOSTATS, thermostat: "climate.salon", rest: [] });
+    expect(parseRoute(`/vtherm/${THERMOSTATS}/climate.salon/core_tpi.tab.main`, THERMOSTATS)).toEqual({ tab: THERMOSTATS, thermostat: "climate.salon", entry: "core_tpi.tab.main", rest: [] });
+    expect(parseRoute(`/vtherm/${THERMOSTATS}`, THERMOSTATS)).toEqual({ tab: THERMOSTATS, rest: [] });
+    expect(parseRoute(`/vtherm/${THERMOSTATS}/climate.salon`, THERMOSTATS)).toEqual({ tab: THERMOSTATS, thermostat: "climate.salon", rest: [] });
   });
 
   it("keeps what follows the entry", () => {
-    expect(parseRoute("/home-confort/t/e/detail/a%20b", THERMOSTATS)).toEqual({ tab: "t", entry: "e", rest: ["detail", "a b"] });
+    expect(parseRoute("/vtherm/t/e/detail/a%20b", THERMOSTATS)).toEqual({ tab: "t", entry: "e", rest: ["detail", "a b"] });
   });
 
   it("gives the empty route for another path, and does not fail on a bad encoding", () => {
     expect(parseRoute("/lovelace/0", THERMOSTATS)).toEqual(EMPTY_ROUTE);
-    expect(parseRoute("/home-confort-other/x", THERMOSTATS)).toEqual(EMPTY_ROUTE);
-    expect(parseRoute("/home-confort/%E0%A4%A", THERMOSTATS).tab).toBe("%E0%A4%A");
+    expect(parseRoute("/vtherm-other/x", THERMOSTATS)).toEqual(EMPTY_ROUTE);
+    expect(parseRoute("/vtherm/%E0%A4%A", THERMOSTATS).tab).toBe("%E0%A4%A");
   });
 });
 
@@ -46,8 +46,8 @@ describe("buildPath", () => {
   });
 
   it("uses the prefix and encodes the segments", () => {
-    expect(buildPath({ tab: "a b", rest: [] })).toBe("/home-confort/a%20b");
-    expect(buildPath(EMPTY_ROUTE)).toBe("/home-confort");
+    expect(buildPath({ tab: "a b", rest: [] })).toBe("/vtherm/a%20b");
+    expect(buildPath(EMPTY_ROUTE)).toBe("/vtherm");
     expect(buildPath({ tab: "t", rest: [] }, "/other")).toBe("/other/t");
   });
 });

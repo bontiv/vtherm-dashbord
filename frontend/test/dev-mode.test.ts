@@ -119,7 +119,7 @@ describe("in the dashboard", () => {
     vi.restoreAllMocks();
   });
 
-  const PAGE = "/home-confort/core.top.configuration/core.page.dev_plugins";
+  const PAGE = "/vtherm/core.top.configuration/core.page.dev_plugins";
   const root = (panel: HTMLElement) => panel.shadowRoot as ShadowRoot;
   const devPage = (panel: HTMLElement) => find(find(find(root(panel), "vtherm-contribution")?.shadowRoot as ShadowRoot, "core-dev-plugins-page")?.shadowRoot as ShadowRoot, "vtherm-dev-plugins-page") as HTMLElement & { reload: () => void; updateComplete: Promise<boolean> };
   const view = (panel: HTMLElement) => devPage(panel).shadowRoot as ShadowRoot;
@@ -189,37 +189,37 @@ describe("in the dashboard", () => {
     entries.add({ id: "mine", js_url: "http://localhost:5173/ui.js", dashboard_version: VERSION }, new Set());
     entries.add({ id: "off", js_url: "http://localhost:5174/ui.js", dashboard_version: VERSION }, new Set());
     entries.setEnabled("off", false);
-    const { panel, hass } = await mountPanel({ plugins: natives, path: "/home-confort" });
+    const { panel, hass } = await mountPanel({ plugins: natives, path: "/vtherm" });
     expect(request(hass)?.["dev_plugins"]).toEqual([{ id: "mine", js_url: "http://localhost:5173/ui.js", dashboard_version: VERSION }]);
     expect(find(root(panel), ".devbanner")?.textContent).toContain("Development mode: mine");
     expect(find(root(panel), ".devbanner")?.textContent).not.toContain("off");
   });
 
   it("shows no banner and sends nothing without an active entry", async () => {
-    const { panel, hass } = await mountPanel({ plugins: natives, path: "/home-confort" });
+    const { panel, hass } = await mountPanel({ plugins: natives, path: "/vtherm" });
     expect(request(hass)).not.toHaveProperty("dev_plugins");
     expect(find(root(panel), ".devbanner")).toBeNull();
   });
 
   it("ignores the entries of the browser for a user who is not an administrator, and hides the page", async () => {
     store().add({ id: "mine", js_url: "http://localhost:5173/ui.js", dashboard_version: VERSION }, new Set());
-    const { panel, hass } = await mountPanel({ plugins: natives, path: "/home-confort/core.top.configuration", admin: false });
+    const { panel, hass } = await mountPanel({ plugins: natives, path: "/vtherm/core.top.configuration", admin: false });
     expect(request(hass)).not.toHaveProperty("dev_plugins");
     expect(find(root(panel), ".devbanner")).toBeNull();
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
-    expect(findAll(menu.shadowRoot as ShadowRoot, "a").map((link) => link.getAttribute("href"))).not.toContain("/home-confort/core.top.configuration/core.page.dev_plugins");
+    expect(findAll(menu.shadowRoot as ShadowRoot, "a").map((link) => link.getAttribute("href"))).not.toContain("/vtherm/core.top.configuration/core.page.dev_plugins");
   });
 
   it("shows the page to an administrator in the group Dashboard", async () => {
-    const { panel } = await mountPanel({ plugins: natives, path: "/home-confort/core.top.configuration" });
+    const { panel } = await mountPanel({ plugins: natives, path: "/vtherm/core.top.configuration" });
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
-    expect(findAll(menu.shadowRoot as ShadowRoot, "a").map((link) => link.getAttribute("href"))).toContain("/home-confort/core.top.configuration/core.page.dev_plugins");
+    expect(findAll(menu.shadowRoot as ShadowRoot, "a").map((link) => link.getAttribute("href"))).toContain("/vtherm/core.top.configuration/core.page.dev_plugins");
   });
 
   it("shows the URL and the causes when the module of a plugin in development does not load, and the other plugins load", async () => {
     store().add({ id: "mine", js_url: "http://localhost:5173/ui.js", dashboard_version: VERSION }, new Set());
     const mine: TestPlugin = { definition: { id: "mine", translations: defineTranslations({ a: "A" }), contributions: {} }, source: "development" };
-    const { panel } = await mountPanel({ plugins: [...natives, mine], path: "/home-confort/core.top.configuration/core.page.plugins", failing: { mine: new Error("Failed to fetch dynamically imported module") } });
+    const { panel } = await mountPanel({ plugins: [...natives, mine], path: "/vtherm/core.top.configuration/core.page.plugins", failing: { mine: new Error("Failed to fetch dynamically imported module") } });
     await settle(panel as never);
     const status = find(find(find(root(panel), "vtherm-contribution")?.shadowRoot as ShadowRoot, "core-plugins-page")?.shadowRoot as ShadowRoot, "vtherm-plugin-status-page");
     const table = find(status?.shadowRoot as ShadowRoot, "vtherm-plugin-status") as HTMLElement;
@@ -234,7 +234,7 @@ describe("in the dashboard", () => {
     const translations = defineTranslations({ title: "Title", help: "Help" }, { de: { title: "Titel" } });
     const mine: TestPlugin = { definition: { id: "mine", translations, contributions: {} }, source: "development" };
     const other: TestPlugin = { definition: { id: "other", translations: defineTranslations({ a: "A", b: "B" }, { de: { a: "A" } }), contributions: {} } };
-    const { panel } = await mountPanel({ plugins: [...natives, mine, other], language: "de", path: "/home-confort/core.top.configuration/core.page.plugins" });
+    const { panel } = await mountPanel({ plugins: [...natives, mine, other], language: "de", path: "/vtherm/core.top.configuration/core.page.plugins" });
     translations.t("help");
     (other.definition.translations.t as (key: string) => string)("b");
     window.dispatchEvent(new CustomEvent("vtherm-state-changed"));

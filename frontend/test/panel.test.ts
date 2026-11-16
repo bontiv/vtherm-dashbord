@@ -35,9 +35,9 @@ describe("the frame", () => {
   });
 
   it("marks the current tab, and the current entry of the menu", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}/core.page.plugins` });
     const bar = find(panel.shadowRoot as ShadowRoot, "vtherm-top-bar") as HTMLElement;
-    expect(findAll(bar.shadowRoot as ShadowRoot, 'a[aria-selected="true"]').map((tab) => tab.getAttribute("href"))).toEqual([`/home-confort/${CORE_TOP_TABS.configuration}`]);
+    expect(findAll(bar.shadowRoot as ShadowRoot, 'a[aria-selected="true"]').map((tab) => tab.getAttribute("href"))).toEqual([`/vtherm/${CORE_TOP_TABS.configuration}`]);
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
     expect(texts(findAll(menu.shadowRoot as ShadowRoot, 'a[aria-current="page"]'))).toEqual(["core.page.plugins"]);
     expect(texts(findAll(menu.shadowRoot as ShadowRoot, "h2"))).toEqual(["Versatile Thermostat", "Dashboard"]);
@@ -52,25 +52,25 @@ describe("the frame", () => {
 
 describe("the routes", () => {
   it("opens a page when the user clicks its link, and the address changes", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
     const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => anchor.textContent?.trim() === "core.page.plugins") as HTMLAnchorElement;
     link.click();
     await settle(panel);
-    expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
+    expect(window.location.pathname).toBe(`/vtherm/${CORE_TOP_TABS.configuration}/core.page.plugins`);
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-plugins-el")).not.toBeNull();
     expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Configuration", "core.page.plugins"]);
   });
 
   it("follows the address when Home Assistant gives its own route to the panel, as it does at each navigation", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     // Home Assistant sets `route` on every custom panel, before the panel reads the address.
     const fromHomeAssistant = panel as unknown as { route: unknown };
-    fromHomeAssistant.route = { prefix: "/home-confort", path: `/${CORE_TOP_TABS.configuration}` };
+    fromHomeAssistant.route = { prefix: "/vtherm", path: `/${CORE_TOP_TABS.configuration}` };
     await settle(panel);
     expect(find(panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
-    window.history.pushState(null, "", `/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`);
-    fromHomeAssistant.route = { prefix: "/home-confort", path: `/${CORE_TOP_TABS.configuration}/core.page.plugins` };
+    window.history.pushState(null, "", `/vtherm/${CORE_TOP_TABS.configuration}/core.page.plugins`);
+    fromHomeAssistant.route = { prefix: "/vtherm", path: `/${CORE_TOP_TABS.configuration}/core.page.plugins` };
     window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
     await settle(panel);
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-plugins-el")).not.toBeNull();
@@ -78,18 +78,18 @@ describe("the routes", () => {
   });
 
   it("goes back with the history of the browser", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
     findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a")[1]?.click();
     await settle(panel);
-    window.history.replaceState(null, "", `/home-confort/${CORE_TOP_TABS.configuration}/core.general.main`);
+    window.history.replaceState(null, "", `/vtherm/${CORE_TOP_TABS.configuration}/core.general.main`);
     window.dispatchEvent(new PopStateEvent("popstate"));
     await settle(panel);
     expect(find(panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
   });
 
   it("shows the same page again after a reload", async () => {
-    const path = `/home-confort/${CORE_TOP_TABS.thermostats}/climate.salon/core_tpi.tab.main`;
+    const path = `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon/core_tpi.tab.main`;
     const { panel } = await mountPanel({ path });
     expect(texts(findAll(panel.shadowRoot as ShadowRoot, "vtherm-breadcrumb li"))).toEqual(["Thermostats", "Salon", "core_tpi.tab.main"]);
     expect(find(panel.shadowRoot as ShadowRoot, "core_tpi-tab-main-el")).not.toBeNull();
@@ -97,7 +97,7 @@ describe("the routes", () => {
   });
 
   it("shows the default page with a message for an address that designates nothing, and the message can be closed", async () => {
-    const { panel } = await mountPanel({ path: "/home-confort/nothing.top/gone" });
+    const { panel } = await mountPanel({ path: "/vtherm/nothing.top/gone" });
     const notice = find(panel.shadowRoot as ShadowRoot, ".notice") as HTMLElement;
     expect(notice.textContent).toContain("does not exist");
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-overview-el")).not.toBeNull();
@@ -108,32 +108,32 @@ describe("the routes", () => {
 
   it("opens the same page of another thermostat when it has it, and the overview when it does not", async () => {
     const withWindow = plugin("core_window", { thermostat_config: [page("core_window.tab.main", { visible: (context: { thermostatType: string }) => context.thermostatType === "over_switch" })] });
-    const { panel } = await mountPanel({ plugins: [...natives, { definition: withWindow }], path: `/home-confort/${CORE_TOP_TABS.thermostats}/climate.salon/core_window.tab.main` });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: withWindow }], path: `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon/core_window.tab.main` });
     const select = find<HTMLSelectElement>(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select") as HTMLSelectElement;
     select.value = "climate.chambre";
     select.dispatchEvent(new Event("change", { bubbles: true }));
     await settle(panel);
-    expect(window.location.pathname).toBe(`/home-confort/${CORE_TOP_TABS.thermostats}/climate.chambre`);
+    expect(window.location.pathname).toBe(`/vtherm/${CORE_TOP_TABS.thermostats}/climate.chambre`);
     expect(find(panel.shadowRoot as ShadowRoot, "core-page-thermostat_overview-el")).not.toBeNull();
   });
 });
 
 describe("the thermostats tab", () => {
   it("shows the list of the thermostats in full width, without menu", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     expect(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")).toBeNull();
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
     expect(texts(findAll(list.shadowRoot as ShadowRoot, ".name"))).toEqual(["Salon", "Chambre"]);
   });
 
   it("shows a message when there is no thermostat", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}`, thermostats: [] });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}`, thermostats: [] });
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
     expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("No Versatile Thermostat thermostat is available");
   });
 
   it("opens a thermostat from the list with a selector first in its menu, and its overview", async () => {
-    const { panel } = await mountPanel({ path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
     findAll<HTMLAnchorElement>(list.shadowRoot as ShadowRoot, "li a")[0]?.click();
     await settle(panel);
@@ -146,13 +146,13 @@ describe("the thermostats tab", () => {
 
 describe("the language", () => {
   it("shows the frame in the language of the user", async () => {
-    const { panel } = await mountPanel({ language: "fr", thermostats: [], path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const { panel } = await mountPanel({ language: "fr", thermostats: [], path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
     expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("Aucun thermostat");
   });
 
   it("changes the texts when the user changes language, without reloading", async () => {
-    const { panel, hass } = await mountPanel({ thermostats: [], path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const { panel, hass } = await mountPanel({ thermostats: [], path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
     expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("No Versatile");
     panel.hass = { ...hass, language: "de", locale: { language: "de" } } as never;
@@ -172,11 +172,11 @@ describe("a panel created again", () => {
           evaluate(url);
         }
       });
-    const first = await mountPanel({ importModule, path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const first = await mountPanel({ importModule, path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     expect(first.panel.statuses.every((status) => status.state === "loaded")).toBe(true);
     // Home Assistant destroys the panel when the user opens another page, and creates a new one when the user comes back.
     first.panel.remove();
-    const second = await mountPanel({ importModule, path: `/home-confort/${CORE_TOP_TABS.configuration}` });
+    const second = await mountPanel({ importModule, path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     expect(second.panel.statuses.map((status) => [status.id, status.state])).toEqual(first.panel.statuses.map((status) => [status.id, "loaded"]));
     expect(find(second.panel.shadowRoot as ShadowRoot, "core-general-main-el")).not.toBeNull();
   });

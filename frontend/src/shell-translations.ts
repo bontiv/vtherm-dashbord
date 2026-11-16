@@ -11,7 +11,7 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog gives the keys. The messages of the error codes come from `native/catalogs/errors.ts`. */
 export const en = {
-  "shell.title": "Home confort",
+  "shell.title": "Versatile Thermostat",
   "shell.loading": "Loading the dashboard…",
   "shell.plugins_error": "The plugins could not be loaded: {message}",
   "shell.menu.toggle": "Menu",
@@ -131,7 +131,7 @@ export const en = {
 } as const;
 
 const fr = {
-  "shell.title": "Home confort",
+  "shell.title": "Versatile Thermostat",
   "shell.loading": "Chargement du tableau de bord…",
   "shell.plugins_error": "Les plugins n'ont pas pu être chargés : {message}",
   "shell.menu.toggle": "Menu",
@@ -251,7 +251,7 @@ const fr = {
 } satisfies CompleteCatalog<typeof en>;
 
 const de = {
-  "shell.title": "Home confort",
+  "shell.title": "Versatile Thermostat",
   "shell.loading": "Dashboard wird geladen…",
   "shell.plugins_error": "Die Plugins konnten nicht geladen werden: {message}",
   "shell.menu.toggle": "Menü",

@@ -214,7 +214,7 @@ export interface MountOptions {
 export async function mountPanel(options: MountOptions = {}) {
   const plugins = options.plugins ?? nativePlugins.map((definition) => ({ definition }));
   defineElements(plugins.map((item) => item.definition));
-  window.history.replaceState(null, "", options.path ?? "/home-confort");
+  window.history.replaceState(null, "", options.path ?? "/vtherm");
   const byUrl = new Map(plugins.map((item) => [`/${item.definition.id}/ui.js`, item.definition]));
   const panel = document.createElement("vtherm-dashboard-panel") as VThermDashboardPanel;
   // Without configurations, each thermostat of the test has one, of its type.

@@ -1,11 +1,11 @@
 # Using the dashboard
 
-The "Home confort" dashboard is where you look at and configure your Versatile Thermostat thermostats, in Home Assistant.
+The Versatile Thermostat dashboard is where you look at and configure your Versatile Thermostat thermostats, in Home Assistant.
 Audience: users.
 
 ## Open it
 
-Home confort appears in the side menu of Home Assistant, for administrators only. A user who is not an administrator does not
+"Versatile Thermostat" appears in the side menu of Home Assistant, for administrators only. A user who is not an administrator does not
 see it. It needs the Versatile Thermostat integration: Home Assistant does not load the dashboard without it.
 
 Each page of the dashboard has its own address. You can bookmark a page, share its link, reload the browser on it, and use the

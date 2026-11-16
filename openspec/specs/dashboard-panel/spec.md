@@ -1,16 +1,16 @@
 # dashboard-panel Specification
 
 ## Purpose
-Fournir l'entrée "Home confort" dans Home Assistant, qui héberge la configuration et la supervision des thermostats Versatile Thermostat avec l'apparence du thème actif de Home Assistant.
+Fournir l'entrée "Versatile Thermostat" dans Home Assistant, qui héberge la configuration et la supervision des thermostats Versatile Thermostat avec l'apparence du thème actif de Home Assistant.
 
 ## Requirements
 
 ### Requirement: Entrée dans le menu latéral
-L'extension SHALL ajouter au menu latéral de Home Assistant un élément intitulé "Home confort" qui ouvre le dashboard.
+L'extension SHALL ajouter au menu latéral de Home Assistant un élément intitulé "Versatile Thermostat" qui ouvre le dashboard.
 
 #### Scenario: Affichage du menu
 - **WHEN** l'extension est installée et chargée
-- **THEN** l'élément "Home confort" apparaît dans le menu latéral et ouvre le dashboard au clic
+- **THEN** l'élément "Versatile Thermostat" apparaît dans le menu latéral et ouvre le dashboard au clic
 
 #### Scenario: Utilisateur non administrateur
 - **WHEN** un utilisateur non administrateur ouvre Home Assistant
@@ -142,11 +142,11 @@ Le `manifest.json` de l'extension SHALL déclarer la dépendance à l'intégrati
 
 #### Scenario: Versatile Thermostat absent
 - **WHEN** l'intégration Versatile Thermostat n'est pas installée ou n'a pas démarré
-- **THEN** Home Assistant ne charge pas l'extension, journalise la dépendance manquante et n'affiche pas l'élément "Home confort"
+- **THEN** Home Assistant ne charge pas l'extension, journalise la dépendance manquante et n'affiche pas l'élément "Versatile Thermostat"
 
 #### Scenario: Versatile Thermostat présent
 - **WHEN** l'intégration Versatile Thermostat est chargée
-- **THEN** l'extension est chargée et l'élément "Home confort" apparaît
+- **THEN** l'extension est chargée et l'élément "Versatile Thermostat" apparaît
 
 ### Requirement: Absence de thermostat
 Le dashboard SHALL afficher un message explicite s'il n'existe aucun thermostat Versatile Thermostat.

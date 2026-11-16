@@ -28,7 +28,7 @@ Quand le mode frontend de développement est actif, l'intégration SHALL écrire
 - **THEN** le journal contient un avertissement qui nomme l'URL du serveur de développement
 
 ### Requirement: Module du panneau servi par le serveur de développement
-Quand le mode est actif, le panneau « Home confort » SHALL charger son module depuis le point d'entrée TypeScript du frontend sur le serveur de développement, et non depuis le build de `www/`. Le titre, l'icône, l'URL du panneau et la restriction aux administrateurs SHALL rester les mêmes que sans le mode.
+Quand le mode est actif, le panneau « Versatile Thermostat » SHALL charger son module depuis le point d'entrée TypeScript du frontend sur le serveur de développement, et non depuis le build de `www/`. Le titre, l'icône, l'URL du panneau et la restriction aux administrateurs SHALL rester les mêmes que sans le mode.
 
 #### Scenario: Ouverture du panneau
 - **WHEN** un administrateur ouvre le panneau avec le mode actif et le serveur de développement démarré

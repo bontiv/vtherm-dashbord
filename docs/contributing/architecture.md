@@ -1,7 +1,7 @@
 # Architecture
 Audience: contributors.
 
-How the dashboard "Home confort" is made, from Home Assistant to the browser, and how a UI plugin gets from its declaration to the
+How the dashboard is made, from Home Assistant to the browser, and how a UI plugin gets from its declaration to the
 screen.
 
 ## The pieces
@@ -30,7 +30,7 @@ the user.
 | Module | Role |
 | --- | --- |
 | `__init__.py` | Sets up the entry: the catalog, the commands, the panel and the native plugins. |
-| `panel.py` | Serves `www/` under `/vtherm_dashboard_static` and adds the panel "Home confort" to the side menu, for administrators only. |
+| `panel.py` | Serves `www/` under `/vtherm_dashboard_static` and adds the panel "Versatile Thermostat" to the side menu, for administrators only. |
 | `dev_server.py` | Reads `VTHERM_DASHBOARD_DEV_SERVER`: the panel and the native plugins then load their sources from the development server of the frontend. See [Development environment](development-environment.md#the-development-server-of-the-frontend). |
 | `native_plugins.py` | Registers the 16 native plugins in `vtherm_api`, in the order of the menu of the config flow, each one after the previous. |
 | `api_keepalive.py` | Workaround: registers a feature manager factory that applies to no thermostat (`vtherm_dashboard_keepalive`), so that Versatile Thermostat keeps the instance of `vtherm_api`, and the UI plugins in it, when its last entry is recreated. To remove once Versatile Thermostat counts the UI plugins before dropping the instance. |
@@ -83,7 +83,7 @@ as plugins arrive, in load order. It records the problems (a missing target, a c
 shows. The same engine runs in the fake dashboard of the tests, so what a plugin sees in a test is what the dashboard does.
 
 The navigation (`navigation.ts`) is a function of the route, the resolved contributions, the thermostats and the visibility of each
-entry. The route is the address: `/home-confort/<tab>/<thermostat>/<entry>/...`, see `router.ts`.
+entry. The route is the address: `/vtherm/<tab>/<thermostat>/<entry>/...`, see `router.ts`.
 
 ### The native plugins
 The dashboard is made of plugins, like any other. `core` gives the top tabs, the pages Overview, Plugins and Development and the

@@ -51,7 +51,7 @@ async def test_config_flow_creates_a_single_entry(hass: HomeAssistant) -> None:
 
     result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Home confort"
+    assert result["title"] == "Versatile Thermostat"
     await hass.async_block_till_done()
 
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})

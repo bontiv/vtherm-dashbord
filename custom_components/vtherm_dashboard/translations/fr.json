@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Home confort",
-        "description": "Ajoute le tableau de bord Home confort de Versatile Thermostat au menu latéral de Home Assistant."
+        "title": "Versatile Thermostat",
+        "description": "Ajoute le tableau de bord Versatile Thermostat au menu latéral de Home Assistant."
       }
     },
     "abort": {

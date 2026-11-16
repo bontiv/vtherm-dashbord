@@ -45,7 +45,7 @@ export const NARROW_QUERY = "(max-width: 700px)";
 /** Gives the thermostats of Versatile Thermostat. */
 export type ThermostatProvider = (hass: Hass) => Promise<readonly ThermostatInfo[]>;
 
-/** The panel "Home confort", which Home Assistant shows in its side menu. */
+/** The panel "Versatile Thermostat", which Home Assistant shows in its side menu. */
 export class VThermDashboardPanel extends LitElement {
   static override properties = {
     hass: { attribute: false },

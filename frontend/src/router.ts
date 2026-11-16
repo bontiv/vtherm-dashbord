@@ -1,8 +1,8 @@
 /**
  * The routes of the dashboard.
  *
- * Every page has its own address, under the path of the panel: `/home-confort/<tab>/<entry>`. The Thermostats tab has one
- * more level, the thermostat: `/home-confort/<thermostats tab>/<thermostat>/<entry>`. The segments are the identifiers of the
+ * Every page has its own address, under the path of the panel: `/vtherm/<tab>/<entry>`. The Thermostats tab has one
+ * more level, the thermostat: `/vtherm/<thermostats tab>/<thermostat>/<entry>`. The segments are the identifiers of the
  * contributions, so a plugin can be linked to.
  */
 
@@ -19,7 +19,7 @@ export interface Route {
 }
 
 /** The path of the panel in Home Assistant. */
-export const PANEL_PATH = "/home-confort";
+export const PANEL_PATH = "/vtherm";
 
 /** The route of the address of the panel. */
 export const EMPTY_ROUTE: Route = { rest: [] };
@@ -27,7 +27,7 @@ export const EMPTY_ROUTE: Route = { rest: [] };
 /**
  * Read a route from an address.
  *
- * @param pathname - The path of the address, for example `/home-confort/core.top.dashboard/core.page.overview`.
+ * @param pathname - The path of the address, for example `/vtherm/core.top.dashboard/core.page.overview`.
  * @param thermostatsTab - The identifier of the Thermostats tab, whose routes have a thermostat.
  * @param prefix - The path of the panel. A path that does not start with it gives the empty route.
  */

@@ -18,7 +18,7 @@ if (customElements.get("core-page-plugins-el") === undefined) {
 
 const natives: TestPlugin[] = nativePlugins.map((definition) => ({ definition }));
 const stub = (id: string, overrides: Partial<TestPlugin> = {}): TestPlugin => ({ definition: plugin(id, {}), ...overrides });
-const PATH = `/home-confort/${CORE_TOP_TABS.configuration}/core.page.plugins`;
+const PATH = `/vtherm/${CORE_TOP_TABS.configuration}/core.page.plugins`;
 
 /** Mount the panel on the plugin status page and give the row of each plugin. */
 async function statusRows(plugins: readonly TestPlugin[], failing: Record<string, Error> = {}) {
@@ -104,7 +104,7 @@ describe("the plugin status page", () => {
 
 describe("when there is nothing to show", () => {
   it("works with the native plugins only, with the message of the empty thermostats list", async () => {
-    const { panel } = await mountPanel({ plugins: natives, thermostats: [], path: `/home-confort/${CORE_TOP_TABS.thermostats}` });
+    const { panel } = await mountPanel({ plugins: natives, thermostats: [], path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
     expect(find(list.shadowRoot as ShadowRoot, ".empty")?.textContent).toContain("No Versatile Thermostat thermostat");
     expect(find(panel.shadowRoot as ShadowRoot, ".error")).toBeNull();

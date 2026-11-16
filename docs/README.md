@@ -1,6 +1,6 @@
 # Documentation
 
-Documentation of the Versatile Thermostat dashboard ("Home confort"). Every page of `docs/` is listed here with the
+Documentation of the Versatile Thermostat dashboard ("Versatile Thermostat" in the side menu of Home Assistant). Every page of `docs/` is listed here with the
 people it is written for: **User** (uses the dashboard), **Plugin author** (writes a UI plugin) and **Contributor**
 (works on this repository).
 

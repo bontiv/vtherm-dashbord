@@ -16,8 +16,8 @@ vi.mock("../src/complements/sanitize.ts", () => ({
 }));
 
 const TAB = "core_complements.top.complements";
-const CATALOG = `/home-confort/${TAB}/core_complements.page.catalog`;
-const INSTALLED = `/home-confort/${TAB}/core_complements.page.installed`;
+const CATALOG = `/vtherm/${TAB}/core_complements.page.catalog`;
+const INSTALLED = `/vtherm/${TAB}/core_complements.page.installed`;
 
 let natives: { definition: UiPluginDefinition }[];
 let model: { reset(): void; restartOptions: unknown };

@@ -92,7 +92,7 @@ const list = (open: boolean) => ({
 const language = params.get("language") ?? "en";
 const hass = { language, locale: { language }, states: {}, user: { is_admin: true }, callService: async () => undefined, callWS: async () => list(true) };
 const panel = document.querySelector("vtherm-dashboard-panel") as VThermDashboardPanel;
-window.history.replaceState(null, "", params.get("path") ?? "/home-confort");
+window.history.replaceState(null, "", params.get("path") ?? "/vtherm");
 // The panel read the address when it was created: tell it that the address is now the one asked for.
 window.dispatchEvent(new PopStateEvent("popstate"));
 panel.importModule = async (url) => {

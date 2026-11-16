@@ -48,7 +48,7 @@ The integration loads the frontend in one of two ways:
 3. At the first start, create the user in the browser (onboarding). To skip the login screen on your computer, add `trusted_networks` with
    `allow_bypass_login` to `auth_providers` in `config/configuration.yaml`, see the documentation of Home Assistant.
 4. **Settings > Devices & services > Add integration**: add "Versatile Thermostat" (create a thermostat or the central
-   configuration), then "VTherm Dashboard". "Home confort" appears in the side menu.
+   configuration), then "VTherm Dashboard". "Versatile Thermostat" appears in the side menu.
 
 A change of the Python code still needs a restart of Home Assistant. A restart asked from Home Assistant (Settings, the service
 `homeassistant.restart`, or the restart of the add-ons in the dashboard) works: Home Assistant exits with the code 100 and `start-ha.sh`

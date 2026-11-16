@@ -1,4 +1,4 @@
-"""Tests for the Home confort panel."""
+"""Tests for the panel of the dashboard."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ async def test_panel_is_registered_for_administrators(hass: HomeAssistant, setup
 
     panel = hass.data[frontend.DATA_PANELS][PANEL_URL_PATH]
     assert panel.require_admin is True
-    assert panel.sidebar_title == "Home confort"
+    assert panel.sidebar_title == "Versatile Thermostat"
     assert panel.config["_panel_custom"]["name"] == "vtherm-dashboard-panel"
     assert panel.config["_panel_custom"]["module_url"].startswith(f"{STATIC_URL}/{FRONTEND_MODULE}?v=")
 
@@ -92,7 +92,7 @@ async def test_the_development_server_replaces_the_build(hass: HomeAssistant, tm
     panel_config = hass.data[frontend.DATA_PANELS][PANEL_URL_PATH]
     assert panel_config.config["_panel_custom"]["module_url"] == "http://localhost:5198/src/index.ts"
     assert panel_config.require_admin is True
-    assert panel_config.sidebar_title == "Home confort"
+    assert panel_config.sidebar_title == "Versatile Thermostat"
     assert panel_config.config["_panel_custom"]["name"] == "vtherm-dashboard-panel"
     assert "loaded from the development server http://localhost:5198" in caplog.text
     # The built files are not served: the folder may not exist.

@@ -69,7 +69,7 @@ async function openMenu(panel: HTMLElement, text: string): Promise<void> {
 
 describe("the draft of a thermostat", () => {
   it("shows the save bar after a change, and saves the change in the step of the flow", async () => {
-    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     expect(saveBar(panel)).toBeNull();
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
     await settle(panel);
@@ -81,7 +81,7 @@ describe("the draft of a thermostat", () => {
   });
 
   it("goes back to the saved values when the user discards the draft", async () => {
-    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
     await settle(panel);
     find<HTMLButtonElement>(root(panel), ".savebar .discard")?.click();
@@ -93,11 +93,11 @@ describe("the draft of a thermostat", () => {
 
   it("keeps the draft from a section to another of the same thermostat, without asking", async () => {
     const confirm = stubConfirm(true);
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
     await settle(panel);
     await openMenu(panel, "TPI parameters");
-    expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/climate.salon/core_tpi.tab.main`);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/climate.salon/core_tpi.tab.main`);
     expect(saveBar(panel)?.textContent).toContain("Unsaved changes");
     await openMenu(panel, "Main attributes");
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
@@ -106,7 +106,7 @@ describe("the draft of a thermostat", () => {
 
   it("asks before leaving a thermostat with changes, and stays when the user refuses", async () => {
     const confirm = stubConfirm(false);
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
     await settle(panel);
     const select = find<HTMLSelectElement>(find(root(panel), "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select") as HTMLSelectElement;
@@ -114,20 +114,20 @@ describe("the draft of a thermostat", () => {
     select.dispatchEvent(new Event("change", { bubbles: true }));
     await settle(panel);
     expect(confirm).toHaveBeenCalledWith("You have unsaved changes. Leave and lose them?");
-    expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/climate.salon/core.tab.main`);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/climate.salon/core.tab.main`);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
   });
 
   it("drops the draft when the user leaves after confirming, and keeps the section open on the other thermostat", async () => {
     stubConfirm(true);
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
     await settle(panel);
     const select = find<HTMLSelectElement>(find(root(panel), "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select") as HTMLSelectElement;
     select.value = "climate.chambre";
     select.dispatchEvent(new Event("change", { bubbles: true }));
     await settle(panel);
-    expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/climate.chambre/core.tab.main`);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/climate.chambre/core.tab.main`);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Chambre");
     select.value = "climate.salon";
     select.dispatchEvent(new Event("change", { bubbles: true }));
@@ -136,7 +136,7 @@ describe("the draft of a thermostat", () => {
   });
 
   it("asks the browser before closing the page while a draft has changes", async () => {
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     const clean = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(clean);
     expect(clean.defaultPrevented).toBe(false);
@@ -151,7 +151,7 @@ describe("a configuration made by a newer Versatile Thermostat", () => {
   it("is shown read-only, without save bar", async () => {
     const configs = salonAndChambre();
     (configs["climate.salon"] as { read_only?: boolean }).read_only = true;
-    const { panel } = await mount({ configs, path: `/home-confort/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const { panel } = await mount({ configs, path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     expect(find(root(panel), ".readonly")?.textContent).toContain("read-only");
     expect(find(root(panel), "vtherm-contribution")?.hasAttribute("inert")).toBe(true);
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
@@ -169,17 +169,17 @@ describe("the assistant of creation", () => {
   const createButton = (panel: HTMLElement) => find<HTMLButtonElement>(wizardTabs(panel).shadow, "button.primary") as HTMLButtonElement;
 
   it("opens from the list of the thermostats", async () => {
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}` });
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}` });
     const list = find(root(panel), "vtherm-thermostat-list") as HTMLElement;
     find<HTMLAnchorElement>(list.shadowRoot as ShadowRoot, "a.create")?.click();
     await settle(panel);
-    expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/new`);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/new`);
     expect(find(wizardTabs(panel).shadow, "h1")?.textContent).toBe("New thermostat");
     expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat"]);
   });
 
   it("offers the three types, and refuses to create while required fields are missing", async () => {
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/new` });
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/new` });
     const { shadow } = wizardTabs(panel);
     expect(findAll<HTMLInputElement>(shadow, 'input[type="radio"]').map((input) => input.value)).toEqual(["thermostat_over_switch", "thermostat_over_climate", "thermostat_over_valve"]);
     expect(find(shadow, ".missing")?.textContent).toContain("Still missing");
@@ -193,7 +193,7 @@ describe("the assistant of creation", () => {
       thermostat_over_valve: { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor", underlying_entity_ids: ["number.office"] },
     };
     for (const [type, values] of Object.entries(fields)) {
-      const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/home-confort/${THERMOSTATS}/new` });
+      const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/new` });
       const { wizard, shadow } = wizardTabs(panel);
       find<HTMLInputElement>(shadow, `input[value="${type}"]`)?.dispatchEvent(new Event("change"));
       await wizard.updateComplete;
@@ -203,7 +203,7 @@ describe("the assistant of creation", () => {
       await wizard.updateComplete;
       expect(find(shadow, ".missing"), `${type}: ${find(shadow, ".missing")?.textContent}`).toBeNull();
       createButton(panel).click();
-      await vi.waitFor(() => expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/created_1`));
+      await vi.waitFor(() => expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/created_1`));
       await settle(panel);
       const [message] = calls(hass, "vtherm_dashboard/create_config");
       expect(message?.["thermostat_type"]).toBe(type);
@@ -216,7 +216,7 @@ describe("the assistant of creation", () => {
   it("shows why the flow refused the creation, and stays on the assistant", async () => {
     const { panel } = await mount({
       configs: salonAndChambre(),
-      path: `/home-confort/${THERMOSTATS}/new`,
+      path: `/vtherm/${THERMOSTATS}/new`,
       server: { createErrors: [{ tab: null, field: null, code: "unknown_entity" }] },
     });
     const { wizard, shadow } = wizardTabs(panel);
@@ -226,7 +226,7 @@ describe("the assistant of creation", () => {
     await wizard.updateComplete;
     createButton(panel).click();
     await vi.waitFor(() => expect(find(shadow, ".error")).not.toBeNull());
-    expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/new`);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/new`);
   });
 });
 
@@ -234,7 +234,7 @@ describe("the central configuration", () => {
   it("shows its sections at once when it exists, without waiting for the user to open one", async () => {
     const configs: FakeConfigs = { ...salonAndChambre(), central: { name: "Central", type: "central", values: { thermostat_type: "thermostat_central_config" } } };
     // A page that is not a section: nothing opens the central configuration, so the panel must read it by itself.
-    const { panel } = await mount({ configs, path: `/home-confort/${CONFIGURATION}/core.page.plugins` });
+    const { panel } = await mount({ configs, path: `/vtherm/${CONFIGURATION}/core.page.plugins` });
     await vi.waitFor(() => {
       const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
       expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))).toContain("TPI parameters");
@@ -243,20 +243,20 @@ describe("the central configuration", () => {
   });
 
   it("offers to create it when it is absent, then shows its sections once created", async () => {
-    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/home-confort/${CONFIGURATION}` });
+    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${CONFIGURATION}` });
     const page = find(root(panel), "core-create-central-page") as HTMLElement;
     expect(page).not.toBeNull();
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
     expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a")).filter((text) => text === "TPI parameters")).toEqual([]);
     find<HTMLButtonElement>(page.shadowRoot as ShadowRoot, "button")?.click();
     await settle(panel);
-    expect(window.location.pathname).toBe(`/home-confort/${THERMOSTATS}/new/central`);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/new/central`);
     const wizard = find(root(panel), "vtherm-create-wizard") as HTMLElement & { updateComplete: Promise<boolean> };
     find<NativeTab>(wizard.shadowRoot as ShadowRoot, "vtherm-native-main-central")?.proposeChanges({ external_temperature_sensor_entity_id: "sensor.outdoor" });
     await wizard.updateComplete;
     expect(find(wizard.shadowRoot as ShadowRoot, ".missing")?.textContent ?? null).toBeNull();
     find<HTMLButtonElement>(wizard.shadowRoot as ShadowRoot, "button.primary")?.click();
-    await vi.waitFor(() => expect(window.location.pathname).toBe(`/home-confort/${CONFIGURATION}`));
+    await vi.waitFor(() => expect(window.location.pathname).toBe(`/vtherm/${CONFIGURATION}`));
     await settle(panel);
     const [message] = calls(hass, "vtherm_dashboard/create_config");
     expect(message?.["thermostat_type"]).toBe("thermostat_central_config");
