@@ -98,6 +98,23 @@ describe("the assistant of creation", () => {
     expect(find(wizard.shadowRoot as ShadowRoot, "ha-button.primary")).not.toBeNull();
     expect(find(wizard.shadowRoot as ShadowRoot, "input[type=radio]")).toBeNull();
   });
+
+  it("keeps the field of the name while it is typed in, so that it keeps the focus", async () => {
+    const { panel } = await mountPanel({ plugins: natives, path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
+    const wizard = find(root(panel), "vtherm-create-wizard") as HTMLElement & { updateComplete: Promise<boolean> };
+    const nameField = (): MockHaElement | null =>
+      ([...(wizard.shadowRoot as ShadowRoot).children].map((tab) => tab.shadowRoot?.querySelector('.field[data-key="name"] ha-selector')).find((field) => field !== null && field !== undefined) ??
+        null) as MockHaElement | null;
+    await vi.waitFor(() => expect(nameField()).not.toBeNull());
+    const before = nameField() as MockHaElement;
+    before.change("S");
+    await wizard.updateComplete;
+    before.change("Sa");
+    await wizard.updateComplete;
+    expect(nameField()).toBe(before);
+    expect(before.isConnected).toBe(true);
+    expect(before.value).toBe("Sa");
+  });
 });
 
 describe("leaving a draft", () => {

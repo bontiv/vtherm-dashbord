@@ -146,6 +146,9 @@ export class VThermCreateWizard extends LitElement {
     this.draft = this.newDraft();
   }
 
+  /** The element of each form of the assistant, by tag, kept from one render to the next. */
+  private readonly tabElements = new Map<string, HTMLElement>();
+
   private get kind(): ConfigKind {
     return this.central ? "central" : "thermostat";
   }
@@ -216,7 +219,13 @@ export class VThermCreateWizard extends LitElement {
     if (customElements.get(tag) === undefined) {
       return html``;
     }
-    const element = document.createElement(tag);
+    // The same element is kept from one render to the next: a new one would lose the focus of the field being typed in, since the
+    // fields of Home Assistant change the draft at each key.
+    let element = this.tabElements.get(tag);
+    if (element === undefined) {
+      element = document.createElement(tag);
+      this.tabElements.set(tag, element);
+    }
     Object.assign(element, {
       hass: this.hass,
       thermostatId: "",
