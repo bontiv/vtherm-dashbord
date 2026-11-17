@@ -36,6 +36,7 @@ These are the variables that the components of the dashboard use. They are defin
 | `--secondary-background-color` | Background under the pointer, in a menu. |
 | `--card-background-color` | Background of a card, a menu and a widget. |
 | `--divider-color` | Borders and separators. |
+| `--input-fill-color` | Background of a number cell in the presets table. |
 | `--app-header-background-color` | Background of the top bar. |
 | `--app-header-text-color` | Text of the top bar. |
 | `--error-color` | Errors. |

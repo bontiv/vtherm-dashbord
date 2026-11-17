@@ -90,7 +90,7 @@ The sections follow the menu of the config flow of Versatile Thermostat. A secti
 | Features | always | The features to turn on: window, motion, power, presence, and others. |
 | Underlyings | thermostat only | The devices that the thermostat controls. The form depends on the type. |
 | TPI parameters | the proportional function is TPI, or a valve regulates | The TPI coefficients, and Auto TPI with its learning type. |
-| Presets | switch, climate and valve thermostats | The temperature of each preset. They are `number` entities, saved after the configuration. |
+| Presets | switch, climate and valve thermostats | The temperature of each preset, in a table. They are `number` entities, saved after the configuration. See [The presets table](#the-presets-table). |
 | Central boiler | central configuration, when the feature is on | The services that start and stop the central boiler. |
 | Window | the window feature is on | A window sensor, or the automatic detection thresholds, not both. |
 | Motion | the motion feature is on | The motion sensor, the delays and the presets. |
@@ -105,3 +105,22 @@ The sections follow the menu of the config flow of Versatile Thermostat. A secti
 | Heating failure detection | the feature is on | The thresholds of the detection. |
 
 The identifiers of these sections, which a plugin can use to place its own tab, are in [Native plugins](../plugins/native-plugins.md).
+
+## The presets table
+The Presets section shows the temperatures as a table: one row for each preset (frost, eco, comfort, boost) and one column for each
+situation.
+
+- **Columns.** Normal is always there. Away appears when the presence feature is on, Air conditioning when the AC mode is on, and
+  Air conditioning, away when both are on. The general configuration shows all four. A cell with no preset entity shows "—". If you
+  turn a feature on and have not saved yet, its column shows "—" and a note says that the temperatures exist after the save.
+- **Cells.** Each cell is a compact number field with the unit, the limits and the step of the entity. A comma or a point both work as
+  the decimal separator. A dot beside a cell and a colored border mean that its value is not saved yet. A value beyond the limits or
+  that is not a number marks the cell as invalid, explains why under the table, and stays out of the draft. A temperature that Home
+  Assistant refuses at the save marks its cell the same way.
+- **Draft.** The changes stay in the draft, like every other field, and are written by **Save**.
+- **Order warning.** If a heating column is not frost ≤ eco ≤ comfort ≤ boost, a warning names the two presets. In an air conditioning
+  column the expected order is the opposite. The warning does not block the save.
+- **Central presets.** When the section uses the central presets, the table shows them read-only, with a link to the Presets of the
+  general configuration. If the draft has unsaved changes, the dashboard asks before it leaves the page.
+- **Narrow screens.** When the card is narrower than 520 px, each preset becomes a block, with its situations in a two-column grid and
+  no horizontal scroll.

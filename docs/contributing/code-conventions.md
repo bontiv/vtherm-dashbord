@@ -35,7 +35,7 @@ Nothing detects the language automatically: the review and the checklist of the 
   - a **fallback**, drawn when the component of Home Assistant is not defined; the comment starts with `fallback:` and names the
     component;
   - an **exception**, where Home Assistant has no public component: the tabs of the top bar, the breadcrumb and the darkened page
-    behind the drawer; the comment starts with `Exception to the rule "a component of Home Assistant first"` and says why.
+    behind the drawer; and the compact number cells of the table of the presets, where `ha-selector` is too large for four columns; the comment starts with `Exception to the rule "a component of Home Assistant first"` and says why.
 
 ## Python
 The rules are those of Versatile Thermostat, so that code can move between the repositories:

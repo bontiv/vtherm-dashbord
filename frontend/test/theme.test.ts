@@ -32,6 +32,7 @@ describe("the theme", () => {
       "--secondary-background-color",
       "--card-background-color",
       "--divider-color",
+      "--input-fill-color",
       "--app-header-background-color",
       "--app-header-text-color",
       "--text-primary-color",

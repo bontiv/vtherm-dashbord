@@ -8,6 +8,14 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### Added
+- The Presets section shows the temperatures as a table: a row for each preset (frost, eco, comfort, boost) and a column for each
+  situation (normal, away, air conditioning, air conditioning away), instead of up to fifteen fields in a list. The columns follow the
+  presence feature and the AC mode, a cell without an entity shows "—", changed cells are marked, and a warning that does not block the
+  save appears when the order frost ≤ eco ≤ comfort ≤ boost is not respected (the opposite in air conditioning). A thermostat that uses
+  the central presets shows the table read-only, with a link to the presets of the general configuration, and a narrow card folds it into
+  one block for each preset. The cells are compact number fields, not `ha-selector`, so that four columns fit on a card.
+
 ### Changed
 - Creating a thermostat or the central configuration is a page of configuration, like an existing one: a menu on the left, one
   section at a time, the draft kept from a section to another. A new thermostat first asks for its type on its own screen, with three cards (switch, climate, valve) that open the page of configuration when chosen, then has the sections Main attributes, Underlyings, TPI parameters when the type uses them, and Advanced parameters, so the TPI and advanced parameters that a thermostat without central configuration needs can be set at creation. The breadcrumb brings back the choice of the type. The central configuration has Main attributes, TPI parameters

@@ -7,12 +7,12 @@
 
 ## 2. Composant du tableau
 
-- [ ] 2.1 Dessiner le tableau dans `frontend/src/native/native-tab.ts` (ou un composant `vtherm-preset-table`) : `<table>` sémantique, cases `input type=number` compactes stylées par le thème avec un commentaire qui justifie l'écart à `ha-selector`, noms accessibles, marque des cases modifiées ; vérifier par des tests de rendu le scénario « Nom accessible » et l'absence de couleur figée
-- [ ] 2.2 Brancher la saisie sur le brouillon (conversion décimale tolérante, limites, cases invalides hors brouillon) et rattacher les refus d'enregistrement aux cases ; vérifier par des tests les scénarios « Valeur hors limites » et « Refus à l'enregistrement »
-- [ ] 2.3 Dessiner le tableau hérité en lecture seule avec le lien vers les presets de la configuration générale ; vérifier par un test le scénario « Lien vers la configuration centrale »
-- [ ] 2.4 Ajouter le repli par bloc sous 520 px de conteneur ; vérifier par le test des styles étroits le scénario « Téléphone » à 360 px
-- [ ] 2.5 Ajouter les textes (situations, avertissement, note, lien) en en/fr/de et régénérer les catalogues ; vérifier `npm run check:catalogs`
-- [ ] 2.6 Mettre à jour le test existant de `frontend/test/native-ha-controls.test.ts` qui attend un sélecteur `number` par preset, la documentation utilisateur de `docs/` et le `CHANGELOG.md` ; vérifier `npm test` et `npm run check:docs`
+- [x] 2.1 Dessiner le tableau dans `frontend/src/native/native-tab.ts` (ou un composant `vtherm-preset-table`) : `<table>` sémantique, cases `input type=number` compactes stylées par le thème avec un commentaire qui justifie l'écart à `ha-selector`, noms accessibles, marque des cases modifiées ; vérifier par des tests de rendu le scénario « Nom accessible » et l'absence de couleur figée
+- [x] 2.2 Brancher la saisie sur le brouillon (conversion décimale tolérante, limites, cases invalides hors brouillon) et rattacher les refus d'enregistrement aux cases ; vérifier par des tests les scénarios « Valeur hors limites » et « Refus à l'enregistrement »
+- [x] 2.3 Dessiner le tableau hérité en lecture seule avec le lien vers les presets de la configuration générale ; vérifier par un test le scénario « Lien vers la configuration centrale »
+- [x] 2.4 Ajouter le repli par bloc sous 520 px de conteneur ; vérifier par le test des styles étroits le scénario « Téléphone » à 360 px
+- [x] 2.5 Ajouter les textes (situations, avertissement, note, lien) en en/fr/de et régénérer les catalogues ; vérifier `npm run check:catalogs`
+- [x] 2.6 Mettre à jour le test existant de `frontend/test/native-ha-controls.test.ts` qui attend un sélecteur `number` par preset, la documentation utilisateur de `docs/` et le `CHANGELOG.md` ; vérifier `npm test` et `npm run check:docs`
 
 ## 3. Vérification d'ensemble
 

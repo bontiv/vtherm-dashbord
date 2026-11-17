@@ -1,4 +1,4 @@
-import { selectorOf } from "@vtherm/dashboard-sdk";
+import { CORE_TOP_TABS, selectorOf } from "@vtherm/dashboard-sdk";
 import type { AnyTranslations, ConfigErrors, ConfigValues, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
@@ -10,13 +10,17 @@ import { shell, t } from "../shell-translations.ts";
 import { autoTpiDefaults, definitionOf, entityChoices, formatInput, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
 import type { FieldSpec } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
-import { CENTRAL_REQUIRED_OPTIONS } from "./tab-definitions.ts";
+import { buildPresetGrid, parseTemperature, presetOrderWarnings } from "./preset-table.ts";
+import type { PresetCell, Situation } from "./preset-table.ts";
+import { CENTRAL_REQUIRED_OPTIONS, centralContributionId } from "./tab-definitions.ts";
 import type { ConfigKind, TabDefinition, TabLayout } from "./tab-definitions.ts";
 import { commandsByUnderlying, formatBoilerService, formatCommand, needsCommands, parseBoilerService, parseCommand, storedCommands } from "./commands.ts";
 import { renderCardActions } from "../components/card-actions.ts";
 import type { CardDraft } from "../components/card-actions.ts";
 import { haState, isDefined, renderAlert, renderProgress, showMoreInfo } from "../components/ha.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
+import { followLink } from "../components/events.ts";
+import { buildPath } from "../router.ts";
 
 /** Translate a key that is built at run time. The catalogs of the native plugins have every key of their fields. */
 type Translate = (key: string, params?: Readonly<Record<string, string | number>>) => string;
@@ -48,6 +52,7 @@ export class NativeTabElement extends LitElement {
     narrow: { type: Boolean },
     presetData: { state: true },
     centralPresetData: { state: true },
+    presetInvalid: { state: true },
     suggestion: { state: true },
   };
 
@@ -216,6 +221,103 @@ export class NativeTabElement extends LitElement {
         border-radius: 4px;
         cursor: pointer;
       }
+      /* The table of the presets: the colors come from the theme, and the container query folds it into one block for each preset. */
+      .preset-table {
+        container-type: inline-size;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 4px 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      thead th {
+        font-weight: 500;
+        color: var(--secondary-text-color);
+      }
+      tbody th {
+        font-weight: 500;
+      }
+      td {
+        white-space: nowrap;
+      }
+      td.empty,
+      .unit {
+        color: var(--secondary-text-color);
+      }
+      td input[type="number"] {
+        width: 6.5em;
+        padding: 4px 8px;
+        background-color: var(--input-fill-color, var(--card-background-color));
+      }
+      td.changed input[type="number"] {
+        border-color: var(--primary-color);
+      }
+      td input[type="number"][aria-invalid="true"] {
+        border-color: var(--error-color);
+      }
+      .dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-inline-start: 4px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      @container (max-width: 520px) {
+        table,
+        tbody,
+        tr,
+        th,
+        td {
+          display: block;
+        }
+        thead {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip-path: inset(50%);
+        }
+        tbody tr {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+          padding: 8px 0;
+          border-bottom: 1px solid var(--divider-color);
+        }
+        tbody th {
+          grid-column: 1 / -1;
+          padding: 0;
+          border: 0;
+        }
+        tbody td {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 4px;
+          padding: 0;
+          border: 0;
+        }
+        td::before {
+          content: attr(data-label);
+          flex: 0 0 100%;
+          font-size: 12px;
+          color: var(--secondary-text-color);
+        }
+      }
     `,
   ];
 
@@ -243,6 +345,8 @@ export class NativeTabElement extends LitElement {
   declare presetData: readonly PresetData[] | undefined;
   declare centralPresetData: readonly PresetData[] | undefined;
   declare suggestion: string | null | undefined;
+  /** The cells of the table of the presets whose typed text is refused, by preset: the text stays in the cell, out of the draft. */
+  declare presetInvalid: Readonly<Record<string, { readonly text: string; readonly message: string }>>;
 
   private loadedFor = "";
 
@@ -261,6 +365,7 @@ export class NativeTabElement extends LitElement {
     this.presetData = undefined;
     this.centralPresetData = undefined;
     this.suggestion = undefined;
+    this.presetInvalid = {};
   }
 
   private get statics(): typeof NativeTabElement {
@@ -330,8 +435,12 @@ export class NativeTabElement extends LitElement {
     }
     const layout = this.layout();
     const key = `${this.thermostatId}|${this.statics.kind}`;
-    if (layout.presets === true && this.loadedFor !== key) {
+    // A draft that is no longer dirty was saved or discarded: the temperatures are read again, as the cells mark the changes by comparing them
+    // with the temperatures that were read.
+    const settled = (changed.get("draft") as CardDraft | undefined)?.dirty === true && this.draft?.dirty !== true;
+    if (layout.presets === true && (this.loadedFor !== key || settled)) {
       this.loadedFor = key;
+      this.presetInvalid = {};
       void this.loadPresets();
     }
     if (this.statics.definition.tab === "humidity" && (changed.has("values") || this.suggestion === undefined)) {
@@ -676,47 +785,65 @@ export class NativeTabElement extends LitElement {
       </dl>`;
   }
 
-  /** The temperature of a preset, with the selector `number` of Home Assistant, or a plain input as the fallback. */
-  private renderPresetControl(preset: PresetData, shown: unknown, error: string | undefined, label: string, ha: boolean): TemplateResult {
-    const key = `${PRESET_PREFIX}${preset.preset}`;
-    if (ha) {
-      const selector = { number: { ...(preset.min === null ? {} : { min: preset.min }), ...(preset.max === null ? {} : { max: preset.max }), step: preset.step ?? "any", mode: "box", ...(preset.unit === null ? {} : { unit_of_measurement: preset.unit }) } };
-      return html`<ha-selector
-        .hass=${this.hass}
-        .selector=${selector}
-        .value=${shown === null || shown === undefined ? undefined : shown}
-        .label=${label}
-        .required=${false}
-        @value-changed=${(event: ValueChanged) => {
-          event.stopPropagation();
-          const value = Number(event.detail.value);
-          if (event.detail.value !== undefined && event.detail.value !== "" && Number.isFinite(value)) {
-            this.propose({ [key]: value });
-          }
-        }}
-      ></ha-selector>`;
-    }
-    // fallback: a plain number input, when ha-selector is not defined.
-    return html`<label for="preset-${preset.preset}">${label}${preset.unit === null ? "" : ` (${preset.unit})`}</label>
-      <input
-        type="number"
-        id="preset-${preset.preset}"
-        min=${preset.min ?? ""}
-        max=${preset.max ?? ""}
-        step=${preset.step ?? "any"}
-        aria-invalid=${error === undefined ? "false" : "true"}
-        .value=${shown === null || shown === undefined ? "" : String(shown)}
-        @change=${(event: Event) => {
-          const text = (event.target as HTMLInputElement).value;
-          const value = Number(text.replace(",", "."));
-          if (text.trim() !== "" && Number.isFinite(value)) {
-            this.propose({ [key]: value });
-          }
-        }}
-      />`;
+  /** The label of a row of the table: the name of its preset in the catalog, or the name that Versatile Thermostat gave when the catalog has none. */
+  private presetRowLabel(id: string): string {
+    const key = `preset.${id}_temp`;
+    return key in this.statics.translations.english ? this.text(key) : id;
   }
 
-  private renderPresets(layout: TabLayout, ha: boolean): TemplateResult {
+  /** Read what the user typed in a cell: a valid temperature goes to the draft, an invalid one stays in the cell and is explained under the table. */
+  private onPresetInput(cell: PresetCell, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const name = cell.data.preset;
+    const others = Object.fromEntries(Object.entries(this.presetInvalid).filter(([key]) => key !== name));
+    const parsed = input.value === "" && input.validity.badInput ? { error: "not_a_number" as const } : parseTemperature(input.value, cell.data);
+    if ("value" in parsed) {
+      this.presetInvalid = others;
+      this.propose({ [`${PRESET_PREFIX}${name}`]: parsed.value });
+    } else if (parsed.error === "empty") {
+      // An empty cell has no temperature to propose: it shows the temperature of the draft again.
+      this.presetInvalid = others;
+      input.value = cell.value === null ? "" : String(cell.value);
+    } else {
+      const message = parsed.error === "not_a_number" ? t("config.presets_table.not_a_number") : t("config.presets_table.out_of_range", { min: cell.data.min ?? "−∞", max: cell.data.max ?? "∞" });
+      this.presetInvalid = { ...others, [name]: { text: input.value, message } };
+    }
+  }
+
+  /** A cell of the table that has a preset entity. */
+  private renderPresetCell(cell: PresetCell, label: string, column: string, readOnly: boolean): TemplateResult {
+    const name = cell.data.preset;
+    const unit = cell.data.unit ?? "";
+    if (readOnly) {
+      return html`<td data-label=${column}>${cell.value === null ? "—" : `${cell.value} ${unit}`}</td>`;
+    }
+    const invalid = this.presetInvalid[name];
+    const changed = cell.value !== cell.data.value;
+    const shown = invalid?.text ?? (cell.value === null ? "" : String(cell.value));
+    // Exception to the rule "a component of Home Assistant first": the cells of the table of the presets are not `ha-selector` (number).
+    // Its floating label, its margins and its minimum width are made for a form, so four columns do not fit on a card and every label
+    // would repeat the heading of the table. The cell is a compact input that takes the limits and the step of the entity, and its
+    // colors come from the theme of Home Assistant.
+    return html`<td class=${changed ? "changed" : ""} data-key=${`${PRESET_PREFIX}${name}`} data-label=${column}>
+      <input
+        type="number"
+        inputmode="decimal"
+        id="preset-${name}"
+        min=${cell.data.min ?? ""}
+        max=${cell.data.max ?? ""}
+        step=${cell.data.step ?? "any"}
+        aria-label=${label}
+        aria-describedby="preset-unit-${name}"
+        aria-invalid=${invalid !== undefined || this.fieldError(name) !== undefined ? "true" : "false"}
+        .value=${shown}
+        @change=${(event: Event) => this.onPresetInput(cell, event)}
+      />
+      <span class="unit" id="preset-unit-${name}">${unit}</span>
+      ${changed ? html`<span class="dot" aria-hidden="true"></span><span class="visually-hidden">${t("config.presets_table.unsaved")}</span>` : undefined}
+    </td>`;
+  }
+
+  private renderPresets(layout: TabLayout): TemplateResult {
     const inherited = this.statics.kind === "thermostat" && this.inherits(layout);
     const data = inherited ? this.centralPresetData : this.presetData;
     if (data === undefined) {
@@ -725,20 +852,48 @@ export class NativeTabElement extends LitElement {
     if (!inherited && data.length === 0) {
       return html`<p class="note">${t("config.presets_after_save")}</p>`;
     }
-    const nameOf = (preset: string) => (`preset.${preset}` in this.statics.translations.english ? this.text(`preset.${preset}`) : preset);
-    if (inherited) {
-      return html`<h3>${t("config.central_values")}</h3>
-        <dl>${data.map((preset) => html`<dt>${nameOf(preset.preset)}</dt><dd>${preset.value ?? t("config.none")} ${preset.unit ?? ""}</dd>`)}</dl>`;
-    }
-    return html`${data.map((preset) => {
-      const key = `${PRESET_PREFIX}${preset.preset}`;
-      const shown = this.values[key] ?? preset.value;
-      const error = this.fieldError(preset.preset);
-      return html`<div class="field" data-key=${key}>
-        ${this.renderPresetControl(preset, shown, error, nameOf(preset.preset), ha)}
-        ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
-      </div>`;
-    })}`;
+    // An inherited table shows the central temperatures: the draft of the thermostat has none of its own.
+    const values = inherited ? Object.fromEntries(Object.entries(this.values).filter(([key]) => !key.startsWith(PRESET_PREFIX))) : this.values;
+    const grid = buildPresetGrid(data, values, this.statics.kind === "central", PRESET_PREFIX);
+    const columnLabel = (situation: Situation): string => t(`config.presets_table.${situation}` as const);
+    const cellLabel = (row: string, situation: Situation): string => `${this.presetRowLabel(row)}, ${columnLabel(situation)}`;
+    const problems = grid.rows.flatMap((row) =>
+      grid.columns.flatMap((situation) => {
+        const cell = row.cells[situation];
+        const message = cell === undefined ? undefined : (this.presetInvalid[cell.data.preset]?.message ?? this.fieldError(cell.data.preset));
+        return message === undefined ? [] : [`${cellLabel(row.id, situation)}: ${message}`];
+      }),
+    );
+    const warnings = presetOrderWarnings(grid).map((warning) =>
+      t(warning.cooling ? "config.presets_table.warning_cool" : "config.presets_table.warning_heat", { column: columnLabel(warning.situation), first: this.presetRowLabel(warning.first), second: this.presetRowLabel(warning.second) }),
+    );
+    const link = buildPath({ tab: CORE_TOP_TABS.configuration, entry: centralContributionId(this.statics.definition), rest: [] });
+    return html`${inherited ? html`<h3>${t("config.central_values")}</h3>` : undefined}
+      <div class="preset-table">
+        <table>
+          <caption class="visually-hidden">${t("config.presets_table.label")}</caption>
+          <thead>
+            <tr>
+              <th scope="col">${t("config.presets_table.preset")}</th>
+              ${grid.columns.map((situation) => html`<th scope="col">${columnLabel(situation)}</th>`)}
+            </tr>
+          </thead>
+          <tbody>
+            ${grid.rows.map(
+              (row) => html`<tr>
+                <th scope="row">${this.presetRowLabel(row.id)}</th>
+                ${grid.columns.map((situation) => {
+                  const cell = row.cells[situation];
+                  return cell === undefined ? html`<td class="empty" data-label=${columnLabel(situation)}>—</td>` : this.renderPresetCell(cell, cellLabel(row.id, situation), columnLabel(situation), inherited);
+                })}
+              </tr>`,
+            )}
+          </tbody>
+        </table>
+      </div>
+      ${grid.emptyColumns.length > 0 && !inherited ? html`<p class="note">${t("config.presets_table.columns_after_save")}</p>` : undefined}
+      ${warnings.map((warning) => renderAlert("warning", warning, "order-warning"))} ${problems.map((problem) => renderAlert("error", problem, "field-error"))}
+      ${inherited ? html`<p><a class="touch-target" href=${link} @click=${(event: MouseEvent) => followLink(this, event, link)}>${t("config.presets_table.central_link")}</a></p>` : undefined}`;
   }
 
   protected override updated(): void {
@@ -781,7 +936,7 @@ export class NativeTabElement extends LitElement {
     ${extra.some((field) => field.key === "auto_tpi_learning_type") && typeof method === "string"
       ? html`<p class="note">${t("config.calculation_method", { method: t(method === "ema" ? "config.method.ema" : "config.method.average") })}</p>`
       : undefined}
-    ${layout.presets === true ? this.renderPresets(layout, ha) : undefined}`;
+    ${layout.presets === true ? this.renderPresets(layout) : undefined}`;
     const actions = renderCardActions(this.draft, this.language);
     if (ha && isDefined("ha-card")) {
       return html`<ha-card .header=${title}><div class="card-content">${content}</div>${actions}</ha-card>`;

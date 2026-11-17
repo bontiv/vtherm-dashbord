@@ -241,7 +241,7 @@ describe("the groups, the entities and the presets", () => {
     expect(find(unknown.root, "dd .entity-link")).toBeNull();
   });
 
-  it("shows the temperatures of the presets with the number selector and their unit", async () => {
+  it("shows the temperatures of the presets in compact cells of the table, not with the number selector, with their unit and limits", async () => {
     host.hass.setWebSocketHandler((message) => {
       if (message["type"] === "vtherm_dashboard/get_thermostats") {
         return { thermostats: [], has_central_config: true, central_config_id: "central", supported_config_version: [2, 4] };
@@ -250,10 +250,13 @@ describe("the groups, the entities and the presets", () => {
     });
     const { element, proposals } = await render("core_presets.tab.main", { ...SWITCH, use_presets_central_config: false });
     const root = element.shadowRoot as ShadowRoot;
-    await vi.waitFor(() => expect(find(root, '.field[data-key="preset:eco_temp"] ha-selector')).not.toBeNull());
-    const eco = find(root, '.field[data-key="preset:eco_temp"] ha-selector') as MockHaElement;
-    expect(eco.selector).toEqual({ number: { min: 7, max: 35, step: 0.1, mode: "box", unit_of_measurement: "°C" } });
-    eco.change(17.5);
+    await vi.waitFor(() => expect(find(root, 'td[data-key="preset:eco_temp"] input')).not.toBeNull());
+    const eco = find(root, 'td[data-key="preset:eco_temp"] input') as HTMLInputElement;
+    expect(findAll(root, ".preset-table ha-selector")).toEqual([]);
+    expect([eco.type, eco.getAttribute("min"), eco.getAttribute("max"), eco.getAttribute("step"), eco.value]).toEqual(["number", "7", "35", "0.1", "17"]);
+    expect(find(root, "td .unit")?.textContent).toBe("°C");
+    eco.value = "17.5";
+    eco.dispatchEvent(new Event("change"));
     expect(proposals).toEqual([{ "preset:eco_temp": 17.5 }]);
   });
 

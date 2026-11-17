@@ -306,8 +306,9 @@ describe("the tab presets", () => {
   it("shows the central temperatures read-only when the thermostat uses the central presets", async () => {
     withPresets([]);
     const { element } = await render("core_presets.tab.main", { ...SWITCH, use_presets_central_config: true });
-    await vi.waitFor(() => expect(findAll(element.shadowRoot as ShadowRoot, "dd")).toHaveLength(1));
-    expect(find(element.shadowRoot as ShadowRoot, "dd")?.textContent).toContain("18");
+    await vi.waitFor(() => expect(findAll(element.shadowRoot as ShadowRoot, "td:not(.empty)")).toHaveLength(1));
+    expect(findAll(element.shadowRoot as ShadowRoot, "table input")).toEqual([]);
+    expect(find(element.shadowRoot as ShadowRoot, "td:not(.empty)")?.textContent).toContain("18");
   });
 
   it("asks to save first when the thermostat has just stopped using the central presets", async () => {
