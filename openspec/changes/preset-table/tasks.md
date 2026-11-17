@@ -2,8 +2,8 @@
 
 ## 1. Modèle du tableau
 
-- [ ] 1.1 Écrire en TypeScript la fonction pure qui construit la grille des presets depuis `PresetData[]` et les valeurs du brouillon (lignes, colonnes applicables, cases « — », presets inconnus en lignes supplémentaires) ; vérifier par des tests Vitest les scénarios « Thermostat simple », « Présence et climatisation » et « Colonne activée non encore enregistrée »
-- [ ] 1.2 Écrire `presetOrderWarnings` pour les colonnes de chauffage et de climatisation ; vérifier par des tests le scénario « Éco plus chaud que confort » et l'ordre inverse en climatisation
+- [x] 1.1 Écrire en TypeScript la fonction pure qui construit la grille des presets depuis `PresetData[]` et les valeurs du brouillon (lignes, colonnes applicables, cases « — », presets inconnus en lignes supplémentaires) ; vérifier par des tests Vitest les scénarios « Thermostat simple », « Présence et climatisation » et « Colonne activée non encore enregistrée »
+- [x] 1.2 Écrire `presetOrderWarnings` pour les colonnes de chauffage et de climatisation ; vérifier par des tests le scénario « Éco plus chaud que confort » et l'ordre inverse en climatisation
 
 ## 2. Composant du tableau
 
