@@ -36,7 +36,54 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     "option.proportional_function.tpi": { en: "TPI", fr: "TPI", de: "TPI" },
   },
   core_auto_start_stop: {
+    "feature_intro.use_auto_start_stop_feature": {
+      en: "Turns the device off when the room is warm enough and on again when it needs heat, to save energy.",
+      fr: "Éteint l'appareil quand la pièce est assez chaude et le rallume quand elle a besoin de chaleur, pour économiser de l'énergie.",
+      de: "Schaltet das Gerät aus, wenn der Raum warm genug ist, und wieder ein, wenn er Wärme braucht, um Energie zu sparen.",
+    },
     "field.auto_start_stop_level": { en: "Auto start and stop level", fr: "Niveau d'allumage et d'extinction automatiques", de: "Stufe für automatisches Ein- und Ausschalten" },
+  },
+  core_window: {
+    "feature_intro.use_window_feature": {
+      en: "Turns the heating off, or lowers it, while a window is open: with a window sensor, or by detecting the fast drop of the temperature.",
+      fr: "Coupe ou réduit le chauffage pendant qu'une fenêtre est ouverte : avec un capteur d'ouverture, ou en détectant la baisse rapide de la température.",
+      de: "Schaltet die Heizung aus oder senkt sie ab, solange ein Fenster offen ist: mit einem Fenstersensor oder durch Erkennen des schnellen Temperaturabfalls.",
+    },
+  },
+  core_motion: {
+    "feature_intro.use_motion_feature": {
+      en: "Changes the preset when someone moves in the room: comfort while there is activity, eco after a while without it.",
+      fr: "Change de pré-réglage selon les mouvements dans la pièce : confort tant qu'il y a de l'activité, éco après un moment sans.",
+      de: "Wechselt die Voreinstellung je nach Bewegung im Raum: Komfort bei Aktivität, Eco nach einer Weile ohne.",
+    },
+  },
+  core_power: {
+    "feature_intro.use_power_feature": {
+      en: "Sheds the heating when the power of the home would go above its limit, so that the main switch does not trip.",
+      fr: "Déleste le chauffage quand la puissance du logement dépasserait sa limite, pour éviter que le disjoncteur ne saute.",
+      de: "Wirft die Heizung ab, wenn die Leistung des Hauses ihre Grenze überschreiten würde, damit die Hauptsicherung nicht auslöst.",
+    },
+  },
+  core_presence: {
+    "feature_intro.use_presence_feature": {
+      en: "Uses the away temperatures of the presets while nobody is at home.",
+      fr: "Utilise les températures d'absence des pré-réglages quand personne n'est à la maison.",
+      de: "Verwendet die Abwesenheitstemperaturen der Voreinstellungen, wenn niemand zu Hause ist.",
+    },
+  },
+  core_central_boiler: {
+    "feature_intro.use_central_boiler_feature": {
+      en: "Starts the central boiler when a thermostat needs heat and stops it when none does.",
+      fr: "Démarre la chaudière centrale quand un thermostat a besoin de chauffer et l'arrête quand aucun n'en a besoin.",
+      de: "Startet den zentralen Heizkessel, wenn ein Thermostat Wärme braucht, und stoppt ihn, wenn keiner sie braucht.",
+    },
+  },
+  core_heating_failure: {
+    "feature_intro.use_heating_failure_detection_feature": {
+      en: "Warns when the temperature does not rise while the thermostat heats, or rises while it does not, as a broken heater would.",
+      fr: "Prévient quand la température ne monte pas alors que le thermostat chauffe, ou monte alors qu'il ne chauffe pas, comme le ferait un radiateur en panne.",
+      de: "Warnt, wenn die Temperatur nicht steigt, obwohl das Thermostat heizt, oder steigt, obwohl es nicht heizt, wie bei einem defekten Heizkörper.",
+    },
   },
 };
 

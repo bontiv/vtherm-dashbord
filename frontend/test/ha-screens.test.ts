@@ -225,11 +225,15 @@ describe("the menus and the lists", () => {
     expect(window.location.pathname).toBe(`/vtherm/${CORE_TOP_TABS.configuration}/core.page.plugins`);
   });
 
-  it("lists the thermostats with list items of Home Assistant, and creates one with a button of Home Assistant", async () => {
+  it("shows the thermostats as cards of Home Assistant in links, and the tile New thermostat at the end", async () => {
     const { panel } = await mountPanel({ plugins: natives, path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     const list = find(root(panel), "vtherm-thermostat-list") as HTMLElement;
-    const items = findAll<HTMLElement>(list.shadowRoot as ShadowRoot, "ha-md-list-item");
-    expect(items.map((item) => item.getAttribute("href"))).toEqual([`/vtherm/${CORE_TOP_TABS.thermostats}/climate.chambre`, `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon`]);
-    expect(find(list.shadowRoot as ShadowRoot, "ha-button.create")?.getAttribute("href")).toBe(`/vtherm/${CORE_TOP_TABS.thermostats}/new`);
+    const tiles = findAll<HTMLAnchorElement>(list.shadowRoot as ShadowRoot, "a.tile");
+    expect(tiles.map((tile) => tile.getAttribute("href"))).toEqual([
+      `/vtherm/${CORE_TOP_TABS.thermostats}/climate.chambre`,
+      `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon`,
+      `/vtherm/${CORE_TOP_TABS.thermostats}/new`,
+    ]);
+    expect(tiles.every((tile) => tile.querySelector("ha-card.tile-card") !== null)).toBe(true);
   });
 });

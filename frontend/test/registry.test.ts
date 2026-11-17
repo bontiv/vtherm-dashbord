@@ -63,6 +63,14 @@ describe("the registry", () => {
     expect(() => registry.register({ id: "smartpi", translations: defineTranslations({}), contributions: { thermostat_config: [{ id: "other.tab", title: "t", component: "c" }] } })).toThrow(/contributions\.thermostat_config\[0\]\.id/);
   });
 
+  it("accepts a configuration section with a status and a feature, and refuses a status that is not a function", () => {
+    const registry = createRegistry(list(plugin("smartpi"), plugin("other")));
+    const section = { id: "smartpi.tab", title: "t", component: "c", feature: "use_smartpi_feature", status: () => ({ kind: "complete" as const }) };
+    expect(() => registry.register({ id: "smartpi", translations: defineTranslations({}), contributions: { thermostat_config: [section] } })).not.toThrow();
+    const wrong = { id: "other.tab", title: "t", component: "c", status: "complete" };
+    expect(() => registry.register({ id: "other", translations: defineTranslations({}), contributions: { thermostat_config: [wrong as never] } })).toThrow(/contributions\.thermostat_config\[0\]\.status/);
+  });
+
   it("gives the version of the dashboard to the plugins", () => {
     installRegistry(createRegistry(list(plugin("a"))));
     expect(getDashboardVersion()).toBe("0.1.0");

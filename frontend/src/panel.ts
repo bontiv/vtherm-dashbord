@@ -14,6 +14,7 @@ import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
 import "./components/contribution-host.ts";
 import { renderCardActions } from "./components/card-actions.ts";
+import type { FeatureControl } from "./components/contribution-host.ts";
 import type { CardDraft } from "./components/card-actions.ts";
 import { CREATE_CENTRAL_EVENT, NAVIGATE_EVENT, PAGE_TITLE_EVENT } from "./components/events.ts";
 import type { NavigateDetail } from "./components/events.ts";
@@ -618,6 +619,7 @@ export class VThermDashboardPanel extends LitElement {
       ...(draft.dirty ? [{ type: "info" as const, text: t("draft.unsaved") }] : []),
       ...draft.generalErrors().map((error) => ({ type: "error" as const, text: translateErrorCode(shell, error.code) })),
       ...(this.saveNotice?.entryId === entryId ? [this.saveNotice.message] : []),
+      ...this.goToRefused(),
     ];
     return {
       dirty: draft.dirty,
@@ -807,8 +809,46 @@ export class VThermDashboardPanel extends LitElement {
       thermostats: this.thermostats,
       translate: (entry, key) => registry.translate(entry.pluginId, key),
       contextOf: this.contextOf,
+      refused: (entry) => this.isRefused(entry, route),
+      onStatusError: this.onStatusError,
     };
   }
+
+  /** After a refused save, the message that opens the first other section that the save refused, in the order of the menu. */
+  private goToRefused(): DraftMessage[] {
+    if (this.loaded === undefined) {
+      return [];
+    }
+    const refused = this.navigationModel(this.currentRoute)
+      .sections.flatMap((section) => section.items)
+      .find((item) => item.status?.kind === "refused" && !item.active);
+    if (refused === undefined) {
+      return [];
+    }
+    return [
+      {
+        type: "error",
+        text: t("draft.refused_section", { title: refused.title }),
+        action: { label: t("draft.go_to", { title: refused.title }), run: () => this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: refused.path } })) },
+      },
+    ];
+  }
+
+  /** Whether the last save of the configuration of the route refused a value of the tab of a native section. */
+  private isRefused(entry: PlacedEntry, route: Route): boolean {
+    const tab = definitionOfContribution(entry.id)?.definition.tab;
+    return tab !== undefined && this.session?.get(this.entryOf(route))?.draft.refusedTabs().has(tab) === true;
+  }
+
+  /** The sections whose status function failed, reported once each. */
+  private readonly statusErrors = new Set<string>();
+
+  private readonly onStatusError = (entry: PlacedEntry, error: unknown): void => {
+    if (!this.statusErrors.has(entry.id)) {
+      this.statusErrors.add(entry.id);
+      console.warn(`The status of the section ${entry.id} of the plugin ${entry.pluginId} failed, so the menu shows no status for it:`, error);
+    }
+  };
 
   private navigationModel(route: Route): NavigationModel {
     return resolveNavigation(this.navigationInput(route));
@@ -919,9 +959,29 @@ export class VThermDashboardPanel extends LitElement {
         .tag=${(entry.contribution as { component: string }).component}
         .contributionId=${entry.id}
         .props=${this.propsOf(entry, model.thermostat)}
+        .feature=${isConfig ? this.featureOf(entry, entryId, model.current.title) : undefined}
         .language=${String(this.languageVersion)}
       ></vtherm-contribution>
       ${isConfig ? this.renderActionsCard(entry, entryId) : undefined}`;
+  }
+
+  /**
+   * The switch of the feature of a configuration section, when it declares one. It changes the value in the tab "features" of the draft,
+   * where the flow of Versatile Thermostat keeps it, as the native tab Features does.
+   */
+  private featureOf(entry: PlacedEntry, entryId: string | null, title: string): FeatureControl | undefined {
+    const key = (entry.contribution as { feature?: unknown }).feature;
+    const draft = this.session?.get(entryId)?.draft;
+    if (typeof key !== "string" || draft === undefined) {
+      return undefined;
+    }
+    const registry = (this.loaded as BootstrapResult).registry;
+    return {
+      title,
+      intro: registry.translate(entry.pluginId, `feature_intro.${key}`),
+      on: draft.values()[key] === true,
+      toggle: (on) => draft.propose("features", { [key]: on }),
+    };
   }
 
   private renderMenu(model: NavigationModel): TemplateResult {

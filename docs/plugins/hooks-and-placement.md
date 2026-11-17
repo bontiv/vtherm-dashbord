@@ -56,6 +56,58 @@ before the gear. A position is resolved inside the zone of the tab; a target in 
 An entry of a menu can have a `group`, a key of your catalogs. The menu shows the group as a heading above each run of consecutive
 entries of the same group. Two entries of one group that another group separates get a heading each. Entries without a group have no heading.
 
+### Status of a configuration section
+Each entry of `thermostat_config` and `general_config` shows a status at the right of its title, in the menu and in the drawer of a
+phone. When several apply, the first of this list is shown:
+
+| Status | Shown as | Who knows it |
+| --- | --- | --- |
+| Refused | `Error` | The dashboard: the last save refused a value of the section. It goes away when the refused value changes or a save succeeds. |
+| Off | `Off`, and the entry in retreat | The dashboard: the contribution declares a `feature` whose value is false. |
+| Incomplete | `N missing` | The contribution: `status` returns `{ kind: "incomplete", missing: N }`. |
+| Inherited | `Central` | The contribution: `status` returns `{ kind: "inherited" }`. |
+| Complete | a check mark | The contribution: `status` returns `{ kind: "complete" }`. |
+
+- `status` is a pure function of the context that the visibility condition receives. It is called at each drawing of the menu, so it
+  must be quick. It returns `undefined` when the section has nothing to say. A function that raises, or returns another value, shows no
+  status, and the development mode reports the problem.
+- `feature` is the key of the boolean value that turns the feature of the section on. While it is false, the section stays in the menu,
+  and its page shows the explanation `feature_intro.<feature>` of your catalog with a switch drawn by the dashboard, instead of your
+  component. The switch changes the value in the draft, as the native tab "features" does.
+- Without `status` nor `feature`, the entry only shows `Error` after a refused save.
+- In a test, `host.status(entry, context)` of the fake host gives the status as the menu reads it (see [Testing](testing.md)).
+
+<!-- example: docs/examples/typescript/section-status.ts -->
+```typescript
+import { defineTranslations } from "@vtherm/dashboard-sdk";
+import type { SectionStatus, UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";
+
+/** The values that the section needs before the thermostat can use it. */
+const REQUIRED = ["my_plugin_sensor", "my_plugin_target"];
+
+/**
+ * The status of the section in the menu: the dashboard shows `Off` while `use_my_plugin` is false and `Error` after a refused save; the
+ * section says the rest. The function is pure and quick: it is called at each drawing of the menu.
+ */
+export function myPluginStatus(context: VisibilityContext<"thermostat_config">): SectionStatus {
+  const missing = REQUIRED.filter((key) => context.values[key] === undefined || context.values[key] === null || context.values[key] === "").length;
+  return missing > 0 ? { kind: "incomplete", missing } : { kind: "complete" };
+}
+
+export const definition: UiPluginDefinition = {
+  id: "my_plugin",
+  translations: defineTranslations({
+    "tab.title": "My plugin",
+    // Shown with the switch of the dashboard while the feature is off.
+    "feature_intro.use_my_plugin": "My plugin adapts the setpoint to the forecast. Turn it on to set it up.",
+  }),
+  contributions: {
+    thermostat_config: [{ id: "my_plugin.tab", title: "tab.title", component: "my-plugin-tab", feature: "use_my_plugin", status: myPluginStatus }],
+  },
+};
+```
+<!-- /example -->
+
 ## Placements
 
 `placement` says where the contribution goes in its list. It has exactly one of these forms, and a numeric order does not exist.

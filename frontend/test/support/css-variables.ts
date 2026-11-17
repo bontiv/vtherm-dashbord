@@ -13,11 +13,19 @@ export function styles(source: string): string {
   return [...source.matchAll(/css`([\s\S]*?)`/g)].map((match) => match[1] ?? "").join("\n");
 }
 
+let sources: readonly { readonly file: string; readonly css: string }[] | undefined;
+
+/** The CSS of each source file of the frontend, read once: reading every file is slow, and several tests need it. */
+export function sourceStyles(): readonly { readonly file: string; readonly css: string }[] {
+  sources ??= files(SOURCES).map((file) => ({ file, css: styles(readFileSync(file, "utf8")) }));
+  return sources;
+}
+
 /** The custom properties of Home Assistant that the components use. */
 export function usedVariables(): string[] {
   const used = new Set<string>();
-  for (const file of files(SOURCES)) {
-    for (const match of styles(readFileSync(file, "utf8")).matchAll(/var\((--[a-z0-9_-]+)/g)) {
+  for (const { css } of sourceStyles()) {
+    for (const match of css.matchAll(/var\((--[a-z0-9_-]+)/g)) {
       used.add(match[1] as string);
     }
   }

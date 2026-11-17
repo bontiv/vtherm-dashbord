@@ -24,6 +24,7 @@ export const en = {
   "help.temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
   "field.use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
   "help.use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+  "feature_intro.use_heating_failure_detection_feature": "Warns when the temperature does not rise while the thermostat heats, or rises while it does not, as a broken heater would.",
 } as const;
 
 /** The French catalog. */
@@ -43,6 +44,7 @@ export const fr = {
   "help.temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
   "field.use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
   "help.use_heating_failure_detection_central_config": "Cochez pour utiliser la configuration centrale de détection de panne. Décochez pour utiliser des paramètres spécifiques à ce VTherm",
+  "feature_intro.use_heating_failure_detection_feature": "Prévient quand la température ne monte pas alors que le thermostat chauffe, ou monte alors qu'il ne chauffe pas, comme le ferait un radiateur en panne.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -62,4 +64,5 @@ export const de = {
   "help.temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
   "field.use_heating_failure_detection_central_config": "Zentrale Konfiguration der Fehlererkennung verwenden",
   "help.use_heating_failure_detection_central_config": "Bei aktivierter Option wird zentrale Konfiguration für die Fehlererkennung verwendet. Deaktivieren, um spezifische Einstellungen für diesen VTherm zu verwenden.",
+  "feature_intro.use_heating_failure_detection_feature": "Warnt, wenn die Temperatur nicht steigt, obwohl das Thermostat heizt, oder steigt, obwohl es nicht heizt, wie bei einem defekten Heizkörper.",
 } satisfies CompleteCatalog<typeof en>;

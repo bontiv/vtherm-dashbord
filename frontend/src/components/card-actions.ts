@@ -12,7 +12,7 @@ import type { TemplateResult } from "lit";
 
 import { t } from "../shell-translations.ts";
 import { defineElement } from "./define.ts";
-import { isDefined, renderAlert } from "./ha.ts";
+import { isDefined, renderAlert, renderButton } from "./ha.ts";
 import { NARROW_QUERY, TOUCH_TARGET, narrowStyles } from "./narrow-styles.ts";
 
 /** The icon of Home Assistant for "discard" (mdiRestore), copied to avoid a dependency on @mdi/js. */
@@ -183,7 +183,15 @@ export class VThermCardActions extends LitElement {
       return undefined;
     }
     return html`<div class="messages">
-      ${draft.messages.map((message) => (message.type === "info" ? html`<div class="unsaved">${message.text}</div>` : renderAlert(message.type, message.text, "message")))} ${result}
+      ${draft.messages.map((message) => {
+        if (message.type === "info") {
+          return html`<div class="unsaved">${message.text}</div>`;
+        }
+        const action = message.action;
+        const content = action === undefined ? message.text : html`${message.text} ${renderButton(action.label, () => action.run(), { className: "message-action", plain: true })}`;
+        return renderAlert(message.type, content, "message");
+      })}
+      ${result}
     </div>`;
   }
 

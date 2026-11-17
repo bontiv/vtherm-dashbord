@@ -26,7 +26,12 @@ The tab you are in is underlined.
 
 ## The list of the thermostats
 
-The Thermostats tab groups your thermostats by area, the rooms of Home Assistant. Each area has a heading with its icon and its name,
+The Thermostats tab shows each thermostat as a tile, live: the icon of its type, its name, the temperature of the room and the
+setpoint (`19.5 °C → 21 °C`), what it does now (heating, cooling, idle or off, with a dot of the color of the action) and its preset.
+When its climate entity is unavailable, the tile says so and still opens the thermostat. The last tile, **New thermostat**, opens the
+creation of a thermostat. The tiles wrap to the width of the screen: one column on a phone.
+
+The tiles are grouped by area, the rooms of Home Assistant. Each area has a heading with its icon and its name,
 and the floor it is on when your home has floors. The areas are ordered by floor, then by name, and the thermostats of an area by name.
 
 A thermostat is in the area of its device. If you gave its climate entity an area of its own in Home Assistant, that area wins, as
@@ -48,6 +53,25 @@ the full width.
 In the Thermostats tab, the menu starts with a selector of thermostat, then the overview of the thermostat, then its pages. The
 selector orders the thermostats as the list does, and names each one with its area, for example `Living room · Sofa`.
 When you choose another thermostat, the page you are on stays open if the new thermostat has it. Otherwise its overview opens.
+
+Each section of the configuration of a thermostat, and of the central configuration, shows its status at the right of its title, in
+the menu and in the drawer of a phone, as soon as you change a value, before you save:
+
+| Status | Meaning |
+| --- | --- |
+| a check mark | Nothing required is missing. |
+| `Central` | The section uses the central configuration. |
+| `N missing` | N required values have no value. |
+| `Off` | The feature of the section is off. The entry is in retreat. |
+| `Error` | The last save refused a value of the section. It goes away when you change the refused value, or when a save succeeds. |
+
+When several apply, the first of `Error`, `Off`, `N missing`, `Central`, the check mark is shown. A screen reader says the status after
+the title, for example "Window detection, off".
+
+The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, heating failure
+detection) stay in the menu, so that you can find them. Open one: it explains the feature and has a switch to turn it on. Turning it on
+shows its fields and changes the same value as the section Features; save to keep it. A feature that does not exist for the type of the
+thermostat, such as the auto start and stop of a thermostat over a switch, is not in the menu.
 
 Under the tabs, the breadcrumb shows where you are, for example `Thermostats > Salon > TPI`. Click a part of it to go back to that level.
 

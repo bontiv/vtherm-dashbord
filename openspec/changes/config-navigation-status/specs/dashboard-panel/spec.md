@@ -20,7 +20,15 @@ Un onglet supérieur qui a des entrées SHALL afficher à gauche un menu constru
 ## ADDED Requirements
 
 ### Requirement: Tuiles des thermostats
-La liste de l'onglet Thermostats SHALL présenter chaque thermostat par une tuile qui montre son nom, l'icône de son type, la température de la pièce et la consigne, l'action en cours (chauffe, refroidissement, repos, arrêt) et le preset actif, lus en direct dans l'état de son entité climate. Une tuile « Nouveau thermostat » SHALL ouvrir l'assistant de création. Les tuiles SHALL passer à la ligne selon la largeur disponible.
+La liste de l'onglet Thermostats SHALL présenter chaque thermostat par une tuile qui montre son nom, l'icône de son type, la température de la pièce et la consigne, l'action en cours (chauffe, refroidissement, repos, arrêt) et le preset actif, lus en direct dans l'état de son entité climate. Une tuile « Nouveau thermostat » SHALL ouvrir la page de création. Les tuiles SHALL passer à la ligne selon la largeur disponible.
+
+#### Scenario: Tuiles par pièce
+- **WHEN** la liste est regroupée par pièce
+- **THEN** chaque groupe de pièce présente ses thermostats en tuiles, et le choix « Par nom » présente toutes les tuiles triées par nom
+
+#### Scenario: Nouveau thermostat
+- **WHEN** l'administrateur choisit la tuile « Nouveau thermostat », en fin de liste
+- **THEN** la page de création d'un thermostat s'ouvre
 
 #### Scenario: État en direct
 - **WHEN** la température de la pièce d'un thermostat change dans Home Assistant

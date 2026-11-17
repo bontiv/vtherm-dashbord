@@ -268,3 +268,57 @@ describe("the creation of the central configuration", () => {
     expect(model.breadcrumb.map((crumb) => crumb.label)).toEqual(["Configuration", "core.general.main"]);
   });
 });
+
+describe("the status of the configuration sections", () => {
+  const SALON = route(THERMOSTATS, "climate.salon");
+  /** A plugin whose sections declare their status and their feature, read from the values that the test gives. */
+  const sections = plugin("smartpi", {
+    thermostat_config: [
+      page("smartpi.tab.main", { status: (context: VisibilityContext<"thermostat_config">) => context.values["status"] }),
+      page("smartpi.tab.window", { feature: "use_window_feature", status: () => ({ kind: "complete" }) }),
+      page("smartpi.tab.broken", {
+        status: () => {
+          throw new Error("broken");
+        },
+      }),
+      page("smartpi.tab.silent"),
+    ],
+  });
+  const model = (values: Record<string, unknown>, extra: Partial<NavigationInput> = {}) =>
+    resolveNavigation(
+      input(SALON, { contextOf: (_entry, thermostat) => ({ hass: {}, thermostatId: thermostat?.id ?? "", thermostatType: "over_switch", values, centralValues: {} }) as never, ...extra }, sections),
+    );
+  const statusOf = (navigation: ReturnType<typeof resolveNavigation>, id: string) => navigation.sections.flatMap((section) => section.items).find((item) => item.id === id)?.status;
+
+  it("shows the status that a section declares: complete, inherited or incomplete with the number of missing values", () => {
+    expect(statusOf(model({ status: { kind: "complete" } }), "smartpi.tab.main")).toEqual({ kind: "complete" });
+    expect(statusOf(model({ status: { kind: "inherited" } }), "smartpi.tab.main")).toEqual({ kind: "inherited" });
+    expect(statusOf(model({ status: { kind: "incomplete", missing: 1 } }), "smartpi.tab.main")).toEqual({ kind: "incomplete", missing: 1 });
+  });
+
+  it("shows a section whose feature is off as off, before what it declares", () => {
+    expect(statusOf(model({}), "smartpi.tab.window")).toEqual({ kind: "off" });
+    expect(statusOf(model({ use_window_feature: true }), "smartpi.tab.window")).toEqual({ kind: "complete" });
+  });
+
+  it("shows a refused section as refused, before off and before inherited", () => {
+    const refused = { refused: (entry: PlacedEntry) => entry.id !== "smartpi.tab.silent" };
+    expect(statusOf(model({ status: { kind: "inherited" } }, refused), "smartpi.tab.main")).toEqual({ kind: "refused" });
+    expect(statusOf(model({}, refused), "smartpi.tab.window")).toEqual({ kind: "refused" });
+  });
+
+  it("shows no status for a section that says nothing, and refused only after a refused save", () => {
+    expect(statusOf(model({}), "smartpi.tab.silent")).toBeUndefined();
+    expect(statusOf(model({}, { refused: () => true }), "smartpi.tab.silent")).toEqual({ kind: "refused" });
+  });
+
+  it("shows no status when the function of a section raises, and reports it", () => {
+    const errors: string[] = [];
+    expect(statusOf(model({}, { onStatusError: (entry) => errors.push(entry.id) }), "smartpi.tab.broken")).toBeUndefined();
+    expect(errors).toEqual(["smartpi.tab.broken"]);
+  });
+
+  it("gives no status to an entry that is not a configuration section", () => {
+    expect(statusOf(resolveNavigation(input(route(DASHBOARD))), "core.page.overview")).toBeUndefined();
+  });
+});

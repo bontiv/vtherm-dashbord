@@ -158,6 +158,23 @@ describe("fields of the hooks", () => {
     ]);
   });
 
+  it("accepts a status function and a feature key on the configuration contributions", () => {
+    const contributions = { thermostat_config: [{ ...tab, status: () => ({ kind: "complete" }), feature: "use_smartpi_feature" }] };
+    expect(issuesOf({ id: "smartpi", translations, contributions })).toEqual([]);
+  });
+
+  it("refuses a status that is not a function and a feature that is not a key", () => {
+    expect(paths({ id: "smartpi", translations, contributions: { thermostat_config: [{ ...tab, status: "complete", feature: "" }] } })).toEqual([
+      "contributions.thermostat_config[0].status",
+      "contributions.thermostat_config[0].feature",
+    ]);
+  });
+
+  it("refuses a status and a feature on a hook that is not a configuration", () => {
+    const page = { id: "smartpi.page", title: "t", component: "smartpi-page", status: () => undefined, feature: "use_x" };
+    expect(paths({ id: "smartpi", translations, contributions: { global_page: [page] } })).toEqual(["contributions.global_page[0].status", "contributions.global_page[0].feature"]);
+  });
+
   it("accepts only start and end as zone", () => {
     expect(paths({ id: "smartpi", translations, contributions: { top_tab: [{ id: "smartpi.x", title: "t", zone: "middle" }] } })).toEqual(["contributions.top_tab[0].zone"]);
   });

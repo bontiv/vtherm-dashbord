@@ -94,6 +94,7 @@ export function toThermostatInfo(entry: ThermostatEntry): ThermostatInfo {
     name: entry.name,
     type: entry.type,
     deviceId: entry.device_id ?? null,
+    climateEntityId: entry.climate_entity_id ?? null,
     areaId: entry.area_id ?? null,
     areaName: entry.area_name ?? null,
     floorName: entry.floor_name ?? null,

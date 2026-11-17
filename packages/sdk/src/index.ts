@@ -52,4 +52,5 @@ export type {
   TimeField,
 } from "./fields.js";
 export { HA_CONTROLS, HA_SPINNERS, ensureHaControls, haControlsStatus } from "./ha-controls.js";
+export { isSectionStatus, sectionStatusOf } from "./status.js";
 export type { ElementRegistry, HaControl, HaControlsOptions, HaControlsResult } from "./ha-controls.js";

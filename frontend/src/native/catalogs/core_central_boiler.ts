@@ -20,6 +20,7 @@ export const en = {
   "help.central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
   "field.keep_alive_boiler_delay_sec": "Keep-alive delay (seconds)",
   "help.keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive.",
+  "feature_intro.use_central_boiler_feature": "Starts the central boiler when a thermostat needs heat and stops it when none does.",
 } as const;
 
 /** The French catalog. */
@@ -35,6 +36,7 @@ export const fr = {
   "help.central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
   "field.keep_alive_boiler_delay_sec": "Délai du maintien actif (en secondes)",
   "help.keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver.",
+  "feature_intro.use_central_boiler_feature": "Démarre la chaudière centrale quand un thermostat a besoin de chauffer et l'arrête quand aucun n'en a besoin.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -50,4 +52,5 @@ export const de = {
   "help.central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]",
   "field.keep_alive_boiler_delay_sec": "Verzögerung für Keep-Alive (Sekunden)",
   "help.keep_alive_boiler_delay_sec": "Verzögerung in Sekunden zum Weiterleiten des Kesselbefehls, wenn Keep-Alive aktiviert ist. Setzen Sie auf 0, um Keep-Alive zu deaktivieren.",
+  "feature_intro.use_central_boiler_feature": "Startet den zentralen Heizkessel, wenn ein Thermostat Wärme braucht, und stoppt ihn, wenn keiner sie braucht.",
 } satisfies CompleteCatalog<typeof en>;

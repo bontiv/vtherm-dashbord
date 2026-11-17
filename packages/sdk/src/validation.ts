@@ -109,6 +109,15 @@ function checkSaveActions(hook: HookName, value: unknown, path: string, issues: 
   }
 }
 
+/** Check a field that only the configuration contributions accept: on another hook it is refused, otherwise `problem` is reported. */
+function checkConfigField(hook: HookName, name: string, path: string, issues: ValidationIssue[], problem: string | undefined): void {
+  if (!CONFIG_HOOKS.includes(hook)) {
+    issues.push({ path: `${path}.${name}`, message: `'${name}' is only accepted by the contributions of ${CONFIG_HOOKS.join(" and ")}` });
+  } else if (problem !== undefined) {
+    issues.push({ path: `${path}.${name}`, message: problem });
+  }
+}
+
 function checkContribution(pluginId: string, hook: HookName, contribution: unknown, path: string, issues: ValidationIssue[]): string | undefined {
   if (!isRecord(contribution)) {
     issues.push({ path, message: "A contribution must be an object" });
@@ -156,6 +165,12 @@ function checkContribution(pluginId: string, hook: HookName, contribution: unkno
     }
     if ("save_actions" in contribution) {
       checkSaveActions(hook, contribution["save_actions"], `${path}.save_actions`, issues);
+    }
+    if ("status" in contribution) {
+      checkConfigField(hook, "status", path, issues, typeof contribution["status"] === "function" ? undefined : "'status' must be a function");
+    }
+    if ("feature" in contribution) {
+      checkConfigField(hook, "feature", path, issues, isText(contribution["feature"]) ? undefined : "'feature' must be a non-empty string: the key of the value that turns the feature on");
     }
     checkOptionalText(contribution, "icon", path, issues);
     checkOptionalText(contribution, "group", path, issues);

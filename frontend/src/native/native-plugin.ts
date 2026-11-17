@@ -5,11 +5,13 @@
  * with placements: each tab goes after the tab that comes before it in the menu, which belongs to a plugin that is loaded before.
  */
 
-import type { AnyTranslations, Contribution, VisibilityContext } from "@vtherm/dashboard-sdk";
+import type { AnyTranslations, ConfigValues, Contribution, SectionStatus, VisibilityContext } from "@vtherm/dashboard-sdk";
 
 import { defineNativeTab } from "./native-tab.ts";
-import { CENTRAL_TYPE, TAB_DEFINITIONS, centralContributionId, thermostatContributionId } from "./tab-definitions.ts";
-import type { TabDefinition } from "./tab-definitions.ts";
+import { isFieldShown, missingRequired } from "./fields.ts";
+import { fieldsOf } from "./schemas.ts";
+import { CENTRAL_TYPE, TAB_DEFINITIONS, centralContributionId, isAvailable, thermostatContributionId } from "./tab-definitions.ts";
+import type { ConfigKind, TabDefinition } from "./tab-definitions.ts";
 
 /** The first entry of the menu of a thermostat, which the native tabs follow. */
 export const THERMOSTAT_OVERVIEW_ID = "core.page.thermostat_overview";
@@ -26,6 +28,32 @@ function previous(definition: TabDefinition, kind: "thermostat" | "central"): Ta
   return TAB_DEFINITIONS.slice(0, index)
     .reverse()
     .find((candidate) => (kind === "thermostat" ? candidate.thermostat : candidate.central) !== undefined);
+}
+
+/**
+ * The status of a native tab in the menu, as its page shows it: `incomplete` when required fields that the tab shows have no value,
+ * `inherited` when the tab uses the central configuration, otherwise `complete`.
+ *
+ * @param definition - The tab.
+ * @param kind - A thermostat or the central configuration.
+ */
+export function nativeStatus(definition: TabDefinition, kind: ConfigKind): (context: { readonly values: ConfigValues; readonly centralValues?: ConfigValues }) => SectionStatus {
+  return (context) => {
+    const values = context.values;
+    const layout = (kind === "thermostat" ? definition.thermostat : definition.central)?.(values);
+    if (layout === undefined) {
+      return { kind: "complete" };
+    }
+    // As the page of the tab: the inheritance applies once a central configuration exists, until the option is turned off.
+    const hasCentral = kind === "thermostat" && Object.keys(context.centralValues ?? {}).length > 0;
+    const inherited = layout.inherit !== undefined && hasCentral && values[layout.inherit] !== false;
+    const fields = [...layout.base, ...(inherited ? [] : [...(layout.specific ?? []), ...(layout.extra ?? [])])].flatMap((name) => fieldsOf(name)).filter((field) => isFieldShown(field, values));
+    const missing = missingRequired(fields, values).length;
+    if (missing > 0) {
+      return { kind: "incomplete", missing };
+    }
+    return inherited ? { kind: "inherited" } : { kind: "complete" };
+  };
 }
 
 /**
@@ -49,7 +77,10 @@ export function nativeTabContributions(plugin: string, translations: AnyTranslat
         // The tab draws the save actions at the foot of its own card.
         save_actions: "component",
         placement: { after: before === undefined ? THERMOSTAT_OVERVIEW_ID : thermostatContributionId(before) },
-        visible: (context: VisibilityContext<"thermostat_config">) => definition.applies(context.values, "thermostat"),
+        status: nativeStatus(definition, "thermostat"),
+        ...(definition.feature === undefined ? {} : { feature: definition.feature }),
+        // A tab of a feature stays in the menu while the feature is off: its page offers to turn it on.
+        visible: (context: VisibilityContext<"thermostat_config">) => isAvailable(definition, context.values, "thermostat"),
       });
     }
     if (definition.central !== undefined) {
@@ -64,7 +95,9 @@ export function nativeTabContributions(plugin: string, translations: AnyTranslat
         save_actions: "component",
         placement: before === undefined ? { before: PLUGINS_PAGE_ID } : { after: centralContributionId(before) },
         // The sections of the general configuration exist once the central configuration exists.
-        visible: (context: VisibilityContext<"general_config">) => context.values["thermostat_type"] === CENTRAL_TYPE && definition.applies(context.values, "central"),
+        status: nativeStatus(definition, "central"),
+        ...(definition.feature === undefined ? {} : { feature: definition.feature }),
+        visible: (context: VisibilityContext<"general_config">) => context.values["thermostat_type"] === CENTRAL_TYPE && isAvailable(definition, context.values, "central"),
       });
     }
   }

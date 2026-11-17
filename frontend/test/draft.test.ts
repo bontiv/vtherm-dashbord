@@ -123,6 +123,45 @@ describe("saving a draft", () => {
     expect(draft.errorsOf("presets")).toEqual({ eco_temp: "out_of_range" });
   });
 
+  it("tells the tabs that the last save refused, and the presets on their tab", async () => {
+    const draft = new ConfigDraft("e", saved, { eco_temp: 17 });
+    draft.propose("main", { cycle_min: 8 });
+    await draft.save(
+      api({
+        ok: false,
+        config_saved: false,
+        errors: [
+          { tab: "tpi", field: "tpi_coef_int", code: "invalid_value" },
+          { tab: null, field: "base", code: "configuration_not_complete" },
+        ],
+        preset_errors: [{ tab: "presets", field: "eco_temp", code: "out_of_range" }],
+      }),
+    );
+    expect([...draft.refusedTabs()].sort()).toEqual(["presets", "tpi"]);
+  });
+
+  it("forgets the error of a refused field when the field changes, and keeps the tab refused while another refused field is not changed", async () => {
+    const draft = new ConfigDraft("e", saved, { eco_temp: 17 });
+    draft.propose("tpi", { tpi_coef_int: 9 });
+    await draft.save(
+      api({
+        ok: false,
+        config_saved: false,
+        errors: [
+          { tab: "tpi", field: "tpi_coef_int", code: "invalid_value" },
+          { tab: "tpi", field: "tpi_coef_ext", code: "invalid_value" },
+        ],
+        preset_errors: [{ tab: "presets", field: "eco_temp", code: "out_of_range" }],
+      }),
+    );
+    draft.propose("tpi", { tpi_coef_int: 0.6 });
+    expect(draft.errorsOf("tpi")).toEqual({ tpi_coef_ext: "invalid_value" });
+    expect(draft.refusedTabs().has("tpi")).toBe(true);
+    draft.propose("tpi", { tpi_coef_ext: 0.01 });
+    draft.propose("presets", { "preset:eco_temp": 18 });
+    expect(draft.refusedTabs().size).toBe(0);
+  });
+
   it("clears the errors of the previous save", async () => {
     const draft = new ConfigDraft("e", saved);
     draft.propose("main", { cycle_min: 8 });

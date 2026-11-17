@@ -13,7 +13,8 @@ import type { EngineIssue, PlacedEntry, PlacementEngine, PluginRelations } from 
 import { unwrapCatalog } from "./translations.js";
 import type { AnyTranslations, Catalog } from "./translations.js";
 import type { UiPluginRegistry } from "./registry.js";
-import type { ComponentHookName, Hass, HookName, HookProps, UiPluginDefinition, VisibilityContext } from "./types.js";
+import { sectionStatusOf } from "./status.js";
+import type { ComponentHookName, Hass, HookName, HookProps, SectionStatus, UiPluginDefinition, VisibilityContext } from "./types.js";
 import { assertValidDefinition } from "./validation.js";
 
 /** A service that a component called on the fake `hass`. */
@@ -126,6 +127,13 @@ export interface FakeHost extends UiPluginRegistry {
   /** Keep the entries that are visible for a context. A condition that raises hides the entry and records an issue. */
   visible<H extends HookName>(entries: readonly PlacedEntry[], context: VisibilityContext<H>): PlacedEntry[];
   /**
+   * The status that a configuration section declares for a context, as the menu of the dashboard reads it. A function that raises or
+   * returns a value that is not a status gives `undefined`, and the problem is in `statusErrors`.
+   */
+  status<H extends "general_config" | "thermostat_config">(entry: PlacedEntry, context: VisibilityContext<H>): SectionStatus | undefined;
+  /** The problems of the status functions, since the start: what the development mode of the dashboard reports. */
+  statusErrors(): readonly unknown[];
+  /**
    * Show the component of a contribution with properties, in the document.
    *
    * @param entry - The contribution, from `resolved`.
@@ -147,6 +155,7 @@ export function createFakeHost(options: FakeHostOptions = {}): FakeHost {
   const engine: PlacementEngine = createPlacementEngine();
   const hass = createFakeHass();
   const registered = new Set<string>();
+  const statusErrors: unknown[] = [];
 
   const menuOf = (hook: HookName): string | undefined =>
     hook === "global_page" ? CORE_TOP_TABS.dashboard : hook === "general_config" ? CORE_TOP_TABS.configuration : hook === "thermostat_config" ? CORE_TOP_TABS.thermostats : undefined;
@@ -189,6 +198,8 @@ export function createFakeHost(options: FakeHostOptions = {}): FakeHost {
     },
     menu: (tabId) => engine.menu(tabId),
     visible: (entries, context) => engine.visible(entries, () => context),
+    status: (entry, context) => sectionStatusOf(entry, context, (error) => statusErrors.push(error)),
+    statusErrors: () => [...statusErrors],
     async render(entry, props) {
       const tag = (entry.contribution as { component?: string }).component;
       if (tag === undefined) {

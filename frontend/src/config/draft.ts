@@ -14,6 +14,9 @@ import type { ConfigApi, SaveError, SaveResponse, TabChanges } from "./api.ts";
 /** The prefix of a key that changes a preset temperature, in the changes that a component proposes: `preset:eco_temp`. */
 export const PRESET_PREFIX = "preset:";
 
+/** The tab of the errors of the preset temperatures, whose field is the name of the preset. */
+const PRESETS_TAB = "presets";
+
 /** Compare two values of a configuration, lists and objects included. */
 export function sameValue(first: unknown, second: unknown): boolean {
   if (first === second) {
@@ -122,6 +125,7 @@ export class ConfigDraft {
   /**
    * Change values of a tab. A value that equals the saved one is no longer a change.
    * A key that starts with `preset:` changes the temperature of a preset.
+   * The error of a refused field goes away when the field changes: the new value is not known to be refused.
    *
    * @param tab - The tab of the flow that holds the values.
    * @param values - The new values, by key.
@@ -130,6 +134,7 @@ export class ConfigDraft {
     for (const [key, value] of Object.entries(values)) {
       if (key.startsWith(PRESET_PREFIX)) {
         const preset = key.slice(PRESET_PREFIX.length);
+        this.forgetError(PRESETS_TAB, preset);
         if (typeof value === "number" && !sameValue(value, this.savedPresets[preset])) {
           this.presetChanges.set(preset, value);
         } else {
@@ -137,6 +142,7 @@ export class ConfigDraft {
         }
         continue;
       }
+      this.forgetError(tab, key);
       const tabChanges = this.changes.get(tab) ?? new Map<string, unknown>();
       if (sameValue(value, this.saved[key])) {
         tabChanges.delete(key);
@@ -150,6 +156,15 @@ export class ConfigDraft {
       }
     }
     this.notify();
+  }
+
+  private forgetError(tab: string, field: string): void {
+    this.errors = this.errors.filter((error) => error.tab !== tab || error.field !== field);
+  }
+
+  /** The tabs that the last save refused, while one of their refused values was not changed. The errors of the presets are on `presets`. */
+  refusedTabs(): ReadonlySet<string> {
+    return new Set(this.errors.flatMap((error) => (error.tab === null ? [] : [error.tab])));
   }
 
   /** Forget the changes: the fields show the saved values again. */

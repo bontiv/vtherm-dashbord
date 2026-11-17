@@ -11,7 +11,7 @@ An entry of the menu of a thermostat, in particular a configuration section.
 - `ContributionBase`\<`"thermostat_config"`\>
 - `MenuEntryFields`
 - `ComponentFields`
-- `ConfigFields`
+- `ConfigFields`\<`"thermostat_config"`\>
 
 ## Properties
 
@@ -24,6 +24,20 @@ The tag name of the custom element that the plugin defines, for example `smartpi
 #### Inherited from
 
 `ComponentFields.component`
+
+***
+
+### feature?
+
+> `readonly` `optional` **feature?**: `string`
+
+The key of the boolean value that turns the feature of the section on, for example `use_window_feature`. While it is off, the
+section stays in the menu with the status `off`, and its page shows an explanation and a switch drawn by the dashboard instead of
+the component. The explanation is the key `feature_intro.<feature>` of the catalog of the plugin.
+
+#### Inherited from
+
+`ConfigFields.feature`
 
 ***
 
@@ -97,6 +111,30 @@ from `draft`, `dashboard` (default) when the dashboard draws them in a card unde
 #### Inherited from
 
 `ConfigFields.save_actions`
+
+***
+
+### status?
+
+> `readonly` `optional` **status?**: (`context`) => [`SectionStatus`](../type-aliases/SectionStatus.md) \| `undefined`
+
+The status of the section, shown in the menu. A pure function of the context, called at each drawing of the menu: it must be quick
+and must not change anything. `undefined` shows no status. A function that raises or returns another value shows no status, and the
+development mode reports it.
+
+#### Parameters
+
+##### context
+
+[`ThermostatVisibilityContext`](ThermostatVisibilityContext.md)
+
+#### Returns
+
+[`SectionStatus`](../type-aliases/SectionStatus.md) \| `undefined`
+
+#### Inherited from
+
+`ConfigFields.status`
 
 ***
 

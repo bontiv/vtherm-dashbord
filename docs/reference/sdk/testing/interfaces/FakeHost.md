@@ -184,6 +184,47 @@ readonly [`PlacedEntry`](../../index/interfaces/PlacedEntry.md)[]
 
 ***
 
+### status()
+
+> **status**\<`H`\>(`entry`, `context`): [`SectionStatus`](../../index/type-aliases/SectionStatus.md) \| `undefined`
+
+The status that a configuration section declares for a context, as the menu of the dashboard reads it. A function that raises or
+returns a value that is not a status gives `undefined`, and the problem is in `statusErrors`.
+
+#### Type Parameters
+
+##### H
+
+`H` *extends* `"general_config"` \| `"thermostat_config"`
+
+#### Parameters
+
+##### entry
+
+[`PlacedEntry`](../../index/interfaces/PlacedEntry.md)
+
+##### context
+
+[`VisibilityContext`](../../index/type-aliases/VisibilityContext.md)\<`H`\>
+
+#### Returns
+
+[`SectionStatus`](../../index/type-aliases/SectionStatus.md) \| `undefined`
+
+***
+
+### statusErrors()
+
+> **statusErrors**(): readonly `unknown`[]
+
+The problems of the status functions, since the start: what the development mode of the dashboard reports.
+
+#### Returns
+
+readonly `unknown`[]
+
+***
+
 ### uninstall()
 
 > **uninstall**(): `void`

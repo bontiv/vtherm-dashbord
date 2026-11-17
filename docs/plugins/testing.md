@@ -96,6 +96,13 @@ it("shows the component with the properties that the dashboard gives it", async 
 ```
 <!-- /example -->
 
+## The status of a section
+`host.status(entry, context)` calls the `status` function of a configuration section as the menu of the dashboard does, and gives the
+status that the menu shows, or `undefined`. A function that raises, or returns a value that is not a status, gives `undefined`, and
+`host.statusErrors()` lists the problem. See
+[Status of a configuration section](hooks-and-placement.md#status-of-a-configuration-section) and its test,
+`docs/examples/typescript/section-status.test.ts`.
+
 ## The components of Home Assistant
 A component that draws `ha-selector`, `ha-switch`, `ha-button` or another component of Home Assistant is tested without Home
 Assistant: `defineHaControlMocks()` of `@vtherm/dashboard-sdk/testing` defines simulated components in the page of the test (it needs

@@ -17,6 +17,7 @@ export const en = {
   "option.auto_start_stop.auto_start_stop_slow": "Slow detection",
   "option.auto_start_stop.auto_start_stop_medium": "Medium detection",
   "option.auto_start_stop.auto_start_stop_fast": "Fast detection",
+  "feature_intro.use_auto_start_stop_feature": "Turns the device off when the room is warm enough and on again when it needs heat, to save energy.",
 } as const;
 
 /** The French catalog. */
@@ -29,6 +30,7 @@ export const fr = {
   "option.auto_start_stop.auto_start_stop_slow": "Lente",
   "option.auto_start_stop.auto_start_stop_medium": "Medium",
   "option.auto_start_stop.auto_start_stop_fast": "Rapide",
+  "feature_intro.use_auto_start_stop_feature": "Éteint l'appareil quand la pièce est assez chaude et le rallume quand elle a besoin de chaleur, pour économiser de l'énergie.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -41,4 +43,5 @@ export const de = {
   "option.auto_start_stop.auto_start_stop_slow": "Langsam",
   "option.auto_start_stop.auto_start_stop_medium": "Mittel",
   "option.auto_start_stop.auto_start_stop_fast": "Schnell",
+  "feature_intro.use_auto_start_stop_feature": "Schaltet das Gerät aus, wenn der Raum warm genug ist, und wieder ein, wenn er Wärme braucht, um Energie zu sparen.",
 } satisfies CompleteCatalog<typeof en>;

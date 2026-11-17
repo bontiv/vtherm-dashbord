@@ -149,6 +149,16 @@ export interface DraftMessage {
   readonly type: "info" | "warning" | "error";
   /** The translated text. */
   readonly text: string;
+  /** An action that the message offers, such as opening the section that the last save refused. Draw it as a button of the message. */
+  readonly action?: DraftMessageAction;
+}
+
+/** The action of a message about the draft. */
+export interface DraftMessageAction {
+  /** The translated label of the button. */
+  readonly label: string;
+  /** Do the action. */
+  run(): void;
 }
 
 /**
@@ -301,20 +311,59 @@ export interface GlobalPageContribution extends ContributionBase<"global_page">,
 /** A widget of the Overview page. */
 export interface GlobalWidgetContribution extends ContributionBase<"global_widget">, ComponentFields {}
 
+/**
+ * What a configuration section says about itself in the menu: nothing required is missing (`complete`), its values come from the
+ * central configuration (`inherited`), or `missing` required values have no value (`incomplete`). The dashboard adds the statuses that
+ * it knows itself: `off` when the feature of the section is off, `refused` when the last save refused a value of the section.
+ */
+export type SectionStatus = CompleteStatus | InheritedStatus | IncompleteStatus;
+
+/** Nothing required is missing in the section: the menu shows a check mark. */
+export interface CompleteStatus {
+  /** The kind of status. */
+  readonly kind: "complete";
+}
+
+/** The values of the section come from the central configuration: the menu shows `Central`. */
+export interface InheritedStatus {
+  /** The kind of status. */
+  readonly kind: "inherited";
+}
+
+/** Required values of the section have no value: the menu shows how many. */
+export interface IncompleteStatus {
+  /** The kind of status. */
+  readonly kind: "incomplete";
+  /** How many required values have no value. */
+  readonly missing: number;
+}
+
 /** The fields of a configuration contribution. */
-interface ConfigFields {
+interface ConfigFields<H extends "general_config" | "thermostat_config"> {
   /**
    * Who draws the save actions (save, discard) of the section: `component` when the component draws them at the foot of its own card
    * from `draft`, `dashboard` (default) when the dashboard draws them in a card under the component.
    */
   readonly save_actions?: "component" | "dashboard";
+  /**
+   * The status of the section, shown in the menu. A pure function of the context, called at each drawing of the menu: it must be quick
+   * and must not change anything. `undefined` shows no status. A function that raises or returns another value shows no status, and the
+   * development mode reports it.
+   */
+  readonly status?: (context: VisibilityContext<H>) => SectionStatus | undefined;
+  /**
+   * The key of the boolean value that turns the feature of the section on, for example `use_window_feature`. While it is off, the
+   * section stays in the menu with the status `off`, and its page shows an explanation and a switch drawn by the dashboard instead of
+   * the component. The explanation is the key `feature_intro.<feature>` of the catalog of the plugin.
+   */
+  readonly feature?: string;
 }
 
 /** A section of the general configuration of Versatile Thermostat. */
-export interface GeneralConfigContribution extends ContributionBase<"general_config">, MenuEntryFields, ComponentFields, ConfigFields {}
+export interface GeneralConfigContribution extends ContributionBase<"general_config">, MenuEntryFields, ComponentFields, ConfigFields<"general_config"> {}
 
 /** An entry of the menu of a thermostat, in particular a configuration section. */
-export interface ThermostatConfigContribution extends ContributionBase<"thermostat_config">, MenuEntryFields, ComponentFields, ConfigFields {}
+export interface ThermostatConfigContribution extends ContributionBase<"thermostat_config">, MenuEntryFields, ComponentFields, ConfigFields<"thermostat_config"> {}
 
 /** A widget of the overview of a thermostat. */
 export interface ThermostatWidgetContribution extends ContributionBase<"thermostat_widget">, ComponentFields {}

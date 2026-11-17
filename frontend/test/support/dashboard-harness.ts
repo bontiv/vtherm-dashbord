@@ -290,6 +290,21 @@ export function find<Element extends HTMLElement = HTMLElement>(root: ParentNode
   return findAll<Element>(root, selector)[0] ?? null;
 }
 
+/**
+ * The title of an entry of the left menu, without its status and without the words that only a screen reader says.
+ *
+ * @param link - The link of the entry, `a` or `ha-md-list-item`.
+ */
+export function linkTitle(link: Element): string {
+  const title = link.querySelector(".title, [slot=headline]") ?? link;
+  return [...title.childNodes]
+    // The markers of Lit are comments: only the texts and the visible elements make the title.
+    .filter((node) => node.nodeType === Node.TEXT_NODE || (node instanceof Element && !node.classList.contains("visually-hidden")))
+    .map((node) => node.textContent ?? "")
+    .join("")
+    .trim();
+}
+
 /** Find all the elements that match in the shadow roots of the panel. */
 export function findAll<Element extends HTMLElement = HTMLElement>(root: ParentNode, selector: string): Element[] {
   const found: Element[] = [];

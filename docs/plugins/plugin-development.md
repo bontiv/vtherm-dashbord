@@ -305,10 +305,12 @@ its card, as the configuration pages of Home Assistant do: **Discard** on the le
 `actionSuccess()` (green with a check mark for two seconds) or `actionError()` (red with an alert icon).
 
 A configuration component receives `draft` for that: `dirty`, `saving`, the translated `messages` to show above the actions (unsaved
-changes, general errors of a refused save, a partial save), `save()`, which resolves to `success`, `error` or `partial` and never
+changes, general errors of a refused save, a partial save, the section that a refused save refused), `save()`, which resolves to `success`, `error` or `partial` and never
 rejects, and `discard()`. A new `draft` is given at each change of the draft; it is undefined when the configuration is read-only,
 and then no action is drawn.
 
+- A message can carry an `action` (`label`, `run()`), such as "Go to TPI parameters" after a save that refused another section: draw
+  it as a button of the message.
 - With `save_actions: "component"` on the contribution, the component draws the actions itself, as below.
 - Without it (`"dashboard"`, the default), the dashboard draws them in a card under the component: a plugin written before this
   contract keeps its save actions.

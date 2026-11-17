@@ -137,3 +137,63 @@ describe("the selector of thermostats of the menu", () => {
     expect(options).toEqual(["Living room · Sofa", "Bedroom · Bed", "Attic", "Towel rail"]);
   });
 });
+
+describe("the tiles of the thermostats", () => {
+  const live = (states: Record<string, { state: string; attributes: Record<string, unknown> }>) =>
+    ({ ...house, config: { unit_system: { temperature: "°C" } }, states }) as unknown as Hass;
+  const salon: ThermostatInfo = { id: "salon", name: "Salon", type: "over_switch", areaId: "living", climateEntityId: "climate.salon" };
+  const heating = { state: "heat", attributes: { current_temperature: 19.5, temperature: 21, hvac_action: "heating", preset_mode: "comfort" } };
+  const tile = (list: HTMLElement, name: string) => [...shadow(list).querySelectorAll<HTMLElement>("a.tile")].find((link) => link.querySelector(".name")?.textContent === name) as HTMLElement;
+
+  it("show the temperature of the room and the setpoint, the action with its dot, the preset and the icon of the type", async () => {
+    const list = await mountList([salon], live({ "climate.salon": heating }));
+    const salonTile = tile(list, "Salon");
+    expect(salonTile.querySelector(".temperatures")?.textContent?.replace(/\s+/g, " ").trim()).toBe("19.5 °C → 21 °C");
+    expect(salonTile.querySelector(".action")?.textContent?.trim()).toBe("Heating");
+    expect(salonTile.querySelector(".dot.heating")).not.toBeNull();
+    expect(salonTile.querySelector(".preset")?.textContent).toBe("Comfort");
+    expect((salonTile.querySelector("ha-icon") as HTMLElement & { icon: string }).icon).toBe("mdi:toggle-switch-variant");
+    expect(salonTile.getAttribute("href")).toBe("/vtherm/core.top.thermostats/salon");
+  });
+
+  it("follow the state of the climate entity live", async () => {
+    const list = await mountList([salon], live({ "climate.salon": heating }));
+    list.hass = live({ "climate.salon": { ...heating, attributes: { ...heating.attributes, current_temperature: 20.2, hvac_action: "idle" } } });
+    await list.updateComplete;
+    expect(tile(list, "Salon").querySelector(".temperatures")?.textContent).toContain("20.2 °C");
+    expect(tile(list, "Salon").querySelector(".action")?.textContent?.trim()).toBe("Idle");
+  });
+
+  it("say unavailable when the entity is unavailable or unknown, and stay links", async () => {
+    const lost: ThermostatInfo = { id: "lost", name: "Lost", type: "over_valve", areaId: "living", climateEntityId: "climate.lost" };
+    const list = await mountList([salon, lost], live({ "climate.salon": { state: "unavailable", attributes: {} } }));
+    for (const name of ["Salon", "Lost"]) {
+      expect(tile(list, name).querySelector(".unavailable")?.textContent).toBe("Unavailable");
+      expect(tile(list, name).querySelector(".type")).not.toBeNull();
+      expect(tile(list, name).getAttribute("href")).not.toBeNull();
+    }
+  });
+
+  it("are grouped by area, and end with the tile New thermostat, by area as by name", async () => {
+    const list = await mountList(thermostats, live({}));
+    const last = [...shadow(list).querySelectorAll("a.tile")].at(-1);
+    expect(last?.classList.contains("new")).toBe(true);
+    expect(last?.getAttribute("href")).toBe("/vtherm/core.top.thermostats/new");
+    expect(shadow(list).querySelectorAll("section ul.tiles a.tile:not(.new)").length).toBe(4);
+    (shadow(list).querySelector('[data-grouping="name"]') as HTMLElement).click();
+    await list.updateComplete;
+    expect([...shadow(list).querySelectorAll("a.tile")].at(-1)?.classList.contains("new")).toBe(true);
+    expect(shadow(list).querySelectorAll("h3").length).toBe(0);
+  });
+
+  it("offer the tile New thermostat when there is no thermostat yet", async () => {
+    const list = await mountList([], live({}));
+    expect(shadow(list).querySelector("a.tile.new")?.getAttribute("href")).toBe("/vtherm/core.top.thermostats/new");
+  });
+
+  it("wrap on a phone: one column of tiles that take the width", () => {
+    const css = (VThermThermostatList.styles as unknown as { cssText?: string }[]).map((style) => style.cssText ?? "").join("\n");
+    expect(css).toMatch(/grid-template-columns: repeat\(auto-fill, minmax\(min\(240px, 100%\), 1fr\)\)/);
+    expect(css).toMatch(/\.name\s*\{[^}]*overflow-wrap: anywhere/);
+  });
+});

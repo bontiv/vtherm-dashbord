@@ -28,6 +28,7 @@ export const en = {
   "help.no_motion_preset": "Preset to use when no motion is detected",
   "field.use_motion_central_config": "Use central motion configuration",
   "help.use_motion_central_config": "Check to use the central motion configuration. Uncheck to use a specific motion configuration for this VTherm",
+  "feature_intro.use_motion_feature": "Changes the preset when someone moves in the room: comfort while there is activity, eco after a while without it.",
 } as const;
 
 /** The French catalog. */
@@ -51,6 +52,7 @@ export const fr = {
   "help.no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
   "field.use_motion_central_config": "Utiliser la condfiguration centrale du mouvement",
   "help.use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement",
+  "feature_intro.use_motion_feature": "Change de pré-réglage selon les mouvements dans la pièce : confort tant qu'il y a de l'activité, éco après un moment sans.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -74,4 +76,5 @@ export const de = {
   "help.no_motion_preset": "Voreingestellung, die verwendet werden soll, wenn keine Bewegung erkannt wird",
   "field.use_motion_central_config": "Zentrale Bewegungskonfiguration verwenden",
   "help.use_motion_central_config": "Aktivieren Sie diese Option, zur Verwendung der zentralen Bewegungskonfiguration. Nicht ankreuzen, um eine spezifische Bewegungskonfiguration für dieses VTherm zu verwenden.",
+  "feature_intro.use_motion_feature": "Wechselt die Voreinstellung je nach Bewegung im Raum: Komfort bei Aktivität, Eco nach einer Weile ohne.",
 } satisfies CompleteCatalog<typeof en>;

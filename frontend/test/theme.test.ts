@@ -1,14 +1,11 @@
-import { readFileSync } from "node:fs";
-
 import { describe, expect, it } from "vitest";
 
-import { SOURCES, files, styles, usedVariables } from "./support/css-variables.ts";
+import { sourceStyles, usedVariables } from "./support/css-variables.ts";
 
 describe("the theme", () => {
   it("uses no color of its own: only the variables of the theme of Home Assistant", () => {
     const offenders: string[] = [];
-    for (const file of files(SOURCES)) {
-      const css = styles(readFileSync(file, "utf8"));
+    for (const { file, css } of sourceStyles()) {
       const colors = css.match(/#[0-9a-fA-F]{3,8}\b|\b(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch)\(|:\s*(?:white|black|red|green|blue|gray|grey|orange|yellow|purple)\b/g);
       if (colors !== null) {
         offenders.push(`${file}: ${colors.join(", ")}`);
@@ -18,8 +15,8 @@ describe("the theme", () => {
   });
 
   it("gives no color as the fallback of a variable", () => {
-    for (const file of files(SOURCES)) {
-      expect(styles(readFileSync(file, "utf8")), file).not.toMatch(/var\(--[a-z0-9_-]+,\s*(?:#|rgba?\(|hsla?\()/);
+    for (const { file, css } of sourceStyles()) {
+      expect(css, file).not.toMatch(/var\(--[a-z0-9_-]+,\s*(?:#|rgba?\(|hsla?\()/);
     }
   });
 
@@ -46,6 +43,10 @@ describe("the theme", () => {
       "--safe-area-inset-bottom",
       "--safe-area-inset-left",
       "--safe-area-inset-right",
+      // The colors of the actions of a climate, that the tiles of the thermostats use.
+      "--state-climate-heat-color",
+      "--state-climate-cool-color",
+      "--state-climate-idle-color",
     ]);
     expect(usedVariables().filter((name) => !known.has(name))).toEqual([]);
   });

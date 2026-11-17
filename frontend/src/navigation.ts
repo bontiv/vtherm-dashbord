@@ -5,8 +5,8 @@
  * does no drawing: it gives a model that the components show, which keeps the rules testable.
  */
 
-import { CORE_TOP_TABS, groupMenu } from "@vtherm/dashboard-sdk";
-import type { HookName, PlacedEntry, PlacementEngine, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
+import { CORE_TOP_TABS, groupMenu, sectionStatusOf } from "@vtherm/dashboard-sdk";
+import type { HookName, PlacedEntry, PlacementEngine, SectionStatus, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
 
 import { NEW_THERMOSTAT, buildPath } from "./router.ts";
 import type { Route } from "./router.ts";
@@ -21,6 +21,8 @@ export interface ThermostatInfo {
   readonly type: ThermostatType;
   /** The device of the thermostat in Home Assistant, which the user opens to give it an area. */
   readonly deviceId?: string | null;
+  /** The climate entity of the thermostat, whose state its tile shows live. */
+  readonly climateEntityId?: string | null;
   /** The area of the thermostat in Home Assistant. Undefined or null when it has none. */
   readonly areaId?: string | null;
   /** The names of the area and of its floor when the list was read, used when `hass` does not have the registries of the areas. */
@@ -53,7 +55,17 @@ export interface NavigationInput {
   readonly contextOf: (entry: PlacedEntry, thermostat: ThermostatInfo | undefined) => VisibilityContext<HookName>;
   /** The creation in progress, if any. It gives the page of the route `/thermostats/new` and limits the menu to its sections. */
   readonly creation?: CreationInput;
+  /** Whether the last save refused a value of a configuration section, which then has the status `refused`. */
+  readonly refused?: (entry: PlacedEntry, thermostat: ThermostatInfo | undefined) => boolean;
+  /** Told when the status function of a section raises or returns a value that is not a status: the entry then shows no status. */
+  readonly onStatusError?: (entry: PlacedEntry, error: unknown) => void;
 }
+
+/**
+ * The status of a configuration section in the menu: the ones that the dashboard knows (`refused`, `off`) and the ones that the
+ * section declares (`complete`, `inherited`, `incomplete`).
+ */
+export type MenuStatus = { readonly kind: "refused" } | { readonly kind: "off" } | SectionStatus;
 
 /** A tab of the top bar. */
 export interface NavTab {
@@ -78,6 +90,8 @@ export interface NavItem {
   readonly path: string;
   /** The contribution that the entry shows. */
   readonly entry: PlacedEntry;
+  /** The status of a configuration section, undefined for another entry or a section that says nothing. */
+  readonly status: MenuStatus | undefined;
 }
 
 /** A run of entries of the left menu under one heading. */
@@ -114,6 +128,25 @@ export interface NavigationModel {
   readonly breadcrumb: readonly Crumb[];
   /** Set when the route was replaced by the default page. */
   readonly notice: Notice | undefined;
+}
+
+/**
+ * The status of an entry of the menu, by priority: refused, off, then what the section declares. Only the configuration sections have
+ * one.
+ */
+export function statusOf(input: NavigationInput, entry: PlacedEntry, thermostat: ThermostatInfo | undefined): MenuStatus | undefined {
+  if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
+    return undefined;
+  }
+  if (input.refused?.(entry, thermostat) === true) {
+    return { kind: "refused" };
+  }
+  const context = input.contextOf(entry, thermostat);
+  const feature = (entry.contribution as { feature?: unknown }).feature;
+  if (typeof feature === "string" && (context as { values?: Readonly<Record<string, unknown>> }).values?.[feature] !== true) {
+    return { kind: "off" };
+  }
+  return sectionStatusOf(entry, context, (error) => input.onStatusError?.(entry, error));
 }
 
 const titleOf = (input: NavigationInput, entry: PlacedEntry): string => input.translate(entry, (entry.contribution as { title?: string }).title ?? entry.id);
@@ -195,6 +228,7 @@ export function resolveNavigation(input: NavigationInput): NavigationModel {
     active: entry.id === currentEntry?.id,
     path: pathOf(entry),
     entry,
+    status: statusOf(input, entry, thermostat),
   });
   const sections = groupMenu(entries).map((section) => ({
     heading: section.group === undefined || section.entries[0] === undefined ? undefined : input.translate(section.entries[0], section.group),

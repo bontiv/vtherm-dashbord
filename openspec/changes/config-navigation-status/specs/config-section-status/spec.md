@@ -41,18 +41,18 @@ Une section qui représente une fonctionnalité désactivée SHALL rester dans l
 
 #### Scenario: Activation sur place
 - **WHEN** l'administrateur active l'interrupteur de la section « Ouverture »
-- **THEN** les champs de la section apparaissent, l'onglet « fonctionnalités » montre la fonctionnalité active et la barre d'enregistrement signale une modification
+- **THEN** les champs de la section apparaissent, l'onglet « fonctionnalités » montre la fonctionnalité active et le pied de la carte indique « Modifications non enregistrées »
 
 #### Scenario: Fonctionnalité non applicable
 - **WHEN** une fonctionnalité ne s'applique pas au type du thermostat, comme le démarrage et l'arrêt automatiques pour `over_switch`
 - **THEN** sa section n'apparaît pas dans le menu
 
 ### Requirement: Accès à la première erreur
-Après un enregistrement refusé, la barre d'enregistrement SHALL proposer d'ouvrir la première section en erreur dans l'ordre du menu, et chaque section en erreur SHALL avoir le statut refusée jusqu'à ce que ses valeurs refusées soient modifiées ou qu'un enregistrement réussisse.
+Après un enregistrement refusé, les messages au-dessus des actions d'enregistrement de la section SHALL proposer d'ouvrir la première autre section en erreur dans l'ordre du menu, et chaque section en erreur SHALL avoir le statut refusée jusqu'à ce que ses valeurs refusées soient modifiées ou qu'un enregistrement réussisse.
 
 #### Scenario: Erreur dans une autre section
 - **WHEN** l'administrateur enregistre depuis la section principale et que la section TPI est refusée
-- **THEN** la barre d'enregistrement propose « Aller à TPI », qui ouvre la section TPI avec le champ refusé en évidence
+- **THEN** le pied de la carte de la section principale propose « Aller à TPI », qui ouvre la section TPI avec le champ refusé en évidence
 
 #### Scenario: Correction
 - **WHEN** l'administrateur modifie le champ refusé de la section TPI

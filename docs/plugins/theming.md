@@ -48,6 +48,9 @@ These are the variables that the components of the dashboard use. They are defin
 | `--safe-area-inset-bottom` | The margin of a phone screen that the navigation bar of the system covers, given by the Home Assistant app. The bottom of the page keeps this margin, so that the actions of the last card can be brought above the bar. |
 | `--safe-area-inset-left` | The margin of a phone screen on the left, under a notch in landscape. The top bar stays out of it. |
 | `--safe-area-inset-right` | The margin of a phone screen on the right, under a notch in landscape. The top bar stays out of it. |
+| `--state-climate-heat-color` | The dot of a tile of thermostat that heats. |
+| `--state-climate-cool-color` | The dot of a tile of thermostat that cools. |
+| `--state-climate-idle-color` | The dot of a tile of thermostat that is idle. |
 
 ## The components of Home Assistant
 

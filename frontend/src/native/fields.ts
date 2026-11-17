@@ -197,6 +197,16 @@ export function entityChoices(field: FieldSpec, entityIds: readonly string[]): s
  * @param fields - The fields that are shown.
  * @param values - The values of the configuration, draft included.
  */
+/**
+ * Whether a tab shows a field for these values. The sensor of humidity is only asked for when the feature is on.
+ *
+ * @param field - The field.
+ * @param values - The values of the configuration, draft included.
+ */
+export function isFieldShown(field: FieldSpec, values: Readonly<Record<string, unknown>>): boolean {
+  return field.key !== "humidity_sensor_entity_id" || values["use_humidity_feature"] === true;
+}
+
 export function missingRequired(fields: readonly FieldSpec[], values: Readonly<Record<string, unknown>>): FieldSpec[] {
   return fields.filter((field) => {
     if (!field.required || (field.default !== null && field.default !== undefined && field.default !== "")) {

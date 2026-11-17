@@ -7,7 +7,7 @@ import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import type { UiPluginDefinition } from "@vtherm/dashboard-sdk";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { cleanup, find, findAll, mountPanel, settle } from "./support/dashboard-harness.ts";
+import { cleanup, find, findAll, linkTitle, mountPanel, settle } from "./support/dashboard-harness.ts";
 import type { FakeConfigs, MountOptions } from "./support/dashboard-harness.ts";
 import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
@@ -68,7 +68,7 @@ const calls = (hass: { callWS: ReturnType<typeof vi.fn> }, type: string) => hass
 /** Open a link of the menu, by its text. */
 async function openMenu(panel: HTMLElement, text: string): Promise<void> {
   const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
-  const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => anchor.textContent?.trim() === text);
+  const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => linkTitle(anchor) === text);
   if (link === undefined) {
     throw new Error(`No link ${text} in the menu`);
   }
@@ -278,7 +278,7 @@ describe("a configuration made by a newer Versatile Thermostat", () => {
 describe("the creation of a thermostat", () => {
   const NEW = `/vtherm/${THERMOSTATS}/new`;
   const REQUIRED = { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor" };
-  const menuTexts = (panel: HTMLElement) => texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"));
+  const menuTexts = (panel: HTMLElement) => findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a").map(linkTitle);
   const cancelButton = (panel: HTMLElement) => find<HTMLButtonElement>(actions(panel)?.shadowRoot as ShadowRoot, "button.cancel") as HTMLButtonElement;
   const choice = (panel: HTMLElement) => find(root(panel), "vtherm-type-choice") as unknown as HTMLElement & { value: string; select(type: string): void };
   /** Choose the type on the screen of the choice, which goes on to the page of configuration. */
@@ -302,7 +302,7 @@ describe("the creation of a thermostat", () => {
 
   it("opens from the list of the thermostats on a page of configuration with the sections of the creation", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}` });
-    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
+    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.tile.new")?.click();
     await settle(panel);
     expect(window.location.pathname).toBe(NEW);
     // The type is chosen first, without menu.
@@ -334,7 +334,7 @@ describe("the creation of a thermostat", () => {
     await vi.waitFor(() => expect(pressed()).toEqual(["false", "false", "true"]));
     find<HTMLButtonElement>(choice(panel).shadowRoot as ShadowRoot, "button.cancel")?.click();
     await settle(panel);
-    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
+    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.tile.new")?.click();
     await settle(panel);
     expect(choice(panel).value).toBe("");
     await vi.waitFor(() => expect(pressed()).toEqual(["false", "false", "false"]));
@@ -419,7 +419,7 @@ describe("the creation of a thermostat", () => {
     toList();
     await settle(panel);
     expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}`);
-    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
+    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.tile.new")?.click();
     await settle(panel);
     choice(panel).select("thermostat_over_switch");
     await drawn(panel);
@@ -515,12 +515,12 @@ describe("the central configuration", () => {
     const { panel } = await mount({ configs, path: `/vtherm/${CONFIGURATION}/core.page.plugins` });
     await vi.waitFor(() => {
       const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
-      expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))).toContain("TPI parameters");
+      expect(findAll(menu.shadowRoot as ShadowRoot, "a").map(linkTitle)).toContain("TPI parameters");
     });
-    expect(texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"))).not.toContain("Central configuration");
+    expect(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a").map(linkTitle)).not.toContain("Central configuration");
   });
 
-  const menuTexts = (panel: HTMLElement) => texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"));
+  const menuTexts = (panel: HTMLElement) => findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a").map(linkTitle);
 
   it("offers to create it when it is absent, without any of its sections", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${CONFIGURATION}` });
@@ -564,6 +564,90 @@ describe("the central configuration", () => {
     const { panel } = await mount({ configs, path: `/vtherm/${CONFIGURATION}` });
     await vi.waitFor(() => expect(menuTexts(panel)).toContain("TPI parameters"));
     expect(find(root(panel), "core-create-central-page")).toBeNull();
+  });
+});
+
+describe("a refused save", () => {
+  const MAIN = `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main`;
+  const refusingTpi = async (message: Record<string, unknown>) =>
+    message["type"] === "vtherm_dashboard/save_config"
+      ? { ok: false, config_saved: false, entry_id: "climate.salon", errors: [{ tab: "tpi", field: "tpi_coef_int", code: "invalid_value" }], preset_errors: [] }
+      : undefined;
+  const menuStatus = (panel: HTMLElement, title: string) => {
+    const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
+    const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => anchor.querySelector(".title")?.textContent?.startsWith(title));
+    return link?.querySelector(".status")?.textContent?.trim() ?? null;
+  };
+
+  it("marks the refused section in the menu, and offers to go to it from the section that was saved", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: MAIN, handlers: [refusingTpi] });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await openMenu(panel, "TPI parameters");
+    nativeTab(panel, "vtherm-native-tpi-thermostat").proposeChanges({ tpi_coef_int: 9 });
+    await openMenu(panel, "Main attributes");
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(actionsText(panel)).toContain("A value of TPI parameters was refused."));
+    expect(menuStatus(panel, "TPI parameters")).toBe("Error");
+    find<HTMLButtonElement>(actions(panel)?.shadowRoot as ShadowRoot, "button.message-action")?.click();
+    await drawn(panel);
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/climate.salon/core_tpi.tab.main`);
+    expect((nativeTab(panel, "vtherm-native-tpi-thermostat") as unknown as { errors: Record<string, string> }).errors).toMatchObject({ tpi_coef_int: "invalid_value" });
+    // The section that is open does not offer to go to itself.
+    expect(actionsText(panel)).not.toContain("A value of TPI parameters was refused.");
+  });
+
+  it("takes the section out of the refused status once its refused value changes", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core_tpi.tab.main`, handlers: [refusingTpi] });
+    nativeTab(panel, "vtherm-native-tpi-thermostat").proposeChanges({ tpi_coef_int: 9 });
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(menuStatus(panel, "TPI parameters")).toBe("Error"));
+    nativeTab(panel, "vtherm-native-tpi-thermostat").proposeChanges({ tpi_coef_int: 0.7 });
+    await drawn(panel);
+    expect(menuStatus(panel, "TPI parameters")).not.toBe("Error");
+  });
+});
+
+describe("the sections of the features that are off", () => {
+  const WINDOW = `/vtherm/${THERMOSTATS}/climate.salon/core_window.tab.main`;
+  const host = (panel: HTMLElement) => find(root(panel), "vtherm-contribution") as HTMLElement & { updateComplete: Promise<boolean> };
+  const featureSwitch = (panel: HTMLElement) => host(panel).shadowRoot?.querySelector<HTMLInputElement>(".switch input[type=checkbox]") as HTMLInputElement;
+  const menuText = (panel: HTMLElement) => (find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot?.textContent ?? "";
+
+  it("stay in the menu, off, and show the explanation and the switch of the feature instead of its fields", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: WINDOW });
+    await drawn(panel);
+    expect(menuText(panel)).toContain("Window detection");
+    const content = host(panel).shadowRoot?.textContent ?? "";
+    expect(content).toContain("Turns the heating off, or lowers it, while a window is open");
+    expect(content).toContain("Turn on Window detection");
+    expect(featureSwitch(panel).checked).toBe(false);
+    expect(find(root(panel), "vtherm-native-window-thermostat")).toBeNull();
+  });
+
+  it("turn on in place: the fields appear, the tab Features shows the feature on, and the change is not saved yet", async () => {
+    const { panel, hass } = await mount({ configs: salonAndChambre(), path: WINDOW });
+    await drawn(panel);
+    const toggle = featureSwitch(panel);
+    toggle.checked = true;
+    toggle.dispatchEvent(new Event("change"));
+    await drawn(panel);
+    await host(panel).updateComplete;
+    expect(find(root(panel), "vtherm-native-window-thermostat")).not.toBeNull();
+    expect(actionsText(panel)).toContain("Unsaved changes");
+    expect(calls(hass, "vtherm_dashboard/save_config")).toEqual([]);
+    await openMenu(panel, "Features");
+    expect(nativeTab(panel, "vtherm-native-features-thermostat").values["use_window_feature"]).toBe(true);
+  });
+
+  it("turn on from the tab Features as well: the section of the feature then shows its fields", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.features` });
+    nativeTab(panel, "vtherm-native-features-thermostat").proposeChanges({ use_window_feature: true });
+    await openMenu(panel, "Window detection");
+    await host(panel).updateComplete;
+    expect(featureSwitch(panel).checked).toBe(true);
+    expect(find(root(panel), "vtherm-native-window-thermostat")).not.toBeNull();
   });
 });
 

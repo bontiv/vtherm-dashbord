@@ -11,6 +11,7 @@ import type {
   HookProps,
   Placement,
   SaveResult,
+  SectionStatus,
   ThermostatConfigProps,
   ThermostatProps,
   UiPluginDefinition,
@@ -134,6 +135,26 @@ describe("contributions", () => {
     // @ts-expect-error only component and dashboard are accepted
     const wrong: Contribution<"thermostat_config"> = { id: "smartpi.tab", title: "t", component: "smartpi-tab", save_actions: "panel" };
     expect([general, thermostat, page, wrong]).toHaveLength(4);
+  });
+
+  it("lets the configuration contributions declare a status and a feature", () => {
+    const thermostat: Contribution<"thermostat_config"> = {
+      id: "smartpi.tab",
+      title: "t",
+      component: "smartpi-tab",
+      feature: "use_smartpi_feature",
+      status: (context) => (context.values["smartpi_sensor"] === undefined ? { kind: "incomplete", missing: 1 } : { kind: "complete" }),
+    };
+    const general: Contribution<"general_config"> = { id: "smartpi.general", title: "t", component: "smartpi-general", status: () => ({ kind: "inherited" }) };
+    // @ts-expect-error an incomplete status gives the number of missing values
+    const noCount: Contribution<"general_config"> = { id: "smartpi.general", title: "t", component: "smartpi-general", status: () => ({ kind: "incomplete" }) };
+    // @ts-expect-error off and refused are computed by the dashboard, not declared
+    const off: Contribution<"general_config"> = { id: "smartpi.general", title: "t", component: "smartpi-general", status: () => ({ kind: "off" }) };
+    // @ts-expect-error a page of the Dashboard tab has no status
+    const page: Contribution<"global_page"> = { id: "smartpi.page", title: "t", component: "smartpi-page", feature: "use_x" };
+    expectTypeOf<SectionStatus["kind"]>().toEqualTypeOf<"complete" | "inherited" | "incomplete">();
+    expectTypeOf<Extract<SectionStatus, { kind: "incomplete" }>["missing"]>().toEqualTypeOf<number>();
+    expect([thermostat, general, noCount, off, page]).toHaveLength(5);
   });
 
   it("refuses a navigation contribution without title", () => {

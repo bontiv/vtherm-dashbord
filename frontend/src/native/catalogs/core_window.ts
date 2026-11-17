@@ -32,6 +32,7 @@ export const en = {
   "help.window_off_delay": "The delay in seconds before sensor 'off' detection is taken into account. Leave it empty to use the same value as window on delay",
   "field.window_sensor_entity_id": "Window sensor entity id",
   "help.window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
+  "feature_intro.use_window_feature": "Turns the heating off, or lowers it, while a window is open: with a window sensor, or by detecting the fast drop of the temperature.",
 } as const;
 
 /** The French catalog. */
@@ -59,6 +60,7 @@ export const fr = {
   "help.window_off_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte lors de la détection d'une fermeture. Laissez vide pour utiliser le même délai à l'ouveture et à la fermeture",
   "field.window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
   "help.window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
+  "feature_intro.use_window_feature": "Coupe ou réduit le chauffage pendant qu'une fenêtre est ouverte : avec un capteur d'ouverture, ou en détectant la baisse rapide de la température.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -86,4 +88,5 @@ export const de = {
   "help.window_off_delay": "Verzögerung in Sekunden, bis die Sensorerkennung 'Geschlossen' berücksichtigt wird. Feld leer lassen, um gleiche Verzögerungszeit bei öffnen und schliessen zu verwenden.",
   "field.window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
   "help.window_sensor_entity_id": "Leer lassen, wenn kein Fenstersensor verhanden ist und/oder die automatische Erkennung genutzt werden soll",
+  "feature_intro.use_window_feature": "Schaltet die Heizung aus oder senkt sie ab, solange ein Fenster offen ist: mit einem Fenstersensor oder durch Erkennen des schnellen Temperaturabfalls.",
 } satisfies CompleteCatalog<typeof en>;

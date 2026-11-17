@@ -76,6 +76,21 @@ A native tab reads and proposes values like any component of a plugin: it receiv
 the keys of the flow of Versatile Thermostat. Which fields a tab shows, and when it appears, follow the forms of the flow: see
 [Driving the config flow](../contributing/config-flow-driver.md).
 
+### The tabs of the features
+The tabs of the features (window, motion, power, presence, auto start and stop, central boiler, heating failure detection) declare
+the value that turns their feature on (`feature`: `use_window_feature`, `use_motion_feature`, `use_power_feature`,
+`use_presence_feature`, `use_auto_start_stop_feature`, `use_central_boiler_feature`, `use_heating_failure_detection_feature`).
+While the feature is off, the tab stays in the menu with the status `Off`; its page shows the explanation of the feature and the
+switch of the dashboard instead of its fields, and turning the switch on changes the same value as the tab Features, in the draft.
+A tab whose feature does not exist for the type of the thermostat is not in the menu: the auto start and stop for a thermostat over a
+switch, or the heating failure detection for a thermostat over a climate without valve regulation, as the form Features of
+Versatile Thermostat decides.
+
+### The status of the tabs
+Each native tab gives its status to the menu: the number of the required fields that it shows without a value, `Central` when it
+uses the central configuration, otherwise a check mark. The dashboard adds `Off` and `Error`. See
+[Status of a configuration section](hooks-and-placement.md#status-of-a-configuration-section).
+
 ### The controls
 The native tabs draw their fields with the components of Home Assistant: one `ha-selector` per field, whose selector comes from the
 contract of the SDK (`definitionOf` turns a field of the flow into a `FieldDefinition`, then `selectorOf` gives the selector), in a

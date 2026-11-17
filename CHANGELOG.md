@@ -15,8 +15,17 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   save appears when the order frost ≤ eco ≤ comfort ≤ boost is not respected (the opposite in air conditioning). A thermostat that uses
   the central presets shows the table read-only, with a link to the presets of the general configuration, and a narrow card folds it into
   one block for each preset. The cells are compact number fields, not `ha-selector`, so that four columns fit on a card.
+- Each section of a configuration shows its status in the menu, and in the drawer of a phone: a check mark when nothing required is
+  missing, `Central` when it uses the central configuration, `N missing`, `Off` when its feature is off, `Error` after a save that refused
+  one of its values. The status follows the draft before any save. After a refused save, the message above the actions offers to go to
+  the first other section in error.
+- The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, heating failure
+  detection) stay in the menu, in retreat, with an explanation of the feature and a switch that turns it on in the draft.
 
 ### Changed
+- The Thermostats tab shows a tile for each thermostat, live: the temperature of the room and the setpoint, the action (heating,
+  cooling, idle, off) with a dot of its color, the preset, and "Unavailable" when its climate entity is. The tiles keep the grouping by
+  area, and the tile **New thermostat** at the end replaces the button **Create a thermostat**.
 - Creating a thermostat or the central configuration is a page of configuration, like an existing one: a menu on the left, one
   section at a time, the draft kept from a section to another. A new thermostat first asks for its type on its own screen, with three cards (switch, climate, valve) that open the page of configuration when chosen, then has the sections Main attributes, Underlyings, TPI parameters when the type uses them, and Advanced parameters, so the TPI and advanced parameters that a thermostat without central configuration needs can be set at creation. The breadcrumb brings back the choice of the type. The central configuration has Main attributes, TPI parameters
   and Advanced parameters. **Create** and **Cancel** replace **Save** and **Discard**, and a warning at the top of the page, above the
@@ -25,10 +34,19 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   in the Configuration tab.
 
 ### For contributors
+- `npm run test:docs` runs the checks of the documentation, which `npm test` now skips because they are long.
 - The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not
   published yet can no longer make `npm ci` fail for the whole repository. The CI job `sample-plugin` builds the SDK, installs it in the
   sample from a tarball, then builds and tests the sample. When it fails, the run shows the warning "Sample plugin" and stays green. The
   release check of the version of the sample is unchanged.
+
+### For plugin authors
+- A configuration contribution (`general_config`, `thermostat_config`) can declare `status`, a pure function of its context that
+  returns `complete`, `inherited` or `incomplete` with the number of missing values, shown in the menu; and `feature`, the key of the value
+  that turns its feature on: while it is off, the section stays in the menu with the status `Off`, and its page shows the explanation
+  `feature_intro.<feature>` of the catalog of the plugin with a switch drawn by the dashboard. `sectionStatusOf` and `isSectionStatus`
+  read a status, and the fake host gives `host.status(entry, context)`. A message of `draft.messages` can carry an `action`. The change is
+  compatible: a contribution without them shows only `Error` after a refused save.
 
 ## [0.1.0-beta2]
 The second beta.

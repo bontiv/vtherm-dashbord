@@ -3,7 +3,7 @@ import type { TemplateResult } from "lit";
 
 import type { Hass } from "@vtherm/dashboard-sdk";
 
-import type { NavSection, ThermostatInfo } from "../navigation.ts";
+import type { MenuStatus, NavItem, NavSection, ThermostatInfo } from "../navigation.ts";
 import { t } from "../shell-translations.ts";
 import { selectorOptions } from "../thermostat-areas.ts";
 import type { HassAreas } from "../thermostat-areas.ts";
@@ -12,6 +12,29 @@ import { renderIcon } from "./icon.ts";
 import { defineElement } from "./define.ts";
 import { narrowStyles } from "./narrow-styles.ts";
 import { isDefined } from "./ha.ts";
+
+/** How a status is shown: a short text (a check mark for `complete`), its tone, and what a screen reader says. */
+interface StatusView {
+  readonly text: string | undefined;
+  readonly tone: "success" | "secondary" | "warning" | "error";
+  readonly spoken: string;
+}
+
+/** Show a status of the menu. The colors are not the only clue: each status has an icon or a text. */
+export function statusView(status: MenuStatus): StatusView {
+  switch (status.kind) {
+    case "complete":
+      return { text: undefined, tone: "success", spoken: t("status.spoken.complete") };
+    case "inherited":
+      return { text: t("status.inherited"), tone: "secondary", spoken: t("status.spoken.inherited") };
+    case "off":
+      return { text: t("status.off"), tone: "secondary", spoken: t("status.spoken.off") };
+    case "incomplete":
+      return { text: t("status.incomplete", { count: status.missing }), tone: "warning", spoken: t("status.spoken.incomplete", { count: status.missing }) };
+    case "refused":
+      return { text: t("status.refused"), tone: "error", spoken: t("status.spoken.refused") };
+  }
+}
 
 /** The event sent when the user chooses another thermostat in the selector. Its detail is the identifier of the thermostat. */
 export const THERMOSTAT_SELECTED_EVENT = "vtherm-thermostat-selected";
@@ -98,6 +121,50 @@ export class VThermSideMenu extends LitElement {
       outline: 2px solid var(--primary-color);
       outline-offset: -2px;
     }
+    /* The status of a configuration section, at the right of its title. */
+    .status {
+      flex: 0 0 auto;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    a .status {
+      margin-left: auto;
+    }
+    .status.success {
+      color: var(--success-color);
+      --mdc-icon-size: 18px;
+    }
+    .status.secondary {
+      color: var(--secondary-text-color);
+    }
+    .status.warning {
+      color: var(--warning-color);
+    }
+    .status.error {
+      color: var(--error-color);
+    }
+    .title {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    /* A section whose feature is off is in retreat, with its title in the secondary color. */
+    ha-md-list-item.off {
+      --md-list-item-label-text-color: var(--secondary-text-color);
+      --md-list-item-leading-icon-color: var(--secondary-text-color);
+      padding-inline-start: 16px;
+    }
+    a.off {
+      padding-left: 32px;
+      color: var(--secondary-text-color);
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
   `,
   ];
 
@@ -164,6 +231,23 @@ export class VThermSideMenu extends LitElement {
     </select>`;
   }
 
+  /** The status at the right of the title, and the words that a screen reader says after the title. */
+  private renderStatus(item: NavItem, slot: string | undefined): { status: TemplateResult | undefined; spoken: TemplateResult | undefined } {
+    if (item.status === undefined) {
+      return { status: undefined, spoken: undefined };
+    }
+    const view = statusView(item.status);
+    const content = view.text === undefined ? html`<ha-icon .icon=${"mdi:check"}></ha-icon>` : view.text;
+    return {
+      status: html`<span slot=${slot ?? ""} class="status ${view.tone}" aria-hidden="true">${content}</span>`,
+      spoken: html`<span class="visually-hidden">, ${view.spoken}</span>`,
+    };
+  }
+
+  private itemClass(item: NavItem): string {
+    return [item.active ? "active" : "", item.status?.kind === "off" ? "off" : ""].filter(Boolean).join(" ");
+  }
+
   protected override render(): TemplateResult {
     return html`<nav aria-label=${this.label}>
       ${this.renderSelector()}
@@ -172,22 +256,30 @@ export class VThermSideMenu extends LitElement {
           ${isDefined("ha-md-list-item")
             ? html`<div class="list" role="list">
                 ${section.items.map(
-                  (item) => html`<ha-md-list-item
-                    type="link"
-                    href=${item.path}
-                    class=${item.active ? "active" : ""}
-                    aria-current=${item.active ? "page" : "false"}
-                    @click=${(event: MouseEvent) => followLink(this, event, item.path)}
-                    >${item.icon === undefined ? undefined : html`<ha-icon slot="start" .icon=${item.icon}></ha-icon>`}<span slot="headline">${item.title}</span></ha-md-list-item
-                  >`,
+                  (item) => {
+                    const { status, spoken } = this.renderStatus(item, "end");
+                    return html`<ha-md-list-item
+                      type="link"
+                      href=${item.path}
+                      class=${this.itemClass(item)}
+                      aria-current=${item.active ? "page" : "false"}
+                      @click=${(event: MouseEvent) => followLink(this, event, item.path)}
+                      >${item.icon === undefined ? undefined : html`<ha-icon slot="start" .icon=${item.icon}></ha-icon>`}<span slot="headline">${item.title}${spoken}</span>${status}</ha-md-list-item
+                    >`;
+                  },
                 )}
               </div>`
             : // fallback: plain links, when ha-md-list-item is not defined.
               html`<ul>
                 ${section.items.map(
-                  (item) => html`<li>
-                    <a href=${item.path} aria-current=${item.active ? "page" : "false"} @click=${(event: MouseEvent) => followLink(this, event, item.path)}>${renderIcon(item.icon)}${item.title}</a>
-                  </li>`,
+                  (item) => {
+                    const { status, spoken } = this.renderStatus(item, undefined);
+                    return html`<li>
+                      <a href=${item.path} class=${this.itemClass(item)} aria-current=${item.active ? "page" : "false"} @click=${(event: MouseEvent) => followLink(this, event, item.path)}
+                        >${renderIcon(item.icon)}<span class="title">${item.title}${spoken}</span>${status}</a
+                      >
+                    </li>`;
+                  },
                 )}
               </ul>`}`,
       )}

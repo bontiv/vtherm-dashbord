@@ -111,13 +111,37 @@ describe("the tabs that apply to a thermostat", () => {
     expect(visibleTabs(everything)).toEqual(["main", "features", "type", "tpi", "presets", "window", "motion", "power", "presence", "valve_regulation", "sync_device_internal_temp", "advanced", "lock", "humidity", "heating_failure_detection"]);
   });
 
-  it("show only the tabs that always apply for a thermostat over a switch without features", () => {
-    expect(visibleTabs({ thermostat_type: "thermostat_over_switch", proportional_function: "tpi" })).toEqual(["main", "features", "type", "tpi", "presets", "advanced", "lock", "humidity"]);
+  it("keep the tabs of the features of a thermostat over a switch in the menu while the features are off", () => {
+    expect(visibleTabs({ thermostat_type: "thermostat_over_switch", proportional_function: "tpi" })).toEqual([
+      "main",
+      "features",
+      "type",
+      "tpi",
+      "presets",
+      "window",
+      "motion",
+      "power",
+      "presence",
+      "advanced",
+      "lock",
+      "humidity",
+      "heating_failure_detection",
+    ]);
   });
 
-  it("show the tab of a feature once it is turned on", () => {
-    expect(visibleTabs({ thermostat_type: "thermostat_over_switch", use_motion_feature: true })).toContain("motion");
-    expect(visibleTabs({ thermostat_type: "thermostat_over_switch", use_motion_feature: false })).not.toContain("motion");
+  it("declare the value that turns the feature of each tab of a feature on", () => {
+    const features = host
+      .resolved("thermostat_config")
+      .filter((entry) => (entry.contribution as { feature?: string }).feature !== undefined)
+      .map((entry) => [definitionOfContribution(entry.id)?.definition.tab, (entry.contribution as { feature?: string }).feature]);
+    expect(features).toEqual([
+      ["window", "use_window_feature"],
+      ["motion", "use_motion_feature"],
+      ["power", "use_power_feature"],
+      ["presence", "use_presence_feature"],
+      ["auto_start_stop", "use_auto_start_stop_feature"],
+      ["heating_failure_detection", "use_heating_failure_detection_feature"],
+    ]);
   });
 
   it("hide TPI when the proportional function is not TPI and there is no valve regulation", () => {
@@ -134,11 +158,16 @@ describe("the tabs that apply to a thermostat", () => {
     expect(plain).not.toContain("valve_regulation");
   });
 
-  it("never show the auto start and stop for a thermostat over a switch", () => {
+  it("never show the auto start and stop for a thermostat over a switch, even off", () => {
     expect(visibleTabs({ thermostat_type: "thermostat_over_switch", use_auto_start_stop_feature: true })).not.toContain("auto_start_stop");
+    expect(visibleTabs({ thermostat_type: "thermostat_over_switch" })).not.toContain("auto_start_stop");
   });
 
-  it("hide the heating failure detection unless the feature is on", () => {
+  it("keep the auto start and stop of a climate without valve regulation in the menu while it is off", () => {
+    expect(visibleTabs({ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" })).toContain("auto_start_stop");
+  });
+
+  it("never show the heating failure detection for a climate without valve regulation, whose features do not offer it", () => {
     expect(visibleTabs({ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" })).not.toContain("heating_failure_detection");
   });
 });
@@ -153,12 +182,37 @@ describe("the sections of the general configuration", () => {
     expect(sections({})).toEqual(["core.general.create"]);
   });
 
-  it("show the sections of the central configuration once it exists, the central boiler with its feature", () => {
+  it("show the sections of the central configuration once it exists, the central boiler even while it is off", () => {
     const central = { thermostat_type: "thermostat_central_config" };
     expect(sections(central)).not.toContain("core.general.create");
     expect(sections(central)).toContain("core.general.main");
-    expect(sections(central)).not.toContain("core_central_boiler.general.main");
-    expect(sections({ ...central, use_central_boiler_feature: true })).toContain("core_central_boiler.general.main");
+    expect(sections(central)).toContain("core_central_boiler.general.main");
+  });
+});
+
+describe("the status of the native tabs", () => {
+  const entry = (id: string) => host.resolved("thermostat_config").find((candidate) => candidate.id === id) as PlacedEntry;
+  const switchValues = { thermostat_type: "thermostat_over_switch", name: "Salon", temperature_sensor_entity_id: "sensor.indoor", use_main_central_config: false, external_temperature_sensor_entity_id: "sensor.outdoor" };
+  const status = (id: string, values: Record<string, unknown>, centralValues: Record<string, unknown> = {}) =>
+    host.status(entry(id), { hass: host.hass, thermostatId: "t", thermostatType: "over_switch", values, centralValues } as never);
+
+  it("is complete when every required field that the tab shows has a value", () => {
+    expect(status("core.tab.main", switchValues)).toEqual({ kind: "complete" });
+  });
+
+  it("counts the required fields without value, before any save", () => {
+    expect(status("core.tab.main", { ...switchValues, temperature_sensor_entity_id: null })).toEqual({ kind: "incomplete", missing: 1 });
+  });
+
+  it("is inherited when the tab uses the central configuration and nothing is missing", () => {
+    expect(status("core_advanced.tab.main", { thermostat_type: "thermostat_over_switch" }, { thermostat_type: "thermostat_central_config" })).toEqual({ kind: "inherited" });
+    expect(status("core_advanced.tab.main", { thermostat_type: "thermostat_over_switch", use_advanced_central_config: false }, { thermostat_type: "thermostat_central_config" })).toEqual({
+      kind: "complete",
+    });
+  });
+
+  it("does not inherit without a central configuration, as the page of the tab", () => {
+    expect(status("core_advanced.tab.main", { thermostat_type: "thermostat_over_switch" })).not.toEqual({ kind: "inherited" });
   });
 });
 

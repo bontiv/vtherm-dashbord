@@ -104,6 +104,16 @@ describe("the thermostat of the list of the server", () => {
       floor_name: "Ground floor",
       floor_level: 0,
     };
-    expect(toThermostatInfo(entry)).toEqual({ id: "a", name: "Sofa", type: "over_climate", deviceId: "device-a", areaId: "living", areaName: "Living room", floorName: "Ground floor", floorLevel: 0 });
+    expect(toThermostatInfo(entry)).toEqual({
+      id: "a",
+      name: "Sofa",
+      type: "over_climate",
+      deviceId: "device-a",
+      climateEntityId: "climate.sofa",
+      areaId: "living",
+      areaName: "Living room",
+      floorName: "Ground floor",
+      floorLevel: 0,
+    });
   });
 });

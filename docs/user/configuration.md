@@ -19,6 +19,8 @@ changes" shows above them.
   applied after the configuration. If one of them fails, the configuration is still saved, the button turns red and a warning above
   the actions says so.
 - **Discard** goes back to the saved values, in every section.
+- When a save is refused because of a value of another section, the message above the actions offers **Go to** that section, which
+  opens it with the refused field shown. The section has the status `Error` in the menu until you change the value.
 - On a phone, scroll to the foot of the card to reach the actions.
 - You can go from a section to another of the same thermostat: the draft stays. Leaving the thermostat, or the central
   configuration, asks you to confirm, and drops the draft. Closing the browser tab asks too.

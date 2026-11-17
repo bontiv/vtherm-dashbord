@@ -25,6 +25,7 @@ export const en = {
   "option.central_power_unit.auto": "Auto (auto-detect from sensor)",
   "field.use_power_central_config": "Use central power configuration",
   "help.use_power_central_config": "Check to use the central power configuration. Uncheck to use a specific power configuration for this VTherm",
+  "feature_intro.use_power_feature": "Sheds the heating when the power of the home would go above its limit, so that the main switch does not trip.",
 } as const;
 
 /** The French catalog. */
@@ -45,6 +46,7 @@ export const fr = {
   "option.central_power_unit.auto": "Auto (détection depuis le capteur)",
   "field.use_power_central_config": "Utiliser la configuration centrale de la puissance",
   "help.use_power_central_config": "Cochez pour utiliser la configuration centrale de la puissance. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la puissance",
+  "feature_intro.use_power_feature": "Déleste le chauffage quand la puissance du logement dépasserait sa limite, pour éviter que le disjoncteur ne saute.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -65,4 +67,5 @@ export const de = {
   "option.central_power_unit.auto": "Automatisch (automatische Erkennung vom Sensor)",
   "field.use_power_central_config": "Zentrales Powermanagement verwenden",
   "help.use_power_central_config": "Aktivieren, zur Verwendung des zentralen Powermanagements. Deaktivieren, um eine spezifische Leistungskonfiguration für dieses VTherm zu verwenden.",
+  "feature_intro.use_power_feature": "Wirft die Heizung ab, wenn die Leistung des Hauses ihre Grenze überschreiten würde, damit die Hauptsicherung nicht auslöst.",
 } satisfies CompleteCatalog<typeof en>;

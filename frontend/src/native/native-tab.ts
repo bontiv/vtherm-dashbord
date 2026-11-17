@@ -7,7 +7,7 @@ import type { PresetData, ThermostatList } from "../config/api.ts";
 import { PRESET_PREFIX } from "../config/draft.ts";
 import { translateErrorCode } from "../i18n.ts";
 import { shell, t } from "../shell-translations.ts";
-import { autoTpiDefaults, definitionOf, entityChoices, formatInput, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
+import { autoTpiDefaults, definitionOf, entityChoices, formatInput, isFieldShown, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
 import type { FieldSpec } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
 import { buildPresetGrid, parseTemperature, presetOrderWarnings } from "./preset-table.ts";
@@ -555,8 +555,7 @@ export class NativeTabElement extends LitElement {
   }
 
   private renderField(field: FieldSpec, layout: TabLayout, ha: boolean): TemplateResult | undefined {
-    // The sensor of humidity is only asked for when the feature is on.
-    if (field.key === "humidity_sensor_entity_id" && this.values["use_humidity_feature"] !== true) {
+    if (!isFieldShown(field, this.values)) {
       return undefined;
     }
     if (COMMAND_FIELDS.has(field.key)) {

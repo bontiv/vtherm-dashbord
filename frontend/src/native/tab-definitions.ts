@@ -66,6 +66,11 @@ export interface TabDefinition {
   readonly central?: (values: Values) => TabLayout;
   /** Whether the menu of the flow offers the tab for these values. */
   readonly applies: (values: Values, kind: ConfigKind) => boolean;
+  /**
+   * The value that turns the feature of the tab on, for the tabs of a feature. While it is off, the flow does not offer the tab, but the
+   * menu of the dashboard keeps it, off, so that the feature can be found and turned on there (see `isAvailable`).
+   */
+  readonly feature?: string;
 }
 
 const SWITCH = "thermostat_over_switch";
@@ -157,12 +162,14 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_central_boiler",
     tab: "central_boiler",
+    feature: "use_central_boiler_feature",
     central: fixed({ base: ["STEP_CENTRAL_BOILER_SCHEMA"] }),
     applies: (values, kind) => kind === "central" && isOn(values, "use_central_boiler_feature"),
   },
   {
     plugin: "core_window",
     tab: "window",
+    feature: "use_window_feature",
     thermostat: (values) => ({
       base: ["STEP_WINDOW_DATA_SCHEMA"],
       inherit: "use_window_central_config",
@@ -175,6 +182,7 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_motion",
     tab: "motion",
+    feature: "use_motion_feature",
     thermostat: fixed({ base: ["STEP_MOTION_DATA_SCHEMA"], inherit: "use_motion_central_config", specific: ["STEP_CENTRAL_MOTION_DATA_SCHEMA"] }),
     central: fixed({ base: ["STEP_CENTRAL_MOTION_DATA_SCHEMA"] }),
     applies: (values) => isOn(values, "use_motion_feature"),
@@ -182,6 +190,7 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_power",
     tab: "power",
+    feature: "use_power_feature",
     thermostat: fixed({ base: ["STEP_POWER_DATA_SCHEMA"], inherit: "use_power_central_config", specific: ["STEP_NON_CENTRAL_POWER_DATA_SCHEMA"] }),
     central: fixed({ base: ["STEP_CENTRAL_POWER_DATA_SCHEMA"] }),
     applies: (values) => isOn(values, "use_power_feature"),
@@ -189,6 +198,7 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_presence",
     tab: "presence",
+    feature: "use_presence_feature",
     thermostat: fixed({ base: ["STEP_PRESENCE_DATA_SCHEMA"], inherit: "use_presence_central_config", specific: ["STEP_CENTRAL_PRESENCE_DATA_SCHEMA"] }),
     central: fixed({ base: ["STEP_CENTRAL_PRESENCE_DATA_SCHEMA"] }),
     applies: (values) => isOn(values, "use_presence_feature"),
@@ -196,6 +206,7 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_auto_start_stop",
     tab: "auto_start_stop",
+    feature: "use_auto_start_stop_feature",
     thermostat: fixed({ base: ["STEP_AUTO_START_STOP"] }),
     applies: (values, kind) => kind === "thermostat" && thermostatTypeOf(values) === CLIMATE && !usesValveRegulation(values) && isOn(values, "use_auto_start_stop_feature"),
   },
@@ -234,11 +245,32 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_heating_failure",
     tab: "heating_failure_detection",
+    feature: "use_heating_failure_detection_feature",
     thermostat: fixed({ base: ["STEP_HEATING_FAILURE_DETECTION_SCHEMA"], inherit: "use_heating_failure_detection_central_config", specific: ["STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA"] }),
     central: fixed({ base: ["STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA"] }),
     applies: (values) => isOn(values, "use_heating_failure_detection_feature"),
   },
 ];
+
+/**
+ * Whether a tab exists for this type of configuration, its feature aside: a tab of a feature exists when the form "features" of
+ * Versatile Thermostat offers the feature for this type, and the other rules of the tab hold. The other tabs exist when the flow offers
+ * them.
+ *
+ * @param definition - The tab.
+ * @param values - The values of the configuration, draft included.
+ * @param kind - A thermostat or the central configuration.
+ */
+export function isAvailable(definition: TabDefinition, values: Values, kind: ConfigKind): boolean {
+  const feature = definition.feature;
+  if (feature === undefined) {
+    return definition.applies(values, kind);
+  }
+  const features = TAB_DEFINITIONS.find((candidate) => candidate.tab === "features");
+  const layout = kind === "thermostat" ? features?.thermostat?.(values) : features?.central?.(values);
+  const offered = (layout?.base ?? []).flatMap((name) => fieldsOf(name)).some((field) => field.key === feature);
+  return offered && definition.applies({ ...values, [feature]: true }, kind);
+}
 
 /**
  * The last part of the identifier of the contribution of a tab.

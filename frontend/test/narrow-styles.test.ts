@@ -56,6 +56,16 @@ describe("the styles of the narrow screen", () => {
   });
 });
 
+describe("the status of the sections in the drawer of a phone", () => {
+  it("stays on one line at the right, while the title wraps instead of widening the menu", () => {
+    const css = flatten(VThermSideMenu.styles)
+      .map((style) => (style as { cssText?: string }).cssText ?? "")
+      .join("\n");
+    expect(css).toMatch(/\.status\s*\{[^}]*flex: 0 0 auto[^}]*white-space: nowrap/);
+    expect(css).toMatch(/\.title\s*\{[^}]*min-width: 0[^}]*overflow-wrap: anywhere/);
+  });
+});
+
 describe("the save actions on a phone", () => {
   const css = flatten(VThermCardActions.styles)
     .map((style) => (style as { cssText?: string }).cssText ?? "")
