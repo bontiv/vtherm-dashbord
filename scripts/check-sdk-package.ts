@@ -15,7 +15,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SDK = join(ROOT, "packages", "sdk");
 
 /** The files that the package is allowed to contain, besides the ones that npm always adds. */
-const ALLOWED = [/^dist\/[A-Za-z0-9.-]+\.(js|d\.ts)$/, /^package\.json$/, /^README\.md$/, /^LICENSE$/];
+const ALLOWED = [/^dist\/[A-Za-z0-9.-]+\.(js|d\.ts)$/, /^package\.json$/, /^README\.md$/, /^LICENSE$/, /^NOTICE$/];
 
 interface PackedFile {
   readonly path: string;

@@ -1,0 +1,7 @@
+Versatile Thermostat Dashboard
+Copyright 2026 Remi BONNET
+
+This product includes software developed by Remi BONNET
+(https://github.com/bontiv/vtherm_dashboard), including the SDK
+@vtherm/dashboard-sdk. A work that is based on this software must keep this
+notice, as the Apache License 2.0 requires in section 4(d).
