@@ -10,7 +10,7 @@ Aider l'utilisateur à comprendre chaque champ de configuration sur la page mêm
 Un champ SHALL pouvoir avoir une indication courte (clé `hint.<clé>`), une explication détaillée (clé `info.<clé>`) et un schéma explicatif. L'indication SHALL être affichée en permanence sous le contrôle. L'explication et le schéma SHALL être affichés à la demande.
 
 #### Scenario: Champ avec ses trois niveaux
-- **WHEN** l'onglet TPI d'un thermostat est affiché
+- **WHEN** l'onglet principal d'un thermostat est affiché
 - **THEN** le champ de durée de cycle montre son indication sous le contrôle, et un bouton (i) donne accès à son explication et au schéma du cycle de chauffe
 
 #### Scenario: Champ sans aide propre
@@ -73,15 +73,30 @@ Dans un schéma qui illustre plusieurs réglages, l'élément qui correspond au 
 - **THEN** la durée maximale est mise en évidence dans le schéma, les seuils restant visibles en retrait
 
 ### Requirement: Schéma visible pendant la saisie
-Le panneau d'aide SHALL rester ouvert quand l'administrateur modifie un champ. Sur un écran large, un groupe de champs liés à un même schéma SHALL pouvoir afficher ce schéma épinglé à côté du groupe, visible sans ouvrir d'aide ; sur un écran étroit, il SHALL être affiché sous le groupe.
+Le panneau d'aide SHALL rester ouvert quand l'administrateur modifie un champ, et s'ouvrir dans l'emplacement du champ sans déplacer les autres champs de la section.
+
+#### Scenario: Panneau sans déplacement
+- **WHEN** l'administrateur ouvre l'aide d'un champ sur un écran large
+- **THEN** les autres champs de la section gardent leur place dans la grille
+
+### Requirement: Schéma d'un groupe de champs
+Un groupe de champs liés à un même schéma SHALL afficher ce schéma dans la grille de la section, après les champs du groupe, visible sans ouvrir d'aide : à côté des champs sur un écran large, sous les champs sur un écran étroit. Une section héritée SHALL afficher le schéma de son groupe après les valeurs centrales. Un champ du groupe rangé dans « Paramètres avancés » SHALL montrer le schéma dans son panneau d'aide.
 
 #### Scenario: Groupe de vanne sur écran large
-- **WHEN** l'onglet type d'un thermostat sur vanne est affiché sur un écran d'au moins 1024 px de large
-- **THEN** le schéma `valve_curve` est épinglé à côté des champs d'ouverture et se redessine pendant leur saisie
+- **WHEN** l'onglet type d'un thermostat sur vanne est affiché sur un écran de 1440 px de large
+- **THEN** le schéma `valve_curve` est affiché sur deux colonnes de la grille, à côté des champs d'ouverture, et se redessine pendant leur saisie
 
 #### Scenario: Téléphone
 - **WHEN** le même onglet est affiché sur un écran de 375 px de large
 - **THEN** le schéma est affiché sous les champs d'ouverture, dans la largeur de la page
+
+#### Scenario: Section TPI héritée
+- **WHEN** l'onglet TPI d'un thermostat qui utilise la configuration TPI centrale est affiché
+- **THEN** le schéma `tpi_formula` est affiché après les valeurs centrales
+
+#### Scenario: Champ avancé d'un groupe
+- **WHEN** l'administrateur ouvre l'aide du seuil TPI haut dans « Paramètres avancés »
+- **THEN** le panneau d'aide du champ montre le schéma `tpi_thresholds`
 
 ### Requirement: Association des schémas aux champs natifs
 Chaque champ natif dont le réglage est illustré par un schéma de la bibliothèque SHALL afficher ce schéma dans son panneau d'aide. Les scénarios ci-dessous fixent l'association de chaque schéma.

@@ -21,20 +21,15 @@
 
 ## 4. Aide des onglets natifs
 
-- [ ] 4.1 Dans `frontend/src/native/native-tab.ts`, appliquer la règle de repli (`helper` = `hint` ?? `help` ; panneau = `info` ?? `help` s'il diffère ; (i) seulement si panneau ou schéma) et afficher `vtherm-field-help` pour chaque champ, en mode Home Assistant et en repli HTML ; vérifier par des tests dans `frontend/test/native-tabs.test.ts` les trois cas de la spec `field-help` et le scénario « Indication courte prioritaire » de `ha-native-controls`
+- [ ] 4.1 Dans `frontend/src/native/native-tab.ts`, appliquer la règle de repli (`helper` = `hint` ?? `help` ; panneau = `info` ?? `help` s'il diffère ; (i) seulement si panneau ou schéma) et afficher `vtherm-field-help` pour chaque champ, dans sa tuile de la grille, en mode Home Assistant et en repli HTML ; vérifier par un test que l'ouverture d'un panneau ne déplace pas les autres tuiles (scénario « Panneau sans déplacement ») ; vérifier par des tests dans `frontend/test/native-tabs.test.ts` les trois cas de la spec `field-help` et le scénario « Indication courte prioritaire » de `ha-native-controls`
 - [ ] 4.2 Ajouter la table `FIELD_DIAGRAMS` (clé VT → schéma), avec `stagger` limité aux sous-jacents `over_switch` ; vérifier par un test chaque scénario d'association de la spec `field-help`
 - [ ] 4.3 Passer au composant d'aide les valeurs effectives du brouillon (propres ou centrales) et la clé du champ en focus, et garder le panneau ouvert pendant la saisie ; vérifier par des tests dans `frontend/test/native-tabs.test.ts` le redessin à la modification d'un champ et le scénario « Valeur héritée »
-- [ ] 4.4 Ajouter la table `GROUP_DIAGRAMS` et la disposition en deux colonnes (schéma épinglé) à partir de 1024 px de conteneur, schéma sous le groupe en dessous ; vérifier par des tests les scénarios « Groupe de vanne sur écran large » et « Téléphone »
+- [ ] 4.4 Ajouter la table `GROUP_DIAGRAMS` et la tuile de schéma d'un groupe dans la grille : après le dernier champ courant du groupe, sur deux colonnes quand la grille en a au moins trois, après les pastilles d'une section héritée, et le schéma dans le panneau d'un champ du groupe rangé dans « Paramètres avancés » ; vérifier par des tests les scénarios « Groupe de vanne sur écran large », « Téléphone », « Section TPI héritée » et « Champ avancé d'un groupe »
 - [ ] 4.5 Écrire en en/fr/de dans `scripts/native-texts.ts` les `hint.<clé>` de tous les champs natifs et les `info.<clé>` des champs à schéma ou à aide insuffisante, en langage simple (une phrase par indication) ; régénérer les catalogues ; vérifier `npm run check:catalogs` et relire le rendu des onglets TPI, vanne, ouverture et avancé dans le devcontainer
 - [ ] 4.6 Mettre à jour `docs/plugins/native-plugins.md` et `docs/plugins/internationalization.md` (clés `hint.*`, `info.*`, `diagram.*`, règle de repli), en anglais ; vérifier `npm run check:docs`
 
-## 5. Cartes de type dans la section Type de la création
+## 5. Vérification d'ensemble
 
-- [ ] 5.1 Dans `frontend/src/native/native-tab.ts`, en tête de la section Type d'une création (propriété `creating`, `renderTypeChoice`, change `creation-as-config-page`), remplacer le `ha-selector` en liste du type par le sélecteur en boîtes de Home Assistant (`ha-select-box`) avec icône, titre, explication et exemples, et remplacer le repli en boutons radio par un repli `ha-card` en groupe de boutons radio ; vérifier par des tests la sélection au clavier, le changement de type et le repli
-- [ ] 5.2 Ajouter les textes `creation.type_card.<type>.*` en en/fr/de ; vérifier `frontend/test/shell-translations.test.ts` et l'empilement des cartes à 360 px
-- [ ] 5.3 Mettre à jour la description de la création d'un thermostat dans la documentation utilisateur de `docs/` et le `CHANGELOG.md` ; vérifier `npm run check:docs`
-
-## 6. Vérification d'ensemble
-
-- [ ] 6.1 Exécuter `npm run check` et `npm test` sans erreur
-- [ ] 6.2 Dans le devcontainer, ouvrir un thermostat de chaque type en anglais, français et allemand, en thème clair et sombre, sur largeur bureau et 360 px, et vérifier l'indication, le (i), le panneau, les schémas et les cartes de type ; consigner les captures d'écran utiles dans la description de la demande de fusion
+- [ ] 5.1 Mettre à jour la documentation utilisateur de l'aide des champs dans `docs/user/` et le `CHANGELOG.md` ; vérifier `npm run check:docs`
+- [ ] 5.2 Exécuter `npm run check` et `npm test` sans erreur
+- [ ] 5.3 Dans le devcontainer, ouvrir un thermostat de chaque type en anglais, français et allemand, en thème clair et sombre, sur largeur bureau et 360 px, et vérifier l'indication, le (i), le panneau, les schémas et les tuiles de schéma ; consigner les captures d'écran utiles dans la description de la demande de fusion
