@@ -113,15 +113,19 @@ Pour un thermostat `over_valve`, l'onglet "type" SHALL proposer les entités de 
 - **THEN** l'erreur "nombre de valeurs incorrect" est affichée
 
 ### Requirement: Onglet fonctionnalités
-L'onglet "fonctionnalités" SHALL proposer l'activation des fonctionnalités ouverture, mouvement, puissance et présence pour tous les types, la détection de panne de chauffage pour les types sans climate simple, le démarrage et l'arrêt automatiques pour `over_climate` sans régulation par vanne, et la chaudière centrale pour la configuration générale.
+L'onglet "fonctionnalités" SHALL proposer l'activation des fonctionnalités ouverture, mouvement, puissance et présence pour tous les types, la détection de panne de chauffage pour les types sans climate simple, le démarrage et l'arrêt automatiques pour `over_climate` sans régulation par vanne, et la chaudière centrale pour la configuration générale. L'interrupteur d'activation affiché dans l'onglet d'une fonctionnalité SHALL modifier la même valeur.
 
 #### Scenario: Activation d'une fonctionnalité
 - **WHEN** l'administrateur active la fonctionnalité mouvement
-- **THEN** l'onglet mouvement devient visible
+- **THEN** l'onglet mouvement passe du statut éteinte à son statut calculé et affiche ses champs
 
 #### Scenario: Fonctionnalité non applicable
 - **WHEN** un thermostat `over_switch` est ouvert
 - **THEN** l'option de démarrage et d'arrêt automatiques n'est pas proposée
+
+#### Scenario: Activation depuis l'onglet de la fonctionnalité
+- **WHEN** l'administrateur active la fonctionnalité mouvement par l'interrupteur de l'onglet mouvement
+- **THEN** l'onglet "fonctionnalités" montre la fonctionnalité mouvement active
 
 ### Requirement: Plugin `core_tpi`
 Le plugin `core_tpi` SHALL fournir l'onglet TPI pour la fonction proportionnelle TPI, la régulation par vanne et la configuration générale. L'onglet SHALL proposer les coefficients intérieur (0,6, de 0 à 10) et extérieur (0,01, de 0 à 1), les délais minimaux d'activation (10) et de désactivation (0) et les seuils bas et haut (de -10 à 10, défaut 0).
@@ -322,3 +326,14 @@ Le plugin `core_heating_failure` SHALL fournir l'onglet de détection de panne d
 #### Scenario: Fonctionnalité masquée
 - **WHEN** le thermostat est un `over_climate` sans régulation par vanne
 - **THEN** l'onglet n'est pas affiché
+
+### Requirement: Onglets des fonctionnalités éteintes
+Les onglets natifs liés à une fonctionnalité (ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, chaudière centrale, détection de panne de chauffage) SHALL, quand la fonctionnalité s'applique au type mais est désactivée, rester listés avec le statut éteinte au lieu d'être masqués, et SHALL déclarer la valeur d'activation de leur fonctionnalité.
+
+#### Scenario: Onglet ouverture éteint
+- **WHEN** un thermostat dont la fonctionnalité d'ouverture est désactivée est ouvert
+- **THEN** l'onglet ouverture figure dans le menu avec le statut éteinte
+
+#### Scenario: Chaudière centrale
+- **WHEN** la configuration générale est ouverte avec la chaudière centrale désactivée
+- **THEN** l'onglet de la chaudière centrale figure dans son menu avec le statut éteinte
