@@ -70,7 +70,7 @@ Voir proposal.md (Why). État actuel utile pour la solution :
   - la commande `create(kind)` ;
   - une action secondaire « Annuler » qui abandonne la création, retire le brouillon sans confirmation et revient à la liste, ou à la page « Configuration centrale ».
 - Créer est actif dès qu'aucun champ obligatoire ne manque, même sans modification : un brouillon nouveau n'a pas d'« état modifié » qui aurait du sens.
-- Les statuts de `config-navigation-status` (manquants, erreur, central) s'appliquent sans changement. La liste des champs manquants de toutes les sections s'affiche près de Créer, comme le message `wizard.missing` actuel.
+- Les statuts de `config-navigation-status` (manquants, erreur, central) s'appliquent sans changement. La liste des champs manquants de toutes les sections s'affiche, avec le texte `creation.missing`, dans une alerte `ha-alert` de type `warning` (repli : le `div` d'alerte de `renderAlert`) en haut de la page de configuration, avant la carte de la section, et disparaît quand plus rien ne manque. Elle n'est plus dans les messages des actions de la carte. Elle ne s'affiche pas sur l'écran de choix du type.
 
 **D6. Suppression de l'assistant.**
 `create-wizard.ts`, son élément et `CREATED_EVENT` / `CANCELLED_EVENT` disparaissent. Les textes utiles sont repris sous `creation.*` : titre, Créer, en cours, manquants, refusé. Le bouton de la page « Configuration centrale » appelle `startCreation("central")` au lieu de naviguer vers `/thermostats/new/central`, qui devient un itinéraire inconnu.

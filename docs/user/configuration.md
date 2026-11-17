@@ -67,8 +67,8 @@ your draft kept. Changing the type keeps the values that the new type accepts, s
 others, such as an underlying of another domain. **Cancel** on the choice of the type drops the creation.
 The features, the presets and the sections of the add-ons are on the page of the thermostat once it is created.
 
-**Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty, and the
-message above it says which ones, section by section. When Versatile Thermostat refuses the creation, the error shows on its field
+**Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty. A warning at the top of the page, above the card, says which ones, section by
+section, and goes away once nothing is missing. When Versatile Thermostat refuses the creation, the error shows on its field
 and your draft stays. When it succeeds, the overview of the new thermostat opens. Leaving a creation that has a value asks you to
 confirm, as for any draft; **Cancel** does not ask.
 

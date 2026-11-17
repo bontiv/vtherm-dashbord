@@ -403,12 +403,17 @@ describe("the creation of a thermostat", () => {
     await drawn(panel);
     expect(actionButton(panel, "save").disabled).toBe(true);
     expect(actionsText(panel)).toContain("Create");
-    expect(actionsText(panel)).toContain("Still missing");
-    expect(actionsText(panel)).toContain("Underlyings");
-    expect(actionsText(panel)).toContain("Main attributes");
+    expect(actionsText(panel)).not.toContain("Still missing");
+    // The missing fields are a warning above the card, in the main part of the page, and name the sections.
+    const alert = find(root(panel), "main > .missing") as HTMLElement;
+    expect(alert.textContent).toContain("Still missing");
+    expect(alert.textContent).toContain("Underlyings");
+    expect(alert.textContent).toContain("Main attributes");
+    expect(alert.getAttribute("alert-type") ?? "warning").toBe("warning");
+    expect(find(root(panel), "main")?.firstElementChild).toBe(alert);
     expect(calls(hass, "vtherm_dashboard/create_config")).toEqual([]);
     await fill(panel, "thermostat_over_switch", "switch.office");
-    expect(actionsText(panel)).not.toContain("Still missing");
+    expect(find(root(panel), ".missing")).toBeNull();
     expect(actionButton(panel, "save").disabled).toBe(false);
   });
 
@@ -504,7 +509,7 @@ describe("the central configuration", () => {
     expect(find(root(panel), "core-create-central-page")).toBeNull();
     expect(menuTexts(panel)).toEqual(["Main attributes", "TPI parameters", "Advanced parameters"]);
     expect(actionsText(panel)).toContain("Create");
-    expect(actionsText(panel)).toContain("Still missing");
+    expect(find(root(panel), "main > .missing")?.textContent).toContain("Still missing");
     expect(actionButton(panel, "save").disabled).toBe(true);
   });
 

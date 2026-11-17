@@ -48,7 +48,7 @@ Le dashboard SHALL permettre de créer un thermostat dans une page de configurat
 
 #### Scenario: Configuration incomplète
 - **WHEN** l'administrateur tente de créer un thermostat sans nom, sans capteur de température ou sans entité sous-jacente
-- **THEN** la création est refusée, chaque section concernée indique ses champs manquants et la liste des éléments manquants est affichée près de l'action Créer
+- **THEN** la création est refusée, chaque section concernée indique ses champs manquants et la liste des éléments manquants est affichée, par section et avec les libellés traduits, dans une alerte d'avertissement en haut de la page de configuration, avant la carte de la section, jusqu'à ce que plus rien ne manque
 
 #### Scenario: Création refusée par Versatile Thermostat
 - **WHEN** Versatile Thermostat refuse la création à cause d'une valeur d'une section

@@ -199,7 +199,8 @@ export class VThermDashboardPanel extends LitElement {
       border: 1px solid var(--divider-color);
       border-radius: var(--ha-card-border-radius, 12px);
     }
-    .readonly {
+    .readonly,
+    .missing {
       margin: 16px 16px 0;
       padding: 8px 12px;
       border: 1px solid var(--warning-color);
@@ -629,7 +630,6 @@ export class VThermDashboardPanel extends LitElement {
     const missing = this.missingText(kind, draft);
     const refusals = draft.generalErrors().map((error) => translateErrorCode(shell, error.code));
     const messages: DraftMessage[] = [
-      ...(missing === "" ? [] : [{ type: "info" as const, text: t("creation.missing", { fields: missing }) }]),
       ...(refusals.length === 0 ? [] : [{ type: "error" as const, text: `${t("creation.refused")} ${refusals.join(" ")}` }]),
       ...(this.saveNotice?.entryId === creationKey(kind) ? [this.saveNotice.message] : []),
     ];
@@ -867,6 +867,14 @@ export class VThermDashboardPanel extends LitElement {
     ></vtherm-type-choice>`;
   }
 
+  /** What a creation still misses, in a warning above the card of the section. Nothing once nothing is missing. */
+  private renderMissing(entryId: string | null): TemplateResult | undefined {
+    const kind = (["thermostat", "central"] as const).find((candidate) => creationKey(candidate) === entryId);
+    const draft = kind === undefined ? undefined : this.session?.creation(kind)?.draft;
+    const missing = kind === undefined || draft === undefined ? "" : this.missingText(kind, draft);
+    return missing === "" ? undefined : renderAlert("warning", t("creation.missing", { fields: missing }), "missing");
+  }
+
   private renderBody(model: NavigationModel): TemplateResult {
     if (model.mode === "list") {
       return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .hass=${this.hass} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
@@ -885,7 +893,7 @@ export class VThermDashboardPanel extends LitElement {
       return html`<div class="message">${renderProgress(t("config.loading"))}</div>`;
     }
     const readOnly = opened?.data.read_only === true;
-    return html`${readOnly ? renderAlert("warning", t("config.read_only"), "readonly") : undefined}
+    return html`${readOnly ? renderAlert("warning", t("config.read_only"), "readonly") : undefined} ${this.renderMissing(entryId)}
       <vtherm-contribution
         ?inert=${readOnly}
         .tag=${(entry.contribution as { component: string }).component}
