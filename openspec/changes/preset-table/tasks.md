@@ -16,5 +16,5 @@
 
 ## 3. Vérification d'ensemble
 
-- [ ] 3.1 Exécuter `npm run check` et `npm test` sans erreur
-- [ ] 3.2 Dans le devcontainer, vérifier le tableau d'un thermostat simple, d'un thermostat avec présence et climatisation, d'un thermostat qui hérite et de la configuration générale, en en/fr/de, thème clair et sombre, bureau et 360 px, puis enregistrer et contrôler les entités `number` dans Home Assistant
+- [x] 3.1 Exécuter `npm run check` et `npm test` sans erreur
+- [x] 3.2 Dans le devcontainer, vérifier le tableau d'un thermostat simple, d'un thermostat avec présence et climatisation, d'un thermostat qui hérite et de la configuration générale, en en/fr/de, thème clair et sombre, bureau et 360 px, puis enregistrer et contrôler les entités `number` dans Home Assistant
