@@ -181,7 +181,7 @@ class CatalogResult:  # pylint: disable=too-few-public-methods
     warnings: list[str] = field(default_factory=list)
 
 
-class ComplementCatalog:  # pylint: disable=too-many-instance-attributes
+class ComplementCatalog:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
     """The catalog of the add-ons, with its caches."""
 
     def __init__(self, hass: HomeAssistant, url: str = CATALOG_URL) -> None:
