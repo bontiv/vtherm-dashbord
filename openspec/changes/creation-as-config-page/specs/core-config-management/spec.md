@@ -24,15 +24,27 @@ Le dashboard SHALL fournir une page de configuration générale qui édite la co
 - **THEN** le dashboard ne propose pas d'en créer une seconde
 
 ### Requirement: Création d'un thermostat
-Le dashboard SHALL permettre de créer un thermostat dans une page de configuration dont le menu liste, dans cet ordre, les sections Type, Principal, TPI (quand le type l'utilise) et Avancé, avec un brouillon nouveau. La création SHALL être refusée tant que la configuration est incomplète selon les règles du config flow de Versatile Thermostat, et le dashboard SHALL indiquer les éléments manquants par section.
+Le dashboard SHALL permettre de créer un thermostat dans une page de configuration dont le menu liste, dans cet ordre, les sections Principal, Sous-jacents, TPI (quand le type l'utilise) et Avancé, avec un brouillon nouveau. La création SHALL commencer par un écran de choix du type, avant la page de configuration. La création SHALL être refusée tant que la configuration est incomplète selon les règles du config flow de Versatile Thermostat, et le dashboard SHALL indiquer les éléments manquants par section.
 
 #### Scenario: Choix du type
-- **WHEN** l'administrateur démarre une création alors qu'une configuration centrale existe
-- **THEN** la section Type est ouverte et propose les types `over_switch`, `over_climate` et `over_valve`, sans le type central
+- **WHEN** l'administrateur démarre une création, avec ou sans configuration centrale
+- **THEN** un écran propose les types `over_switch`, `over_climate` et `over_valve`, sans le type central, sans menu de sections, avec une action pour continuer
+
+#### Scenario: Type choisi
+- **WHEN** l'administrateur choisit `over_climate` sur l'écran de choix du type et continue
+- **THEN** la page de configuration s'ouvre sur la section Principal, première du menu, avec un brouillon du type choisi
+
+#### Scenario: Retour au choix du type
+- **WHEN** l'administrateur est dans une section de la création et ouvre le segment « Nouveau thermostat » du fil d'ariane
+- **THEN** l'écran de choix du type est affiché avec le type courant sélectionné, sans perdre le brouillon, et changer de type garde les valeurs que le nouveau type accepte
 
 #### Scenario: Sections de la création
 - **WHEN** l'administrateur crée un thermostat `over_climate` sans régulation par vanne
-- **THEN** le menu liste Type, Principal et Avancé, sans TPI, et ne liste ni la vue d'ensemble, ni les fonctionnalités, ni les presets, ni les sections des plugins tiers
+- **THEN** le menu liste Principal, Sous-jacents et Avancé dans cet ordre, sans TPI, et ne liste ni la vue d'ensemble, ni les fonctionnalités, ni les presets, ni les sections des plugins tiers
+
+#### Scenario: Sections qui dépendent du type
+- **WHEN** l'administrateur passe d'un `over_switch` à un `over_climate` sans régulation par vanne
+- **THEN** la section TPI disparaît du menu, et Principal reste la première section
 
 #### Scenario: Configuration incomplète
 - **WHEN** l'administrateur tente de créer un thermostat sans nom, sans capteur de température ou sans entité sous-jacente
@@ -61,7 +73,7 @@ Pendant la création d'un thermostat, changer de type SHALL conserver les valeur
 
 #### Scenario: Valeurs communes conservées
 - **WHEN** l'administrateur a renseigné le nom, le capteur de température et une entité sous-jacente `switch` d'un `over_switch`, puis choisit `over_valve`
-- **THEN** le nom et le capteur de température sont conservés, l'entité `switch` est retirée des entités sous-jacentes, et les champs de la section Type sont ceux d'un `over_valve`
+- **THEN** le nom et le capteur de température sont conservés, l'entité `switch` est retirée des entités sous-jacentes, et les champs de la section Sous-jacents sont ceux d'un `over_valve`
 
 #### Scenario: Entités compatibles conservées
 - **WHEN** l'administrateur a choisi une entité sous-jacente `climate` d'un `over_climate`, puis choisit `over_switch`, dont les entités sous-jacentes acceptent le domaine `climate`
