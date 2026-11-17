@@ -68,7 +68,7 @@ others, such as an underlying of another domain. **Cancel** on the choice of the
 The features, the presets and the sections of the add-ons are on the page of the thermostat once it is created.
 
 **Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty. A warning at the top of the page, above the card, says which ones, section by
-section, and goes away once nothing is missing. When Versatile Thermostat refuses the creation, the error shows on its field
+section, and goes away once nothing is missing. In the section that is open, each required field that is still empty is drawn in the error color of your theme and marked "Required", and it returns to normal once it has a value. When Versatile Thermostat refuses the creation, the error shows on its field
 and your draft stays. When it succeeds, the overview of the new thermostat opens. Leaving a creation that has a value asks you to
 confirm, as for any draft; **Cancel** does not ask.
 

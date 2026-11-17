@@ -29,7 +29,7 @@ interface Rendered {
 }
 
 /** Render a native tab with values, as the dashboard does. */
-async function render(contributionId: string, values: Record<string, unknown>, options: { central?: Record<string, unknown>; errors?: Record<string, string>; unit?: string } = {}): Promise<Rendered> {
+async function render(contributionId: string, values: Record<string, unknown>, options: { central?: Record<string, unknown>; errors?: Record<string, string>; unit?: string; missing?: string[] } = {}): Promise<Rendered> {
   const hook = contributionId.includes(".general.") ? "general_config" : "thermostat_config";
   const entry = host.resolved(hook).find((candidate: PlacedEntry) => candidate.id === contributionId) as PlacedEntry;
   expect(entry, contributionId).toBeDefined();
@@ -41,6 +41,7 @@ async function render(contributionId: string, values: Record<string, unknown>, o
     values,
     centralValues: options.central ?? CENTRAL,
     errors: options.errors ?? {},
+    ...(options.missing === undefined ? {} : { missing: options.missing }),
     proposeChanges: (changes: Record<string, unknown>) => proposals.push(changes),
   };
   const element = await host.render<"thermostat_config">(entry, props as never);
@@ -144,6 +145,17 @@ describe("the tab main", () => {
   });
 });
 
+describe("the required fields that a creation misses", () => {
+  it("marks the control as invalid, colors its label and says that it is required", async () => {
+    const { root } = await render("core.tab.main", { thermostat_type: "thermostat_over_switch" }, { missing: ["name"] });
+    expect(input(root, "name")?.getAttribute("aria-invalid")).toBe("true");
+    expect(input(root, "name")?.getAttribute("aria-describedby")).toContain("required-name");
+    expect(find(root, 'label[for="field-name"]')?.classList.contains("missing")).toBe(true);
+    expect(find(root, "#required-name")?.textContent).toBe("Required");
+    expect(input(root, "cycle_min")?.getAttribute("aria-invalid")).toBe("false");
+  });
+});
+
 describe("the tab type", () => {
   it("shows the fields of a thermostat over a switch, TPI by default, and the custom commands", async () => {
     const { root } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch" });
@@ -191,6 +203,17 @@ describe("the tab type", () => {
   it("shows the error of the custom commands of the form", async () => {
     const { root } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch" }, { errors: { base: "vswitch_configuration_incorrect" } });
     expect(find(root, ".base-error")?.textContent).toContain("The command customization configuration is incorrect");
+  });
+});
+
+describe("the required fields that a creation misses", () => {
+  it("marks the control as invalid, colors its label and says that it is required", async () => {
+    const { root } = await render("core.tab.main", { thermostat_type: "thermostat_over_switch" }, { missing: ["name"] });
+    expect(input(root, "name")?.getAttribute("aria-invalid")).toBe("true");
+    expect(input(root, "name")?.getAttribute("aria-describedby")).toContain("required-name");
+    expect(find(root, 'label[for="field-name"]')?.classList.contains("missing")).toBe(true);
+    expect(find(root, "#required-name")?.textContent).toBe("Required");
+    expect(input(root, "cycle_min")?.getAttribute("aria-invalid")).toBe("false");
   });
 });
 

@@ -33,12 +33,12 @@ interface Rendered {
 }
 
 /** Render a native tab with values, as the dashboard does. */
-async function render(contributionId: string, values: Record<string, unknown>, options: { central?: Record<string, unknown>; errors?: Record<string, string>; services?: Record<string, Record<string, unknown>> } = {}): Promise<Rendered> {
+async function render(contributionId: string, values: Record<string, unknown>, options: { central?: Record<string, unknown>; errors?: Record<string, string>; missing?: string[]; services?: Record<string, Record<string, unknown>> } = {}): Promise<Rendered> {
   const hook = contributionId.includes(".general.") ? "general_config" : "thermostat_config";
   const entry = host.resolved(hook).find((candidate: PlacedEntry) => candidate.id === contributionId) as PlacedEntry;
   const proposals: Record<string, unknown>[] = [];
   const hass = { ...host.hass, config: { unit_system: { temperature: "°C" } }, ...(options.services === undefined ? {} : { services: options.services }) };
-  const props = { hass, thermostatId: "entry-1", values, centralValues: options.central ?? CENTRAL, errors: options.errors ?? {}, proposeChanges: (changes: Record<string, unknown>) => proposals.push(changes) };
+  const props = { hass, thermostatId: "entry-1", values, centralValues: options.central ?? CENTRAL, errors: options.errors ?? {}, ...(options.missing === undefined ? {} : { missing: options.missing }), proposeChanges: (changes: Record<string, unknown>) => proposals.push(changes) };
   const element = await host.render<"thermostat_config">(entry, props as never);
   await (element as unknown as { updateComplete: Promise<unknown> }).updateComplete;
   return { element, proposals, root: element.shadowRoot as ShadowRoot };
@@ -46,6 +46,24 @@ async function render(contributionId: string, values: Record<string, unknown>, o
 
 /** The selector of a field. */
 const selector = (root: ShadowRoot, key: string) => find<MockHaElement>(root, `.field[data-key="${key}"] ha-selector`) as MockHaElement;
+
+describe("the required fields that a creation misses", () => {
+  it("marks them as invalid and required, with a word as well as the color of the error of the theme, and no other field", async () => {
+    const { root } = await render("core.tab.main", { ...SWITCH }, { missing: ["name"] });
+    const field = find(root, '.field[data-key="name"]') as HTMLElement;
+    expect(field.classList.contains("missing")).toBe(true);
+    expect(selector(root, "name").getAttribute("aria-invalid")).toBe("true");
+    expect(selector(root, "name").getAttribute("aria-describedby")).toBe("required-name");
+    expect(find(root, "#required-name")?.textContent).toBe("Required");
+    expect(find(root, '.field[data-key="cycle_min"]')?.classList.contains("missing")).toBe(false);
+    expect(find(root, "#required-cycle_min")).toBeNull();
+  });
+
+  it("draws every field as usual when nothing is missing", async () => {
+    const { root } = await render("core.tab.main", { ...SWITCH });
+    expect(findAll(root, ".missing, .required-note")).toEqual([]);
+  });
+});
 
 describe("the fields of the native tabs", () => {
   it("draws every field with ha-selector, not with a plain control", async () => {

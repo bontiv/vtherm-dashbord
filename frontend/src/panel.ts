@@ -829,6 +829,7 @@ export class VThermDashboardPanel extends LitElement {
       }
       draft.propose(tab, changes);
     };
+    const creationKind = (["thermostat", "central"] as const).find((candidate) => creationKey(candidate) === entryId);
     const common = {
       hass,
       narrow: this.compact,
@@ -836,6 +837,7 @@ export class VThermDashboardPanel extends LitElement {
       errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab),
       proposeChanges,
       draft: this.draftControls(entryId),
+      ...(creationKind === undefined || draft === undefined ? {} : { missing: this.missingKeys(creationKind, draft, tab) }),
     };
     return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
   }
@@ -869,6 +871,13 @@ export class VThermDashboardPanel extends LitElement {
       .cancel=${() => this.abandon("thermostat")}
       .language=${String(this.languageVersion)}
     ></vtherm-type-choice>`;
+  }
+
+  /** The keys of the required fields that a creation misses in a section, as the warning lists them: the fields to show in red. */
+  private missingKeys(kind: ConfigKind, draft: { values(): Readonly<Record<string, unknown>> }, tab: string | undefined): readonly string[] {
+    return creationMissing(kind, draft.values(), this.session?.centralId !== null)
+      .filter(({ definition }) => definition.tab === tab)
+      .flatMap(({ fields }) => fields.map((field) => field.key));
   }
 
   /** What a creation still misses, in a warning above the card of the section. Nothing once nothing is missing. */

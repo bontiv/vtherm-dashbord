@@ -50,6 +50,10 @@ Le dashboard SHALL permettre de créer un thermostat dans une page de configurat
 - **WHEN** l'administrateur tente de créer un thermostat sans nom, sans capteur de température ou sans entité sous-jacente
 - **THEN** la création est refusée, chaque section concernée indique ses champs manquants et la liste des éléments manquants est affichée, par section et avec les libellés traduits, dans une alerte d'avertissement en haut de la page de configuration, avant la carte de la section, jusqu'à ce que plus rien ne manque
 
+#### Scenario: Champ obligatoire vide
+- **WHEN** l'administrateur ouvre, pendant une création, une section qui a un champ obligatoire encore vide
+- **THEN** ce champ est affiché dans la couleur d'erreur du thème de Home Assistant, signalé comme invalide aux technologies d'assistance et accompagné du mot « Obligatoire », et il revient à l'apparence normale dès qu'il est rempli, alors que les champs d'un thermostat existant ne changent pas
+
 #### Scenario: Création refusée par Versatile Thermostat
 - **WHEN** Versatile Thermostat refuse la création à cause d'une valeur d'une section
 - **THEN** l'erreur est affichée sur le champ concerné, la section est marquée en erreur dans le menu, et le brouillon de création est conservé

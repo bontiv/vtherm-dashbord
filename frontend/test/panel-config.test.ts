@@ -339,6 +339,20 @@ describe("the creation of a thermostat", () => {
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values).toMatchObject({ thermostat_type: "thermostat_over_climate", name: "Bureau" });
   });
 
+  it("gives the required fields that are empty to the section of the creation, and none once they are filled or when editing", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: `${NEW}/core.tab.main` });
+    const missing = () => (nativeTab(panel, "vtherm-native-main-thermostat") as unknown as { missing: string[] }).missing;
+    expect(missing()).toEqual(["name", "temperature_sensor_entity_id", "external_temperature_sensor_entity_id"]);
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Bureau" });
+    await drawn(panel);
+    expect(missing()).toEqual(["temperature_sensor_entity_id", "external_temperature_sensor_entity_id"]);
+  });
+
+  it("gives no required field to show in red when editing a thermostat", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
+    expect((nativeTab(panel, "vtherm-native-main-thermostat") as unknown as { missing: string[] }).missing).toEqual([]);
+  });
+
   it("opens the section of the address, with a new draft", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: `${NEW}/core_advanced.tab.main` });
     expect(find(root(panel), "vtherm-native-advanced-thermostat")).not.toBeNull();

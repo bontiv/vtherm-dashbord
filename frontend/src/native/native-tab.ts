@@ -41,6 +41,7 @@ export class NativeTabElement extends LitElement {
     values: { attribute: false },
     centralValues: { attribute: false },
     errors: { attribute: false },
+    missing: { attribute: false },
     proposeChanges: { attribute: false },
     draft: { attribute: false },
     language: { type: String },
@@ -172,8 +173,20 @@ export class NativeTabElement extends LitElement {
         border-color: var(--error-color);
       }
       .error,
-      .alert.error {
+      .alert.error,
+      .required-note,
+      label.missing {
         color: var(--error-color);
+      }
+      /* The theme color of the error, given to the lines and labels of the fields of Home Assistant that are required and empty. */
+      .field.missing ha-selector {
+        --mdc-text-field-idle-line-color: var(--error-color);
+        --mdc-text-field-hover-line-color: var(--error-color);
+        --mdc-text-field-label-ink-color: var(--error-color);
+        --mdc-select-idle-line-color: var(--error-color);
+        --mdc-select-hover-line-color: var(--error-color);
+        --mdc-select-label-ink-color: var(--error-color);
+        --mdc-select-dropdown-icon-color: var(--error-color);
       }
       .alert {
         margin: 0 0 12px;
@@ -220,6 +233,8 @@ export class NativeTabElement extends LitElement {
   declare values: ConfigValues;
   declare centralValues: ConfigValues;
   declare errors: ConfigErrors;
+  /** The keys of the required fields that a creation still misses in this section: they are shown in red, and say that they are required. */
+  declare missing: readonly string[];
   declare proposeChanges: (changes: ConfigValues) => void;
   /** The state of the draft and its commands: the save actions at the foot of the card. None when the configuration cannot be saved. */
   declare draft: CardDraft | undefined;
@@ -238,6 +253,7 @@ export class NativeTabElement extends LitElement {
     this.values = {};
     this.centralValues = {};
     this.errors = {};
+    this.missing = [];
     this.proposeChanges = () => undefined;
     this.draft = undefined;
     this.language = "";
@@ -443,6 +459,16 @@ export class NativeTabElement extends LitElement {
     return ha ? this.renderSelector(field, layout) : this.renderFallbackField(field, layout);
   }
 
+  /** Whether a creation still misses this field: it is required and empty. */
+  private isMissing(field: FieldSpec): boolean {
+    return this.missing.includes(field.key);
+  }
+
+  /** The words that say that a field is required, so that its color is not the only sign. */
+  private renderRequiredNote(field: FieldSpec): TemplateResult {
+    return html`<div class="required-note" id="required-${field.key}">${t("creation.required")}</div>`;
+  }
+
   /** A field drawn with the `ha-selector` of Home Assistant. */
   private renderSelector(field: FieldSpec, layout: TabLayout): TemplateResult {
     const error = this.fieldError(field.key);
@@ -451,8 +477,11 @@ export class NativeTabElement extends LitElement {
     // An option that a thermostat plugin added is kept.
     const extra = field.kind === "select" && typeof value === "string" && value !== "" && !(field.options ?? []).includes(value) ? [value] : [];
     const selector = selectorOf(definitionOf(field, (option) => this.optionLabel(field, option), extra));
-    return html`<div class="field" data-key=${field.key}>
+    const missing = this.isMissing(field);
+    return html`<div class=${missing ? "field missing" : "field"} data-key=${field.key}>
       <ha-selector
+        aria-invalid=${missing ? "true" : "false"}
+        aria-describedby=${missing ? `required-${field.key}` : ""}
         .hass=${this.hass}
         .selector=${selector}
         .value=${disabled ? false : valueForSelector(field, value)}
@@ -462,6 +491,7 @@ export class NativeTabElement extends LitElement {
         .disabled=${disabled}
         @value-changed=${(event: ValueChanged) => this.onSelectorChange(field, event)}
       ></ha-selector>
+      ${missing ? this.renderRequiredNote(field) : undefined}
       ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${this.renderSuggestion(field)}
       ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
     </div>`;
@@ -578,9 +608,11 @@ export class NativeTabElement extends LitElement {
   private renderFallbackField(field: FieldSpec, layout: TabLayout): TemplateResult {
     const id = `field-${field.key}`;
     const error = this.fieldError(field.key);
+    const missing = this.isMissing(field);
+    const invalid = error !== undefined || missing;
     const value = shownValue(field, this.values, this.unit);
     const disabled = this.needsMissingCentral(field, layout);
-    const describedBy = [`help-${field.key}`, error === undefined ? "" : `error-${field.key}`].filter(Boolean).join(" ");
+    const describedBy = [`help-${field.key}`, error === undefined ? "" : `error-${field.key}`, missing ? `required-${field.key}` : ""].filter(Boolean).join(" ");
     const errorLine = error === undefined ? undefined : html`<div class="error" id="error-${field.key}" role="alert">${error}</div>`;
     // fallback: the controls below replace ha-selector when it is not defined (an old version of Home Assistant, or out of it).
     if (field.kind === "boolean") {
@@ -591,10 +623,10 @@ export class NativeTabElement extends LitElement {
           .checked=${disabled ? false : value === true}
           ?disabled=${disabled}
           aria-describedby=${describedBy}
-          aria-invalid=${error === undefined ? "false" : "true"}
+          aria-invalid=${invalid ? "true" : "false"}
           @change=${(event: Event) => this.onFieldChange(field, (event.target as HTMLInputElement).checked)}
         />
-        <label class="touch-target" for=${id}>${this.label(field)}</label>
+        <label class=${missing ? "touch-target missing" : "touch-target"} for=${id}>${this.label(field)}</label>
         ${this.help(field)} ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${errorLine}
       </div>`;
     }
@@ -606,13 +638,13 @@ export class NativeTabElement extends LitElement {
         // An algorithm that a thermostat plugin added is kept.
         options.push(value);
       }
-      control = html`<select id=${id} data-value=${value === null || value === undefined ? "" : String(value)} aria-describedby=${describedBy} aria-invalid=${error === undefined ? "false" : "true"} @change=${onInput}>
+      control = html`<select id=${id} data-value=${value === null || value === undefined ? "" : String(value)} aria-describedby=${describedBy} aria-invalid=${invalid ? "true" : "false"} @change=${onInput}>
         ${field.required ? undefined : html`<option value="" ?selected=${value === null || value === undefined || value === ""}>${t("config.none")}</option>`}
         ${options.map((option) => html`<option value=${option} ?selected=${option === value}>${this.optionLabel(field, option)}</option>`)}
       </select>`;
     } else if (field.multiple === true) {
       // fallback: one entity per line, when the entity selector of Home Assistant is not defined.
-      control = html`<textarea id=${id} placeholder=${t("config.list_hint")} aria-describedby=${describedBy} aria-invalid=${error === undefined ? "false" : "true"} .value=${formatInput(field, value)} @change=${onInput}></textarea>`;
+      control = html`<textarea id=${id} placeholder=${t("config.list_hint")} aria-describedby=${describedBy} aria-invalid=${invalid ? "true" : "false"} .value=${formatInput(field, value)} @change=${onInput}></textarea>`;
     } else {
       const numeric = field.kind === "number" || field.kind === "integer";
       const listId = field.kind === "entity" ? `${id}-choices` : undefined;
@@ -625,15 +657,15 @@ export class NativeTabElement extends LitElement {
           max=${field.max ?? ""}
           step=${numeric ? String(field.step ?? (field.kind === "integer" ? 1 : "any")) : ""}
           aria-describedby=${describedBy}
-          aria-invalid=${error === undefined ? "false" : "true"}
+          aria-invalid=${invalid ? "true" : "false"}
           .value=${formatInput(field, value)}
           @change=${onInput}
         />
         ${listId === undefined ? undefined : html`<datalist id=${listId}>${entityChoices(field, Object.keys(this.hass?.states ?? {})).map((entity) => html`<option value=${entity}></option>`)}</datalist>`}`;
     }
     return html`<div class="field">
-      <label for=${id}>${this.label(field)}</label>
-      ${control} ${this.help(field)} ${this.renderSuggestion(field)} ${errorLine}
+      <label for=${id} class=${missing ? "missing" : ""}>${this.label(field)}</label>
+      ${control} ${missing ? this.renderRequiredNote(field) : undefined} ${this.help(field)} ${this.renderSuggestion(field)} ${errorLine}
     </div>`;
   }
 
