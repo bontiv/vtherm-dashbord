@@ -96,11 +96,15 @@ Si un composant de Home Assistant reste indisponible après le chargement (versi
 - **THEN** le champ utilise le contrôle HTML actuel, la valeur reste modifiable et un avertissement unique est écrit dans la console
 
 ### Requirement: Accessibilité, thème et traductions des contrôles
-Chaque contrôle SHALL avoir un libellé, un texte d'aide et un message d'erreur traduits par le catalogue du plugin, passés au composant Home Assistant (`label`, `helper`, `error`). Les contrôles SHALL suivre le thème de Home Assistant, sans styles qui en contournent l'apparence.
+Chaque contrôle SHALL avoir un libellé, un texte d'aide et un message d'erreur traduits par le catalogue du plugin, passés au composant Home Assistant (`label`, `helper`, `error`). Le texte d'aide passé en `helper` SHALL être l'indication courte du champ (`hint.<clé>`), ou à défaut l'aide `help.<clé>`. Les contrôles SHALL suivre le thème de Home Assistant, sans styles qui en contournent l'apparence.
 
 #### Scenario: Libellé et aide
-- **WHEN** un champ a une clé `field.<clé>` et `help.<clé>` dans le catalogue
+- **WHEN** un champ a une clé `field.<clé>` et `help.<clé>` dans le catalogue, sans `hint.<clé>`
 - **THEN** le composant affiche ce libellé et cette aide dans la langue de l'utilisateur
+
+#### Scenario: Indication courte prioritaire
+- **WHEN** un champ a à la fois `hint.<clé>` et `help.<clé>` dans le catalogue
+- **THEN** le composant reçoit `hint.<clé>` en `helper`, et `help.<clé>` reste accessible par le panneau d'aide du champ
 
 #### Scenario: Thème sombre
 - **WHEN** l'utilisateur utilise un thème sombre ou personnalisé
@@ -216,3 +220,14 @@ Les contrôles de l'assistant de création, des filtres de la page Compléments,
 #### Scenario: Thème des cases
 - **WHEN** l'utilisateur passe en thème sombre ou personnalisé
 - **THEN** les cases du tableau prennent les couleurs de fond, de texte, de bordure et de focus du thème
+
+### Requirement: Bouton d'aide d'un champ
+Le bouton (i) qui ouvre l'aide détaillée d'un champ SHALL porter l'icône de Home Assistant et l'apparence d'un bouton d'icône du thème, avec un libellé accessible traduit qui nomme le champ, et SHALL respecter la cible tactile minimale sur écran étroit. Il SHALL être un bouton du dashboard, par exception à la règle du composant Home Assistant en priorité, parce que `ha-icon-button` ne transmet pas l'état du panneau.
+
+#### Scenario: Libellé accessible
+- **WHEN** un lecteur d'écran atteint le bouton (i) du champ « Durée de cycle »
+- **THEN** il annonce un libellé du type « Aide : Durée de cycle » et l'état ouvert ou fermé du panneau
+
+#### Scenario: Repli
+- **WHEN** l'icône de Home Assistant est indisponible
+- **THEN** le bouton affiche le caractère « i », avec le même libellé et le même comportement
