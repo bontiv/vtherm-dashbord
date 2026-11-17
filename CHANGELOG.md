@@ -8,6 +8,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+## [0.1.0-beta2]
+The second beta.
+
 ### Added
 - The list of the thermostats groups them by area of Home Assistant, ordered by floor then by name, with the thermostats without
   area at the end and a link to give each one an area in its device page. **By area** and **By name** choose the order, remembered in

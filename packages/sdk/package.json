@@ -1,6 +1,6 @@
 {
   "name": "@vtherm/dashboard-sdk",
-  "version": "0.1.0",
+  "version": "0.1.0-beta2",
   "description": "Types and helpers to write UI plugins for the Versatile Thermostat dashboard",
   "type": "module",
   "repository": {
