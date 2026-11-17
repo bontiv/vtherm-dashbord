@@ -243,16 +243,9 @@ Sur un écran de 360 px de large ou plus, aucune page native du dashboard SHALL 
 - **WHEN** chaque page native (Dashboard, liste et configuration des thermostats, assistant de création, configuration générale, Plugins, Développement, catalogue et détail des compléments) est affichée sur un écran de 360 px de large
 - **THEN** aucun élément de la page ne dépasse la largeur de l'écran
 
-### Requirement: Barre d'enregistrement sur mobile
-Sur un écran étroit, la barre d'enregistrement SHALL rester visible en bas de l'écran pendant le défilement de la page, et ses boutons SHALL passer sous son message quand ils ne tiennent pas sur la même ligne, sans masquer les messages d'erreur.
-
-#### Scenario: Brouillon modifié sur un téléphone
-- **WHEN** l'utilisateur modifie un champ de configuration sur un écran de 375 px de large puis fait défiler la page
-- **THEN** la barre d'enregistrement reste en bas de l'écran avec ses boutons Annuler et Enregistrer accessibles
-
 ### Requirement: Zones sûres des écrans à encoche
-Le cadre du dashboard SHALL respecter les marges de zone sûre que l'application Home Assistant ou le navigateur indique (encoche, barre de navigation du système), pour que l'en-tête, le tiroir et la barre d'enregistrement restent visibles et utilisables.
+Le cadre du dashboard SHALL respecter les marges de zone sûre que l'application Home Assistant ou le navigateur indique (encoche, barre de navigation du système), pour que l'en-tête, le tiroir et le bas de la page, avec les actions de la dernière carte, restent visibles et utilisables.
 
 #### Scenario: Téléphone avec encoche
 - **WHEN** le dashboard est ouvert dans l'application Home Assistant sur un téléphone dont l'écran a une encoche ou une barre de navigation système
-- **THEN** aucun contrôle de l'en-tête ni de la barre d'enregistrement n'est sous l'encoche ou sous cette barre
+- **THEN** aucun contrôle de l'en-tête n'est sous l'encoche, et en bas de la page les actions de la dernière carte peuvent être amenées au-dessus de la barre de navigation du système

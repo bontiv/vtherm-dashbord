@@ -65,7 +65,7 @@ Les types du package SHALL couvrir les sept hooks. Une contribution de navigatio
 - **THEN** la compilation TypeScript échoue
 
 ### Requirement: Contexte des composants de configuration
-Un composant des hooks `general_config` et `thermostat_config` SHALL recevoir `hass`, les valeurs courantes de la configuration éditée, celles de la configuration centrale pour `thermostat_config`, les erreurs de validation de ses champs et un moyen de proposer des modifications du brouillon. Il ne SHALL pas écrire lui-même dans la configuration de Home Assistant : l'enregistrement est assuré par le dashboard.
+Un composant des hooks `general_config` et `thermostat_config` SHALL recevoir `hass`, les valeurs courantes de la configuration éditée, celles de la configuration centrale pour `thermostat_config`, les erreurs de validation de ses champs, un moyen de proposer des modifications du brouillon et l'état du brouillon avec ses commandes (modifié ou non, enregistrement en cours, enregistrer, annuler). Il ne SHALL pas écrire lui-même dans la configuration de Home Assistant : l'enregistrement est assuré par le dashboard.
 
 #### Scenario: Modification du brouillon
 - **WHEN** un composant propose la modification d'un champ
@@ -78,6 +78,14 @@ Un composant des hooks `general_config` et `thermostat_config` SHALL recevoir `h
 #### Scenario: Configuration générale
 - **WHEN** un composant du hook `general_config` est affiché
 - **THEN** il ne reçoit pas d'identifiant de thermostat
+
+#### Scenario: État du brouillon
+- **WHEN** un composant de configuration propose une modification
+- **THEN** il reçoit un état du brouillon marqué comme modifié, et la commande d'annulation remet les valeurs enregistrées
+
+#### Scenario: Enregistrement demandé par le composant
+- **WHEN** un composant appelle la commande d'enregistrement
+- **THEN** le dashboard enregistre tout le brouillon de la configuration et le composant reçoit le résultat (réussi, refusé ou partiel) pour l'afficher sur son bouton
 
 ### Requirement: Registre unique côté dashboard
 Le package SHALL déléguer l'enregistrement au registre du dashboard présent dans la page, et ne SHALL pas contenir de registre propre. Plusieurs plugins qui embarquent chacun une copie du package SHALL enregistrer leurs contributions dans le même registre.
@@ -140,3 +148,18 @@ Le harnais de test SHALL permettre de tester un composant de plugin qui utilise 
 #### Scenario: Propriétés transmises
 - **WHEN** un test lit un sélecteur simulé
 - **THEN** il peut vérifier le sélecteur, la valeur, le libellé, l'aide et l'erreur transmis
+
+### Requirement: Déclaration des actions d'enregistrement d'une contribution
+Une contribution `general_config` ou `thermostat_config` SHALL pouvoir déclarer qu'elle dessine elle-même les actions d'enregistrement dans sa carte. Sans cette déclaration, le dashboard SHALL dessiner ces actions dans une carte sous le composant. Les contributions natives SHALL utiliser cette même déclaration. Une valeur invalide SHALL être rejetée par la validation, comme les autres champs de contribution.
+
+#### Scenario: Plugin existant
+- **WHEN** un plugin tiers publié avant ce changement déclare une contribution `thermostat_config` sans la nouvelle déclaration
+- **THEN** il reste valide et ses pages de configuration affichent les actions dans la carte du dashboard
+
+#### Scenario: Déclaration faite
+- **WHEN** une contribution `thermostat_config` déclare dessiner elle-même les actions
+- **THEN** le dashboard ne dessine pas de carte d'actions sous son composant
+
+#### Scenario: Déclaration sur un autre hook
+- **WHEN** un auteur ajoute cette déclaration à une contribution `global_page`
+- **THEN** la compilation TypeScript échoue et la validation à l'enregistrement rejette la contribution
