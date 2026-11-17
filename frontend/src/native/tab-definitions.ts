@@ -277,11 +277,11 @@ export const THERMOSTAT_TYPES = ["thermostat_over_switch", "thermostat_over_clim
 export const CENTRAL_TYPE = "thermostat_central_config";
 
 /**
- * The sections that a creation shows, in their order: the ones that a new configuration needs. The menu of an existing thermostat
- * follows the order of the flow instead, where the type comes after the main tab.
+ * The sections that a creation shows, in their order: the ones that a new configuration needs. The sections that depend on the type
+ * of the thermostat (`type` holds its underlyings, then TPI) come after the main one. The type itself is chosen on a screen before.
  */
 export const CREATION_TABS: Readonly<Record<ConfigKind, readonly FlowTab[]>> = {
-  thermostat: ["type", "main", "tpi", "advanced"],
+  thermostat: ["main", "type", "tpi", "advanced"],
   central: ["main", "tpi", "advanced"],
 };
 

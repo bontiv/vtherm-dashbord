@@ -29,7 +29,7 @@ export interface ThermostatInfo {
   readonly floorLevel?: number | null;
 }
 
-/** A configuration that is being created: the menu is limited to the sections that its creation needs. */
+/** A configuration that is being created: the menu is limited to the sections that its creation needs, after the choice of the type. */
 export interface CreationInput {
   /** `thermostat` for the page of a new thermostat, `central` for the central configuration in the Configuration tab. */
   readonly kind: "thermostat" | "central";
@@ -102,8 +102,8 @@ export interface NavigationModel {
   readonly tabs: readonly NavTab[];
   /** The current tab, undefined when there is no tab. */
   readonly activeTab: NavTab | undefined;
-  /** `list` is the list of the thermostats, `page` is a page of a menu. */
-  readonly mode: "list" | "page";
+  /** `list` is the list of the thermostats, `page` is a page of a menu, `type` is the choice of the type of a new thermostat. */
+  readonly mode: "list" | "page" | "type";
   /** The selected thermostat, in the Thermostats tab. */
   readonly thermostat: ThermostatInfo | undefined;
   /** The left menu. Empty for the list of the thermostats. */
@@ -175,6 +175,11 @@ export function resolveNavigation(input: NavigationInput): NavigationModel {
   const visible = engine.visible(engine.menu(activeTab.id), (entry) => input.contextOf(entry, thermostat));
   const creation = input.creation;
   const creating = creation !== undefined && (creation.kind === "thermostat" ? thermostat?.id === NEW_THERMOSTAT : activeTab.id === CORE_TOP_TABS.configuration);
+  // The address of a new thermostat without a section is the choice of its type, before the page of configuration.
+  if (creating && creation.kind === "thermostat" && route.entry === undefined) {
+    crumbs[crumbs.length - 1] = { label: crumbs[crumbs.length - 1]?.label ?? "", path: undefined };
+    return { tabs, activeTab, mode: "type", thermostat, sections: [], current: undefined, breadcrumb: crumbs, notice };
+  }
   // A creation shows its own sections, in its own order: the others are on the page of the configuration once it exists.
   const entries = creating ? creation.entries.flatMap((id) => visible.filter((entry) => entry.id === id)) : visible;
   const wanted = route.entry === undefined || route.tab !== activeTab.id ? undefined : entries.find((entry) => entry.id === route.entry);

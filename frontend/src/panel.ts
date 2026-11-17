@@ -20,6 +20,7 @@ import type { NavigateDetail } from "./components/events.ts";
 import "./components/side-menu.ts";
 import { THERMOSTAT_SELECTED_EVENT } from "./components/side-menu.ts";
 import "./components/thermostat-list.ts";
+import "./components/type-choice.ts";
 import { renderIcon } from "./components/icon.ts";
 import { isDefined, renderAlert, renderButton, renderDialog, renderProgress } from "./components/ha.ts";
 import "./components/top-bar.ts";
@@ -822,15 +823,6 @@ export class VThermDashboardPanel extends LitElement {
         console.warn(`The contribution ${entry.id} proposed changes that the dashboard cannot save`, changes);
         return;
       }
-      if (entryId === creationKey("thermostat") && typeof changes["thermostat_type"] === "string") {
-        // The type of a new thermostat is not a change of a section: the draft changes its type and keeps the values that fit.
-        const { thermostat_type: type, ...others } = changes;
-        draft.changeType(String(type));
-        if (Object.keys(others).length > 0) {
-          draft.propose(tab, others);
-        }
-        return;
-      }
       draft.propose(tab, changes);
     };
     const common = {
@@ -840,7 +832,6 @@ export class VThermDashboardPanel extends LitElement {
       errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab),
       proposeChanges,
       draft: this.draftControls(entryId),
-      ...(isCreationKey(entryId) ? { creating: true } : {}),
     };
     return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
   }
@@ -857,9 +848,31 @@ export class VThermDashboardPanel extends LitElement {
     return isDefined("ha-card") ? html`<ha-card class="actions-card">${actions}</ha-card>` : html`<div class="actions-card">${actions}</div>`;
   }
 
+  /** The choice of the type of a new thermostat, before its page of configuration, which opens on its first section. */
+  private renderTypeChoice(): TemplateResult {
+    const draft = this.session?.creation("thermostat")?.draft;
+    if (draft === undefined) {
+      return html`<div class="message">${renderProgress(t("config.loading"))}</div>`;
+    }
+    const values = draft.values();
+    const first = creationContributionIds("thermostat", values)[0];
+    const next = () => this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: NEW_THERMOSTAT, ...(first === undefined ? {} : { entry: first }), rest: [] }) } }));
+    return html`<vtherm-type-choice
+      .hass=${this.hass}
+      .value=${String(values["thermostat_type"] ?? "")}
+      .choose=${(type: string) => draft.changeType(type)}
+      .next=${next}
+      .cancel=${() => this.abandon("thermostat")}
+      .language=${String(this.languageVersion)}
+    ></vtherm-type-choice>`;
+  }
+
   private renderBody(model: NavigationModel): TemplateResult {
     if (model.mode === "list") {
       return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .hass=${this.hass} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
+    }
+    if (model.mode === "type") {
+      return this.renderTypeChoice();
     }
     if (model.current === undefined) {
       return renderAlert("info", t("shell.page.empty"), "message");

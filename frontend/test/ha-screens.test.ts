@@ -89,23 +89,28 @@ describe("the creation of a thermostat", () => {
   const NEW = `/vtherm/${CORE_TOP_TABS.thermostats}/new`;
   const section = (panel: HTMLElement, tag: string) => find(root(panel), tag) as HTMLElement & { updateComplete: Promise<boolean> };
 
-  it("chooses the type with the selector of Home Assistant, and creates with the actions of the card", async () => {
+  it("chooses the type with the selector of Home Assistant, then creates with the actions of the card on the page of configuration", async () => {
     const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: NEW });
-    const type = () => find<MockHaElement>(section(panel, "vtherm-native-type-thermostat").shadowRoot as ShadowRoot, "ha-selector.type");
+    const choice = () => find(root(panel), "vtherm-type-choice") as (HTMLElement & { updateComplete: Promise<boolean> }) | null;
+    const type = () => find<MockHaElement>(choice()?.shadowRoot as ShadowRoot, "ha-selector.type");
     await vi.waitFor(() => expect(type()).not.toBeNull());
     expect((type()?.selector as { select: { mode: string; options: unknown[] } }).select).toMatchObject({ mode: "list" });
     expect((type()?.selector as { select: { options: unknown[] } }).select.options).toHaveLength(3);
+    expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     type()?.change("thermostat_over_valve");
     await settle(panel);
-    await section(panel, "vtherm-native-type-thermostat").updateComplete;
+    await choice()?.updateComplete;
     expect(type()?.value).toBe("thermostat_over_valve");
-    const actions = find(section(panel, "vtherm-native-type-thermostat").shadowRoot as ShadowRoot, "vtherm-card-actions") as HTMLElement & { updateComplete: Promise<boolean> };
+    find<HTMLElement>(choice()?.shadowRoot as ShadowRoot, "ha-button.continue")?.click();
+    await settle(panel);
+    await vi.waitFor(() => expect(find(root(panel), "vtherm-native-main-thermostat")).not.toBeNull());
+    expect(find(root(panel), "vtherm-type-choice")).toBeNull();
+    const main = section(panel, "vtherm-native-main-thermostat");
+    const actions = find(main.shadowRoot as ShadowRoot, "vtherm-card-actions") as HTMLElement & { updateComplete: Promise<boolean> };
     await actions.updateComplete;
     expect(find(actions.shadowRoot as ShadowRoot, "ha-progress-button.save")?.textContent).toContain("Create");
     expect(find(actions.shadowRoot as ShadowRoot, "ha-button.cancel")).not.toBeNull();
-    expect(find(section(panel, "vtherm-native-type-thermostat").shadowRoot as ShadowRoot, "input[type=radio]")).toBeNull();
   });
-
   it("keeps the field of the name while it is typed in, so that it keeps the focus", async () => {
     const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: `${NEW}/core.tab.main` });
     const nameField = (): MockHaElement | null => section(panel, "vtherm-native-main-thermostat").shadowRoot?.querySelector('.field[data-key="name"] ha-selector') as MockHaElement | null;

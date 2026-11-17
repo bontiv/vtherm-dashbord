@@ -215,43 +215,51 @@ describe("a route that designates nothing", () => {
 });
 
 describe("the creation of a thermostat", () => {
-  // The menu of an existing thermostat has the main section before the type; the creation puts the type first.
+  // The menu of an existing thermostat has the type after the main section, and so has the creation, whose type is chosen before.
   const sections = plugin("sections", { thermostat_config: [page("sections.main"), page("sections.type"), page("sections.features")] });
-  const creation = { kind: "thermostat", entries: ["sections.type", "sections.main", "core_tpi.tab.main"], title: "New thermostat" } as const;
+  const creation = { kind: "thermostat", entries: ["sections.main", "sections.type", "core_tpi.tab.main"], title: "New thermostat" } as const;
   const creating = (entry?: string) => resolveNavigation(input(route(THERMOSTATS, "new", entry), { creation }, sections));
 
-  it("lists only the sections of the creation, in their order", () => {
-    const model = creating();
-    expect(menuIds(model)).toEqual(["sections.type", "sections.main", "core_tpi.tab.main"]);
-    expect(model.current?.id).toBe("sections.type");
+  it("lists only the sections of the creation, in their order, with main first", () => {
+    const model = creating("sections.main");
+    expect(menuIds(model)).toEqual(["sections.main", "sections.type", "core_tpi.tab.main"]);
+    expect(model.current?.id).toBe("sections.main");
     expect(model.thermostat).toMatchObject({ id: "new", name: "New thermostat" });
     expect(model.notice).toBeUndefined();
   });
 
   it("does not list a section that does not apply to the values of the creation", () => {
     // The window section is in the list of the creation but its visibility condition (`window`) is false.
-    const hidden = resolveNavigation(input(route(THERMOSTATS, "new"), { creation: { ...creation, entries: ["sections.type", "core_window.tab.main"] } }, sections));
+    const hidden = resolveNavigation(input(route(THERMOSTATS, "new", "sections.type"), { creation: { ...creation, entries: ["sections.type", "core_window.tab.main"] } }, sections));
     expect(menuIds(hidden)).toEqual(["sections.type"]);
   });
 
-  it("shows Thermostats > New thermostat > section, and the new thermostat links to the first section", () => {
+  it("shows Thermostats > New thermostat > section, and the new thermostat links to the choice of the type", () => {
     const model = creating("core_tpi.tab.main");
     expect(model.breadcrumb.map((crumb) => crumb.label)).toEqual(["Thermostats", "New thermostat", "core_tpi.tab.main"]);
     expect(model.breadcrumb[1]?.path).toBe(buildPath(route(THERMOSTATS, "new")));
     expect(model.current?.path).toBe(buildPath(route(THERMOSTATS, "new", "core_tpi.tab.main")));
   });
 
+  it("is the choice of the type, without menu, at the address of the new thermostat without section", () => {
+    const model = creating();
+    expect(model).toMatchObject({ mode: "type", sections: [], current: undefined, notice: undefined });
+    expect(model.breadcrumb).toEqual([
+      { label: "Thermostats", path: buildPath(route(THERMOSTATS)) },
+      { label: "New thermostat", path: undefined },
+    ]);
+  });
+
   it("falls back to the first section with a notice for a section that is not part of the creation", () => {
     const model = creating("sections.features");
     expect(model.notice).toBe("route_unknown");
-    expect(model.current?.id).toBe("sections.type");
+    expect(model.current?.id).toBe("sections.main");
   });
 
   it("is an unknown thermostat when no creation is in progress", () => {
     expect(resolveNavigation(input(route(THERMOSTATS, "new"), {}, sections))).toMatchObject({ mode: "list", notice: "route_unknown" });
   });
 });
-
 describe("the creation of the central configuration", () => {
   it("limits the menu of the Configuration tab to the sections of the creation", () => {
     const creation = { kind: "central", entries: ["core.general.main"], title: "" } as const;

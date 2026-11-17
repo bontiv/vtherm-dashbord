@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 import { creationContributionIds, creationMissing } from "../src/native/tab-definitions.ts";
 
 describe("the sections of a creation", () => {
-  it("lists the type, main, TPI and advanced sections of a thermostat on a switch, in that order", () => {
-    expect(creationContributionIds("thermostat", { thermostat_type: "thermostat_over_switch" })).toEqual(["core.tab.type", "core.tab.main", "core_tpi.tab.main", "core_advanced.tab.main"]);
+  it("lists the main, type, TPI and advanced sections of a thermostat on a switch, in that order, with main first", () => {
+    expect(creationContributionIds("thermostat", { thermostat_type: "thermostat_over_switch" })).toEqual(["core.tab.main", "core.tab.type", "core_tpi.tab.main", "core_advanced.tab.main"]);
   });
 
   it("has no TPI section for a thermostat on a climate without valve regulation", () => {
-    expect(creationContributionIds("thermostat", { thermostat_type: "thermostat_over_climate" })).toEqual(["core.tab.type", "core.tab.main", "core_advanced.tab.main"]);
+    expect(creationContributionIds("thermostat", { thermostat_type: "thermostat_over_climate" })).toEqual(["core.tab.main", "core.tab.type", "core_advanced.tab.main"]);
   });
 
   it("has a TPI section for a thermostat on a climate with valve regulation, and for a valve", () => {
@@ -26,13 +26,13 @@ describe("what a creation misses", () => {
 
   it("names the required fields without value, by section", () => {
     expect(missing({})).toEqual([
-      ["type", ["underlying_entity_ids"]],
       ["main", ["name", "temperature_sensor_entity_id", "external_temperature_sensor_entity_id"]],
+      ["type", ["underlying_entity_ids"]],
     ]);
   });
 
   it("does not ask for the specific values of a section that uses the central configuration", () => {
-    expect(missing({ use_main_central_config: true }, true)[1]).toEqual(["main", ["name", "temperature_sensor_entity_id"]]);
+    expect(missing({ use_main_central_config: true }, true)[0]).toEqual(["main", ["name", "temperature_sensor_entity_id"]]);
   });
 
   it("is empty once the required fields have a value", () => {

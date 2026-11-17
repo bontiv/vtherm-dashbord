@@ -10,7 +10,7 @@ import { shell, t } from "../shell-translations.ts";
 import { autoTpiDefaults, definitionOf, entityChoices, formatInput, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
 import type { FieldSpec } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
-import { CENTRAL_REQUIRED_OPTIONS, THERMOSTAT_TYPES } from "./tab-definitions.ts";
+import { CENTRAL_REQUIRED_OPTIONS } from "./tab-definitions.ts";
 import type { ConfigKind, TabDefinition, TabLayout } from "./tab-definitions.ts";
 import { commandsByUnderlying, formatBoilerService, formatCommand, needsCommands, parseBoilerService, parseCommand, storedCommands } from "./commands.ts";
 import { renderCardActions } from "../components/card-actions.ts";
@@ -43,7 +43,6 @@ export class NativeTabElement extends LitElement {
     errors: { attribute: false },
     proposeChanges: { attribute: false },
     draft: { attribute: false },
-    creating: { type: Boolean },
     language: { type: String },
     narrow: { type: Boolean },
     presetData: { state: true },
@@ -78,11 +77,6 @@ export class NativeTabElement extends LitElement {
         margin: 0 0 8px;
         font-size: 20px;
         font-weight: 500;
-      }
-      fieldset.type {
-        margin: 12px 0;
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
       }
       h3 {
         margin: 16px 0 8px;
@@ -229,8 +223,6 @@ export class NativeTabElement extends LitElement {
   declare proposeChanges: (changes: ConfigValues) => void;
   /** The state of the draft and its commands: the save actions at the foot of the card. None when the configuration cannot be saved. */
   declare draft: CardDraft | undefined;
-  /** Whether the section belongs to the creation of a thermostat: the section Type then starts with the choice of the type. */
-  declare creating: boolean;
   declare language: string;
   declare narrow: boolean;
   declare presetData: readonly PresetData[] | undefined;
@@ -248,7 +240,6 @@ export class NativeTabElement extends LitElement {
     this.errors = {};
     this.proposeChanges = () => undefined;
     this.draft = undefined;
-    this.creating = false;
     this.language = "";
     this.narrow = false;
     this.presetData = undefined;
@@ -425,40 +416,6 @@ export class NativeTabElement extends LitElement {
     }
     // fallback: ha-button is not defined.
     return html`<button class="fallback" @click=${onClick}>${label}</button>`;
-  }
-
-  /** The choice of the type of the new thermostat: the selector of Home Assistant as a list of choices, or radio buttons as the fallback. */
-  private renderTypeChoice(ha: boolean): TemplateResult {
-    const current = String(this.values["thermostat_type"] ?? THERMOSTAT_TYPES[0]);
-    const label = (type: string) => (t as (key: string) => string)(`shell.thermostats.type.${type.replace("thermostat_", "")}`);
-    const choose = (type: unknown) => {
-      if (THERMOSTAT_TYPES.includes(type as (typeof THERMOSTAT_TYPES)[number]) && type !== current) {
-        this.propose({ thermostat_type: type });
-      }
-    };
-    if (ha) {
-      return html`<div class="field" data-key="thermostat_type">
-        <ha-selector
-          class="type"
-          .hass=${this.hass}
-          .selector=${{ select: { options: THERMOSTAT_TYPES.map((type) => ({ value: type, label: label(type) })), mode: "list" } }}
-          .value=${current}
-          .label=${t("creation.type")}
-          .required=${true}
-          @value-changed=${(event: ValueChanged) => {
-            event.stopPropagation();
-            choose(event.detail.value);
-          }}
-        ></ha-selector>
-      </div>`;
-    }
-    // fallback: radio buttons, when ha-selector is not defined. The label is the touch target of its button.
-    return html`<fieldset class="type">
-      <legend>${t("creation.type")}</legend>
-      ${THERMOSTAT_TYPES.map(
-        (type) => html`<label><input type="radio" name="thermostat_type" .value=${type} .checked=${type === current} @change=${() => choose(type)} /> ${label(type)}</label>`,
-      )}
-    </fieldset>`;
   }
 
   private renderSuggestion(field: FieldSpec): TemplateResult | undefined {
@@ -785,8 +742,7 @@ export class NativeTabElement extends LitElement {
     const baseError = this.fieldError("base");
     const method = this.values["auto_tpi_calculation_method"];
     const title = this.text(`title.${definition.tab}`);
-    const content = html`${this.creating && definition.tab === "type" ? this.renderTypeChoice(ha) : undefined}
-    ${descriptionKey in this.statics.translations.english ? html`<p class="description">${this.text(descriptionKey)}</p>` : undefined}
+    const content = html`${descriptionKey in this.statics.translations.english ? html`<p class="description">${this.text(descriptionKey)}</p>` : undefined}
     ${baseError === undefined ? undefined : renderAlert("error", baseError, "base-error")} ${base.map((field) => this.renderField(field, layout, ha))}
     ${specific.length === 0 ? undefined : inherited ? this.renderInherited(specific) : specific.map((field) => this.renderField(field, layout, ha))}
     ${this.renderGroup(extra, layout, ha)}

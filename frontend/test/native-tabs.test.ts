@@ -29,7 +29,7 @@ interface Rendered {
 }
 
 /** Render a native tab with values, as the dashboard does. */
-async function render(contributionId: string, values: Record<string, unknown>, options: { central?: Record<string, unknown>; errors?: Record<string, string>; unit?: string; creating?: boolean } = {}): Promise<Rendered> {
+async function render(contributionId: string, values: Record<string, unknown>, options: { central?: Record<string, unknown>; errors?: Record<string, string>; unit?: string } = {}): Promise<Rendered> {
   const hook = contributionId.includes(".general.") ? "general_config" : "thermostat_config";
   const entry = host.resolved(hook).find((candidate: PlacedEntry) => candidate.id === contributionId) as PlacedEntry;
   expect(entry, contributionId).toBeDefined();
@@ -41,7 +41,6 @@ async function render(contributionId: string, values: Record<string, unknown>, o
     values,
     centralValues: options.central ?? CENTRAL,
     errors: options.errors ?? {},
-    ...(options.creating === true ? { creating: true } : {}),
     proposeChanges: (changes: Record<string, unknown>) => proposals.push(changes),
   };
   const element = await host.render<"thermostat_config">(entry, props as never);
@@ -195,32 +194,12 @@ describe("the tab type", () => {
   });
 });
 
-describe("the tab type during a creation", () => {
-  const TYPES = ["thermostat_over_switch", "thermostat_over_climate", "thermostat_over_valve"];
-
-  it("starts with the choice of the type of the thermostat, as radio buttons whose label is the touch target", async () => {
-    const { root } = await render("core.tab.type", { thermostat_type: "thermostat_over_climate" }, { creating: true });
-    const radios = findAll<HTMLInputElement>(root, 'input[type="radio"]');
-    expect(radios.map((radio) => radio.value)).toEqual(TYPES);
-    expect(radios.map((radio) => radio.checked)).toEqual([false, true, false]);
-    expect(radios.every((radio) => radio.parentElement?.localName === "label")).toBe(true);
-  });
-
-  it("proposes the type that the user chooses, with the keyboard or by touch, and nothing for the current type", async () => {
-    const { root, proposals } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch" }, { creating: true });
-    const radios = findAll<HTMLInputElement>(root, 'input[type="radio"]');
-    radios[0]?.dispatchEvent(new Event("change"));
-    expect(proposals).toEqual([]);
-    radios[2]?.dispatchEvent(new Event("change"));
-    expect(proposals).toEqual([{ thermostat_type: "thermostat_over_valve" }]);
-  });
-
-  it("does not offer the type of an existing thermostat", async () => {
+describe("the tab type", () => {
+  it("does not offer the choice of the type, which is made before the page of configuration", async () => {
     const { root } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch" });
     expect(findAll(root, 'input[type="radio"]')).toEqual([]);
   });
 });
-
 describe("the tab features", () => {
   it("offers the features of a thermostat over a switch, without auto start and stop", async () => {
     const { root } = await render("core.tab.features", { thermostat_type: "thermostat_over_switch" });

@@ -53,16 +53,18 @@ values of Versatile Thermostat. Change what you need, then press **Create** at t
 that use the central configuration can then start. **Cancel** drops the creation, without asking, and brings back the offer.
 
 ## Create a thermostat
-In the Thermostats tab, **Create a thermostat** opens a new thermostat in the same page as an existing one, with a menu on the left
-and one section at a time. The menu only lists what a new thermostat needs, in this order:
+In the Thermostats tab, **Create a thermostat** first asks for the type: over a switch, over a climate or over a valve. Pick one
+and press **Continue**. The page of a new thermostat then opens, the same as for an existing one, with a menu on the left and one
+section at a time. The menu only lists what a new thermostat needs, in this order:
 
-1. **Underlyings** starts with the type (over a switch, over a climate, over a valve), then the devices that the thermostat controls.
-   Changing the type keeps the values that the new type accepts, such as the name and the sensors, and drops the others, such as an
-   underlying of another domain.
-2. **Main attributes**.
+1. **Main attributes**.
+2. **Underlyings**, the devices that the thermostat controls. Its form depends on the type.
 3. **TPI parameters**, when the type uses them.
 4. **Advanced parameters**.
 
+To change the type later, select **New thermostat** in the breadcrumb above the page: the choice of the type opens again, with
+your draft kept. Changing the type keeps the values that the new type accepts, such as the name and the sensors, and drops the
+others, such as an underlying of another domain. **Cancel** on the choice of the type drops the creation.
 The features, the presets and the sections of the add-ons are on the page of the thermostat once it is created.
 
 **Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty, and the

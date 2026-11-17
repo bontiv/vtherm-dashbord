@@ -280,10 +280,23 @@ describe("the creation of a thermostat", () => {
   const REQUIRED = { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor" };
   const menuTexts = (panel: HTMLElement) => texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"));
   const cancelButton = (panel: HTMLElement) => find<HTMLButtonElement>(actions(panel)?.shadowRoot as ShadowRoot, "button.cancel") as HTMLButtonElement;
-  /** Fill the required fields of every section of a creation, going through the menu as a user does. */
+  const choice = (panel: HTMLElement) => find(root(panel), "vtherm-type-choice") as unknown as { value: string; choose(type: string): void; next(): void };
+  /** Choose the type on the screen of the choice, then go on to the page of configuration. */
+  async function chooseType(panel: HTMLElement, type: string): Promise<void> {
+    choice(panel).choose(type);
+    await drawn(panel);
+    choice(panel).next();
+    await drawn(panel);
+  }
+  /** Fill the required fields of every section of a creation, going through the type then the menu as a user does. */
   async function fill(panel: HTMLElement, type: string, underlying: string): Promise<void> {
+    if (find(root(panel), "vtherm-type-choice") === null) {
+      findAll<HTMLAnchorElement>(find(root(panel), "vtherm-breadcrumb")?.shadowRoot as ShadowRoot, "a").find((link) => link.textContent?.trim() === "New thermostat")?.click();
+      await drawn(panel);
+    }
+    await chooseType(panel, type);
     await openMenu(panel, "Underlyings");
-    nativeTab(panel, "vtherm-native-type-thermostat").proposeChanges({ thermostat_type: type, underlying_entity_ids: [underlying] });
+    nativeTab(panel, "vtherm-native-type-thermostat").proposeChanges({ underlying_entity_ids: [underlying] });
     await openMenu(panel, "Main attributes");
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges(REQUIRED);
     await drawn(panel);
@@ -294,10 +307,36 @@ describe("the creation of a thermostat", () => {
     find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
     await settle(panel);
     expect(window.location.pathname).toBe(NEW);
-    expect(menuTexts(panel)).toEqual(["Underlyings", "Main attributes", "TPI parameters", "Advanced parameters"]);
+    // The type is chosen first, without menu.
+    expect(choice(panel)).not.toBeNull();
+    expect(find(root(panel), "vtherm-side-menu")).toBeNull();
+    expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat"]);
+    choice(panel).next();
+    await drawn(panel);
+    expect(window.location.pathname).toBe(`${NEW}/core.tab.main`);
+    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "TPI parameters", "Advanced parameters"]);
     expect(find(find(root(panel), "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select")).toBeNull();
-    expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat", "Underlyings"]);
-    expect(find(root(panel), "vtherm-native-type-thermostat")).not.toBeNull();
+    expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat", "Main attributes"]);
+    expect(find(root(panel), "vtherm-native-main-thermostat")).not.toBeNull();
+  });
+
+  it("opens the choice of the type at the address of the new thermostat, with the type of the draft selected", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: NEW });
+    expect(choice(panel).value).toBe("thermostat_over_switch");
+    expect(find(root(panel), "vtherm-native-main-thermostat")).toBeNull();
+  });
+
+  it("goes back to the choice of the type from the breadcrumb, keeping the draft, and changes the type", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: `${NEW}/core.tab.main` });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Bureau" });
+    await settle(panel);
+    findAll<HTMLAnchorElement>(find(root(panel), "vtherm-breadcrumb")?.shadowRoot as ShadowRoot, "a").find((link) => link.textContent?.trim() === "New thermostat")?.click();
+    await settle(panel);
+    expect(window.location.pathname).toBe(NEW);
+    expect(choice(panel).value).toBe("thermostat_over_switch");
+    await chooseType(panel, "thermostat_over_climate");
+    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Advanced parameters"]);
+    expect(nativeTab(panel, "vtherm-native-main-thermostat").values).toMatchObject({ thermostat_type: "thermostat_over_climate", name: "Bureau" });
   });
 
   it("opens the section of the address, with a new draft", async () => {
@@ -308,9 +347,8 @@ describe("the creation of a thermostat", () => {
 
   it("shows no section of the features, of the presets or of a plugin, and no TPI for a thermostat over a climate", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: NEW });
-    nativeTab(panel, "vtherm-native-type-thermostat").proposeChanges({ thermostat_type: "thermostat_over_climate" });
-    await settle(panel);
-    expect(menuTexts(panel)).toEqual(["Underlyings", "Main attributes", "Advanced parameters"]);
+    await chooseType(panel, "thermostat_over_climate");
+    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Advanced parameters"]);
   });
 
   it("keeps the draft from a section to another, without asking", async () => {
@@ -325,12 +363,15 @@ describe("the creation of a thermostat", () => {
 
   it("keeps the values of the sections when the type changes, and drops the ones that the type does not accept", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: NEW });
+    await chooseType(panel, "thermostat_over_switch");
+    await openMenu(panel, "Underlyings");
     nativeTab(panel, "vtherm-native-type-thermostat").proposeChanges({ underlying_entity_ids: ["switch.office"] });
     await openMenu(panel, "Main attributes");
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Bureau" });
-    await openMenu(panel, "Underlyings");
-    nativeTab(panel, "vtherm-native-type-thermostat").proposeChanges({ thermostat_type: "thermostat_over_valve" });
+    findAll<HTMLAnchorElement>(find(root(panel), "vtherm-breadcrumb")?.shadowRoot as ShadowRoot, "a").find((link) => link.textContent?.trim() === "New thermostat")?.click();
     await settle(panel);
+    await chooseType(panel, "thermostat_over_valve");
+    await openMenu(panel, "Underlyings");
     expect(nativeTab(panel, "vtherm-native-type-thermostat").values).toMatchObject({ thermostat_type: "thermostat_over_valve", name: "Bureau" });
     expect(nativeTab(panel, "vtherm-native-type-thermostat").values["underlying_entity_ids"]).toBeUndefined();
   });
@@ -352,12 +393,13 @@ describe("the creation of a thermostat", () => {
     expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}`);
     find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
     await settle(panel);
-    await openMenu(panel, "Main attributes");
+    choice(panel).next();
+    await drawn(panel);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBeUndefined();
   });
 
   it("does not create while a required field is missing, and lists what is missing by section near Create", async () => {
-    const { panel, hass } = await mount({ configs: salonAndChambre(), path: NEW });
+    const { panel, hass } = await mount({ configs: salonAndChambre(), path: `${NEW}/core.tab.main` });
     await drawn(panel);
     expect(actionButton(panel, "save").disabled).toBe(true);
     expect(actionsText(panel)).toContain("Create");

@@ -80,12 +80,12 @@ describe("the save actions on a phone", () => {
   });
 });
 
-describe("the type of a new thermostat", () => {
+describe("the choice of the type of a new thermostat", () => {
   it("is chosen by touching its label", async () => {
     const { definitions } = await nativeHost();
     const natives = NATIVE_LOAD_ORDER.map((id) => ({ definition: definitions.get(id) as UiPluginDefinition }));
     const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
-    const type = find(panel.shadowRoot as ShadowRoot, "vtherm-native-type-thermostat") as HTMLElement;
+    const type = find(panel.shadowRoot as ShadowRoot, "vtherm-type-choice") as HTMLElement;
     const radios = findAll<HTMLInputElement>(type.shadowRoot as ShadowRoot, 'input[type="radio"]');
     expect(radios.length).toBeGreaterThan(1);
     expect(radios.every((radio) => radio.parentElement?.localName === "label")).toBe(true);
