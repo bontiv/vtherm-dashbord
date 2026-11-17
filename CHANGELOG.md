@@ -8,7 +8,15 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### Added
+- The list of the thermostats groups them by area of Home Assistant, ordered by floor then by name, with the thermostats without
+  area at the end and a link to give each one an area in its device page. **By area** and **By name** choose the order, remembered in
+  the browser. The names of the areas and of the floors follow Home Assistant live. The selector of the menu orders the thermostats
+  the same way and names each one with its area.
+- `vtherm_dashboard/get_thermostats` gives the device, the climate entity, the area and the floor of each thermostat.
+
 ### Changed
+- The Dashboard tab hides its menu while it has a single page, its overview, which then takes the full width.
 - The dashboard is named "Versatile Thermostat" in the side menu and in its title, instead of "Home confort". An entry of the
   integration created before keeps its title until it is renamed in Home Assistant.
 - The address of the dashboard is `/vtherm`, instead of `/home-confort`: update the links and bookmarks to its pages.

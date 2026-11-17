@@ -24,13 +24,30 @@ The bar at the top shows the tabs:
 
 The tab you are in is underlined.
 
+## The list of the thermostats
+
+The Thermostats tab groups your thermostats by area, the rooms of Home Assistant. Each area has a heading with its icon and its name,
+and the floor it is on when your home has floors. The areas are ordered by floor, then by name, and the thermostats of an area by name.
+
+A thermostat is in the area of its device. If you gave its climate entity an area of its own in Home Assistant, that area wins, as
+everywhere in Home Assistant. To change the area of a thermostat, change it in Home Assistant: the list follows at once, and so do the
+names of the areas and of the floors when you rename them.
+
+The thermostats without area come last, under **No area**. For each of them, a link opens its device in Home Assistant so that you can
+give it an area.
+
+Above the list, **By area** and **By name** let you choose the order. The dashboard remembers your choice in this browser. When none
+of your thermostats has an area, the list is simply ordered by name, without headings and without this choice.
+
 ## The menu and the breadcrumb
 
 Most tabs have a menu on the left. It lists the pages of the tab, and the page you are on is highlighted. Pages are grouped under
 headings, such as "Versatile Thermostat" and "Dashboard" in the Configuration. The menu scrolls on its own when it is longer than the
-screen, so the tabs and the page do not move.
+screen, so the tabs and the page do not move. The Dashboard tab has no menu while it has a single page, its overview: the page takes
+the full width.
 
-In the Thermostats tab, the menu starts with a selector of thermostat, then the overview of the thermostat, then its pages.
+In the Thermostats tab, the menu starts with a selector of thermostat, then the overview of the thermostat, then its pages. The
+selector orders the thermostats as the list does, and names each one with its area, for example `Living room · Sofa`.
 When you choose another thermostat, the page you are on stays open if the new thermostat has it. Otherwise its overview opens.
 
 Under the tabs, the breadcrumb shows where you are, for example `Thermostats > Salon > TPI`. Click a part of it to go back to that level.

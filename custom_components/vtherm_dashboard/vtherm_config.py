@@ -12,6 +12,10 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import floor_registry as fr
 
 VTHERM_DOMAIN = "versatile_thermostat"
 """The domain of Versatile Thermostat."""
@@ -53,6 +57,33 @@ def read_only_reason(entry: ConfigEntry) -> str | None:
 
 
 @dataclass(frozen=True)
+class ThermostatLocation:
+    """The device, the climate entity and the area of a thermostat, read from the registries of Home Assistant.
+
+    The names of the area and of the floor are a fallback: the frontend reads them from the registries of `hass`, which change live.
+    """
+
+    device_id: str | None = None
+    climate_entity_id: str | None = None
+    area_id: str | None = None
+    """The area of the climate entity, or else of the device, as Home Assistant resolves the area of an entity."""
+    area_name: str | None = None
+    floor_name: str | None = None
+    floor_level: int | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        """Return the location as a JSON-serializable dictionary."""
+        return {
+            "device_id": self.device_id,
+            "climate_entity_id": self.climate_entity_id,
+            "area_id": self.area_id,
+            "area_name": self.area_name,
+            "floor_name": self.floor_name,
+            "floor_level": self.floor_level,
+        }
+
+
+@dataclass(frozen=True)
 class ThermostatSummary:
     """A thermostat, as the list of the thermostats shows it."""
 
@@ -63,10 +94,12 @@ class ThermostatSummary:
     """`over_switch`, `over_climate` or `over_valve`."""
     read_only: bool
     """True when the configuration is newer than the dashboard supports."""
+    location: ThermostatLocation = field(default_factory=ThermostatLocation)
+    """Where the thermostat is in Home Assistant: its device, its climate entity and its area."""
 
     def as_dict(self) -> dict[str, Any]:
         """Return the summary as a JSON-serializable dictionary."""
-        return {"id": self.id, "name": self.name, "type": self.type, "read_only": self.read_only}
+        return {"id": self.id, "name": self.name, "type": self.type, "read_only": self.read_only, **self.location.as_dict()}
 
 
 @dataclass(frozen=True)
@@ -119,10 +152,38 @@ def type_name(entry: ConfigEntry) -> str:
     return THERMOSTAT_TYPES.get(str(entry.data.get(CONF_THERMOSTAT_TYPE)), "unknown")
 
 
+def location_of(hass: HomeAssistant, entry: ConfigEntry) -> ThermostatLocation:
+    """Find the device, the climate entity and the area of the thermostat of an entry.
+
+    The area is the one of the climate entity when it has its own, or else the one of the device, which is how Home Assistant gives an
+    entity its area. An entry without device or entity, such as a thermostat that is not loaded, has no area.
+    """
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    device = devices[0] if devices else None
+    climate = next((entity for entity in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id) if entity.domain == "climate"), None)
+    area_id = (climate.area_id if climate is not None else None) or (device.area_id if device is not None else None)
+    area = ar.async_get(hass).async_get_area(area_id) if area_id is not None else None
+    floor = fr.async_get(hass).async_get_floor(area.floor_id) if area is not None and area.floor_id is not None else None
+    return ThermostatLocation(
+        device_id=device.id if device is not None else (climate.device_id if climate is not None else None),
+        climate_entity_id=climate.entity_id if climate is not None else None,
+        area_id=area.id if area is not None else None,
+        area_name=area.name if area is not None else None,
+        floor_name=floor.name if floor is not None else None,
+        floor_level=floor.level if floor is not None else None,
+    )
+
+
 def list_thermostats(hass: HomeAssistant) -> list[ThermostatSummary]:
-    """List the thermostats, without the central configuration, ordered by name."""
+    """List the thermostats, without the central configuration, ordered by name, with where each one is."""
     summaries = [
-        ThermostatSummary(entry.entry_id, str(entry.data.get(CONF_NAME, entry.title)), type_name(entry), read_only_reason(entry) is not None)
+        ThermostatSummary(
+            entry.entry_id,
+            str(entry.data.get(CONF_NAME, entry.title)),
+            type_name(entry),
+            read_only_reason(entry) is not None,
+            location_of(hass, entry),
+        )
         for entry in entries(hass)
         if not is_central(entry)
     ]

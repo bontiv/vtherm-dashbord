@@ -1,8 +1,12 @@
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
 
+import type { Hass } from "@vtherm/dashboard-sdk";
+
 import type { NavSection, ThermostatInfo } from "../navigation.ts";
 import { t } from "../shell-translations.ts";
+import { selectorOptions } from "../thermostat-areas.ts";
+import type { HassAreas } from "../thermostat-areas.ts";
 import { followLink } from "./events.ts";
 import { renderIcon } from "./icon.ts";
 import { defineElement } from "./define.ts";
@@ -23,6 +27,7 @@ export class VThermSideMenu extends LitElement {
     language: { type: String },
     sections: { attribute: false },
     thermostats: { attribute: false },
+    hass: { attribute: false },
     selected: { type: String },
     label: { type: String },
   };
@@ -102,6 +107,9 @@ export class VThermSideMenu extends LitElement {
   /** The thermostats to choose from. The selector is shown when there is a list and `selected` is set. */
   declare thermostats: readonly ThermostatInfo[];
 
+  /** The state of Home Assistant, whose registries give the areas that order the thermostats of the selector. */
+  declare hass: Hass | undefined;
+
   /** The identifier of the selected thermostat. */
   declare selected: string;
 
@@ -116,6 +124,7 @@ export class VThermSideMenu extends LitElement {
     this.language = "";
     this.sections = [];
     this.thermostats = [];
+    this.hass = undefined;
     this.selected = "";
     this.label = "";
   }
@@ -128,10 +137,12 @@ export class VThermSideMenu extends LitElement {
     if (this.selected === "" || this.thermostats.length === 0) {
       return undefined;
     }
+    // The thermostats are ordered by area, as in the list, and named "area · name".
+    const options = selectorOptions(this.thermostats, this.hass as HassAreas | undefined, this.hass?.locale?.language ?? this.hass?.language ?? "");
     if (isDefined("ha-selector")) {
       return html`<ha-selector
         class="thermostat"
-        .selector=${{ select: { options: this.thermostats.map((thermostat) => ({ value: thermostat.id, label: thermostat.name })), mode: "dropdown" } }}
+        .selector=${{ select: { options: options.map((option) => ({ value: option.thermostat.id, label: option.label })), mode: "dropdown" } }}
         .value=${this.selected}
         .label=${t("shell.thermostats.select")}
         .required=${true}
@@ -149,7 +160,7 @@ export class VThermSideMenu extends LitElement {
       aria-label=${t("shell.thermostats.select")}
       @change=${(event: Event) => this.select((event.target as HTMLSelectElement).value)}
     >
-      ${this.thermostats.map((thermostat) => html`<option value=${thermostat.id} ?selected=${thermostat.id === this.selected}>${thermostat.name}</option>`)}
+      ${options.map((option) => html`<option value=${option.thermostat.id} ?selected=${option.thermostat.id === this.selected}>${option.label}</option>`)}
     </select>`;
   }
 

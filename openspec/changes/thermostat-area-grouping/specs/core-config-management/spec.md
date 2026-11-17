@@ -3,14 +3,14 @@
 ## ADDED Requirements
 
 ### Requirement: Pièce d'un thermostat
-La pièce d'un thermostat SHALL être la zone Home Assistant de l'appareil de son entrée Versatile Thermostat, ou à défaut celle de son entité climate. Le dashboard SHALL afficher les noms de pièce et d'étage tels que Home Assistant les connaît au moment de l'affichage.
+La pièce d'un thermostat SHALL être celle que Home Assistant donne à son entité climate : la pièce propre de l'entité quand elle en a une, sinon celle de l'appareil de son entrée Versatile Thermostat. Le dashboard SHALL afficher les noms de pièce et d'étage tels que Home Assistant les connaît au moment de l'affichage.
 
 #### Scenario: Pièce de l'appareil
 - **WHEN** l'appareil d'un thermostat est dans la pièce « Salle de bain »
 - **THEN** le thermostat est rattaché à « Salle de bain »
 
 #### Scenario: Pièce de l'entité
-- **WHEN** l'appareil d'un thermostat n'a pas de pièce et que son entité climate est dans la pièce « Bureau »
+- **WHEN** l'appareil d'un thermostat est dans « Salon » et que son entité climate a sa propre pièce « Bureau »
 - **THEN** le thermostat est rattaché à « Bureau »
 
 #### Scenario: Renommage
@@ -34,10 +34,10 @@ Par défaut, la liste des thermostats SHALL regrouper les thermostats par pièce
 
 #### Scenario: Aucune pièce dans la maison
 - **WHEN** aucun thermostat n'a de pièce
-- **THEN** la liste est affichée sans en-tête de groupe, triée par nom
+- **THEN** la liste est affichée sans en-tête de groupe, triée par nom, et sans le choix « Par pièce / Par nom »
 
 ### Requirement: Choix du regroupement
-La liste des thermostats SHALL proposer un choix entre « Par pièce » et « Par nom ». Le choix SHALL être mémorisé dans le navigateur de l'utilisateur et la liste SHALL fonctionner avec le regroupement par défaut quand la mémorisation est impossible.
+Quand au moins un thermostat a une pièce, la liste des thermostats SHALL proposer un choix entre « Par pièce » et « Par nom ». Le choix SHALL être mémorisé dans le navigateur de l'utilisateur et la liste SHALL fonctionner avec le regroupement par défaut quand la mémorisation est impossible.
 
 #### Scenario: Liste par nom
 - **WHEN** l'administrateur choisit « Par nom »

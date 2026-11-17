@@ -19,6 +19,14 @@ export interface ThermostatInfo {
   readonly name: string;
   /** The type of the thermostat. */
   readonly type: ThermostatType;
+  /** The device of the thermostat in Home Assistant, which the user opens to give it an area. */
+  readonly deviceId?: string | null;
+  /** The area of the thermostat in Home Assistant. Undefined or null when it has none. */
+  readonly areaId?: string | null;
+  /** The names of the area and of its floor when the list was read, used when `hass` does not have the registries of the areas. */
+  readonly areaName?: string | null;
+  readonly floorName?: string | null;
+  readonly floorLevel?: number | null;
 }
 
 /** What the navigation needs to know. */

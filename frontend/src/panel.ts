@@ -30,6 +30,8 @@ import type { PluginStatus } from "./loader.ts";
 import { resolveNavigation, routeForThermostat } from "./navigation.ts";
 import type { NavigationInput, NavigationModel, ThermostatInfo } from "./navigation.ts";
 import { PANEL_PATH, buildPath, parseRoute } from "./router.ts";
+import { toThermostatInfo } from "./thermostat-areas.ts";
+import type { HassRegistries } from "./thermostat-areas.ts";
 import { publishState } from "./state.ts";
 import type { Route } from "./router.ts";
 import { shell, t } from "./shell-translations.ts";
@@ -288,7 +290,7 @@ export class VThermDashboardPanel extends LitElement {
     super();
     this.hass = undefined;
     this.narrow = false;
-    this.thermostatProvider = async () => ((await this.session?.refreshList())?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
+    this.thermostatProvider = async () => ((await this.session?.refreshList())?.thermostats ?? []).map(toThermostatInfo);
     this.developmentEntries = [];
     this.importModule = undefined;
     this.phase = "loading";
@@ -465,7 +467,7 @@ export class VThermDashboardPanel extends LitElement {
     event.stopPropagation();
     void (async () => {
       const list = await this.session?.refreshList();
-      this.thermostats = (list?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
+      this.thermostats = (list?.thermostats ?? []).map(toThermostatInfo);
       const central = list?.central_config_id === event.detail;
       this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: central ? buildPath({ tab: CORE_TOP_TABS.configuration, rest: [] }) : buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: event.detail, rest: [] }) } }));
     })();
@@ -508,7 +510,7 @@ export class VThermDashboardPanel extends LitElement {
     this.saveNotice = undefined;
     try {
       const outcome = await this.session.save(entryId);
-      this.thermostats = (this.session.list?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
+      this.thermostats = (this.session.list?.thermostats ?? []).map(toThermostatInfo);
       if (outcome.ok) {
         return "success";
       }
@@ -591,6 +593,16 @@ export class VThermDashboardPanel extends LitElement {
         void this.start(this.hass);
       } else if (this.loaded !== undefined) {
         void this.language.update(this.hass);
+      }
+      // A thermostat moved to another area in Home Assistant: the server says which one, so the list is read again.
+      if (this.session?.areasMoved(this.hass as HassRegistries) === true) {
+        const session = this.session;
+        void session
+          .refreshList()
+          .then((list) => {
+            this.thermostats = list.thermostats.map(toThermostatInfo);
+          })
+          .catch(() => undefined);
       }
     }
   }
@@ -741,7 +753,7 @@ export class VThermDashboardPanel extends LitElement {
       ></vtherm-create-wizard>`;
     }
     if (model.mode === "list") {
-      return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
+      return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .hass=${this.hass} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
     }
     if (model.current === undefined) {
       return renderAlert("info", t("shell.page.empty"), "message");
@@ -770,6 +782,7 @@ export class VThermDashboardPanel extends LitElement {
     return html`<vtherm-side-menu
       .sections=${model.sections}
       .thermostats=${selecting ? this.thermostats : []}
+      .hass=${this.hass}
       .selected=${model.thermostat?.id ?? ""}
       .label=${t("shell.menu.label")}
       .language=${String(this.languageVersion)}
@@ -801,7 +814,9 @@ export class VThermDashboardPanel extends LitElement {
         { label: this.pageTitle, path: undefined },
       ];
     }
-    const hasMenu = !creating && model.mode === "page" && (model.sections.length > 0 || model.thermostat !== undefined);
+    // The Dashboard tab with a single page needs no menu: the page takes the full width.
+    const singleDashboardPage = model.activeTab?.id === CORE_TOP_TABS.dashboard && model.sections.flatMap((section) => section.items).length <= 1;
+    const hasMenu = !creating && model.mode === "page" && !singleDashboardPage && (model.sections.length > 0 || model.thermostat !== undefined);
     return html`<vtherm-top-bar
         .tabs=${model.tabs}
         .heading=${t("shell.title")}

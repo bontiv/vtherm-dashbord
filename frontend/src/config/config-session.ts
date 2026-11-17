@@ -5,6 +5,8 @@
  * dropped when the user leaves the thermostat after confirming it.
  */
 
+import { areaSignature } from "../thermostat-areas.ts";
+import type { HassRegistries } from "../thermostat-areas.ts";
 import type { ConfigApi, ConfigData, ThermostatList } from "./api.ts";
 import { ConfigDraft } from "./draft.ts";
 
@@ -22,6 +24,8 @@ export class ConfigSession {
   private readonly open = new Map<string, OpenConfig>();
   private readonly loading = new Map<string, Promise<OpenConfig>>();
   private readonly listeners = new Set<() => void>();
+  /** The areas of the devices and of the entities of the thermostats, as `hass` gave them the last time. */
+  private areas: string | undefined;
 
   /** The commands of the configuration. */
   readonly api: ConfigApi;
@@ -45,9 +49,28 @@ export class ConfigSession {
     }
   };
 
+  /**
+   * Tell whether Home Assistant moved a thermostat to another area since the last call, so that the list must be read again. The server
+   * gives the area of each thermostat; `hass` only tells that a device or an entity changed area. The first call after the list is read
+   * only takes note of the areas.
+   *
+   * @param hass - The state of Home Assistant, with its registries of devices and entities.
+   */
+  areasMoved(hass: HassRegistries): boolean {
+    if (this.list === undefined) {
+      return false;
+    }
+    const signature = areaSignature(this.list.thermostats, hass);
+    const previous = this.areas;
+    this.areas = signature;
+    return previous !== undefined && signature !== undefined && signature !== previous;
+  }
+
   /** Read the list of the thermostats again. */
   async refreshList(): Promise<ThermostatList> {
     this.list = await this.api.thermostats();
+    // The new list can have other thermostats: the next call of `areasMoved` takes note of their areas again.
+    this.areas = undefined;
     // The sections of the general configuration and the inherited values depend on the central configuration, so it is read as soon as
     // it is known to exist, not when its page opens.
     const central = this.list.central_config_id;

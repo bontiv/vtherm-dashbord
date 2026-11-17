@@ -219,7 +219,7 @@ describe("the menus and the lists", () => {
     const { panel } = await mountPanel({ plugins: natives, path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     const list = find(root(panel), "vtherm-thermostat-list") as HTMLElement;
     const items = findAll<HTMLElement>(list.shadowRoot as ShadowRoot, "ha-md-list-item");
-    expect(items.map((item) => item.getAttribute("href"))).toEqual([`/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon`, `/vtherm/${CORE_TOP_TABS.thermostats}/climate.chambre`]);
+    expect(items.map((item) => item.getAttribute("href"))).toEqual([`/vtherm/${CORE_TOP_TABS.thermostats}/climate.chambre`, `/vtherm/${CORE_TOP_TABS.thermostats}/climate.salon`]);
     expect(find(list.shadowRoot as ShadowRoot, "ha-button.create")?.getAttribute("href")).toBe(`/vtherm/${CORE_TOP_TABS.thermostats}/new`);
   });
 });

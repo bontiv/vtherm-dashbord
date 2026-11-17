@@ -43,8 +43,22 @@ describe("the frame", () => {
     expect(texts(findAll(menu.shadowRoot as ShadowRoot, "h2"))).toEqual(["Versatile Thermostat", "Dashboard"]);
   });
 
-  it("scrolls the menu on its own and stays inside its column", async () => {
+  it("hides the menu of the Dashboard tab when it has a single page", async () => {
     const { panel } = await mountPanel();
+    expect(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")).toBeNull();
+    expect(find(panel.shadowRoot as ShadowRoot, "aside")).toBeNull();
+    expect(find(panel.shadowRoot as ShadowRoot, "core-page-overview-el")).not.toBeNull();
+  });
+
+  it("shows the menu of the Dashboard tab when it has several pages", async () => {
+    const withPage = plugin("core_extra", { global_page: [page("core_extra.page.history")] });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: withPage }] });
+    const menu = find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu") as HTMLElement;
+    expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))).toEqual(["core.page.overview", "core_extra.page.history"]);
+  });
+
+  it("scrolls the menu on its own and stays inside its column", async () => {
+    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.configuration}` });
     const styles = (find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")?.constructor as { styles?: { cssText: string } | readonly { cssText: string }[] }).styles;
     const css = (Array.isArray(styles) ? styles : [styles]).map((style) => String(style?.cssText)).join("\n");
     expect(css).toContain("overflow-y: auto");
@@ -124,7 +138,41 @@ describe("the thermostats tab", () => {
     const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}` });
     expect(find(panel.shadowRoot as ShadowRoot, "vtherm-side-menu")).toBeNull();
     const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
-    expect(texts(findAll(list.shadowRoot as ShadowRoot, ".name"))).toEqual(["Salon", "Chambre"]);
+    // Without area, the thermostats are ordered by name.
+    expect(texts(findAll(list.shadowRoot as ShadowRoot, ".name"))).toEqual(["Chambre", "Salon"]);
+  });
+
+  it("reads the list again when Home Assistant moves a thermostat to another area, and only then", async () => {
+    let area = "living";
+    const located = async (message: Record<string, unknown>) =>
+      message["type"] === "vtherm_dashboard/get_thermostats"
+        ? {
+            thermostats: [
+              { id: "climate.salon", name: "Salon", type: "over_switch", read_only: false, device_id: "device-salon", climate_entity_id: "climate.salon", area_id: area, area_name: null, floor_name: null, floor_level: null },
+            ],
+            has_central_config: false,
+            central_config_id: null,
+            supported_config_version: [2, 4],
+          }
+        : undefined;
+    const { panel, hass } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}`, realThermostats: true, handlers: [located] });
+    const areas = { living: { area_id: "living", name: "Living room" }, office: { area_id: "office", name: "Office" } };
+    const withDevice = (deviceArea: string) => ({ ...hass, areas, devices: { "device-salon": { area_id: deviceArea } }, entities: { "climate.salon": { area_id: null } } }) as never;
+    const list = find(panel.shadowRoot as ShadowRoot, "vtherm-thermostat-list") as HTMLElement;
+    panel.hass = withDevice("living");
+    await settle(panel);
+    const reads = () => hass.callWS.mock.calls.filter(([message]) => (message as Record<string, unknown>)["type"] === "vtherm_dashboard/get_thermostats").length;
+    const before = reads();
+    // Another state change of Home Assistant, with the same areas: the list is not read again.
+    panel.hass = withDevice("living");
+    await settle(panel);
+    expect(reads()).toBe(before);
+    expect(texts(findAll(list.shadowRoot as ShadowRoot, "h3 .area"))).toEqual(["Living room"]);
+    // The user moves the device to the office: the server gives the new area.
+    area = "office";
+    panel.hass = withDevice("office");
+    await vi.waitFor(() => expect(texts(findAll(list.shadowRoot as ShadowRoot, "h3 .area"))).toEqual(["Office"]));
+    expect(reads()).toBe(before + 1);
   });
 
   it("shows a message when there is no thermostat", async () => {

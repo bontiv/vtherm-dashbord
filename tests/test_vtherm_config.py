@@ -6,6 +6,10 @@ import json
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import floor_registry as fr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.vtherm_dashboard import vtherm_config
@@ -108,6 +112,71 @@ def test_the_supported_version_is_declared() -> None:
     """The dashboard declares the version of configuration that it supports."""
     assert SUPPORTED_CONFIG_VERSION == (2, 4)
     assert vtherm_config.READ_ONLY_NEWER_VERSION == "config_version_newer"
+
+
+def add_device_and_climate(hass: HomeAssistant, entry: MockConfigEntry) -> tuple[dr.DeviceEntry, er.RegistryEntry]:
+    """Add the device and the climate entity that Versatile Thermostat creates for a thermostat."""
+    device = dr.async_get(hass).async_get_or_create(config_entry_id=entry.entry_id, identifiers={(VTHERM_DOMAIN, entry.entry_id)}, name=entry.title)
+    climate = er.async_get(hass).async_get_or_create("climate", VTHERM_DOMAIN, entry.entry_id, config_entry=entry, device_id=device.id, has_entity_name=True)
+    return device, climate
+
+
+def move_climate(hass: HomeAssistant, climate: er.RegistryEntry, area_id: str) -> None:
+    """Give the climate entity an area of its own. Home Assistant asks for a name of its own too, as a user does in its settings."""
+    er.async_get(hass).async_update_entity(climate.entity_id, name="Thermostat", area_id=area_id)
+
+
+def test_the_area_of_a_thermostat_is_the_area_of_its_device(hass: HomeAssistant) -> None:
+    """A thermostat whose device is in an area is in that area, with the name of the area and of its floor."""
+    floor = fr.async_get(hass).async_create("Ground floor", level=0)
+    area = ar.async_get(hass).async_create("Bathroom", floor_id=floor.floor_id)
+    entry = add_entry(hass, "thermostat_over_switch", "Towel rail")
+    device, climate = add_device_and_climate(hass, entry)
+    dr.async_get(hass).async_update_device(device.id, area_id=area.id)
+    location = list_thermostats(hass)[0].as_dict()
+    assert location == {
+        "id": entry.entry_id,
+        "name": "Towel rail",
+        "type": "over_switch",
+        "read_only": False,
+        "device_id": device.id,
+        "climate_entity_id": climate.entity_id,
+        "area_id": area.id,
+        "area_name": "Bathroom",
+        "floor_name": "Ground floor",
+        "floor_level": 0,
+    }
+
+
+def test_the_area_of_the_climate_entity_overrides_the_area_of_the_device(hass: HomeAssistant) -> None:
+    """As in Home Assistant, an entity that has its own area is in that area, whatever the area of its device."""
+    registry = ar.async_get(hass)
+    office, living_room = registry.async_create("Office"), registry.async_create("Living room")
+    entry = add_entry(hass, "thermostat_over_climate", "Heat pump")
+    device, climate = add_device_and_climate(hass, entry)
+    dr.async_get(hass).async_update_device(device.id, area_id=living_room.id)
+    move_climate(hass, climate, office.id)
+    summary = list_thermostats(hass)[0]
+    assert (summary.location.area_id, summary.location.area_name, summary.location.floor_name, summary.location.floor_level) == (office.id, "Office", None, None)
+
+
+def test_the_area_of_the_climate_entity_is_used_when_the_device_has_none(hass: HomeAssistant) -> None:
+    """A thermostat whose device has no area is in the area of its climate entity."""
+    office = ar.async_get(hass).async_create("Office")
+    entry = add_entry(hass, "thermostat_over_valve", "Valve")
+    _, climate = add_device_and_climate(hass, entry)
+    move_climate(hass, climate, office.id)
+    assert list_thermostats(hass)[0].location.area_name == "Office"
+
+
+def test_a_thermostat_without_device_or_area_has_no_location(hass: HomeAssistant) -> None:
+    """An entry that has no device and no entity yet, such as a thermostat that is not loaded, has no area."""
+    add_entry(hass, "thermostat_over_switch", "Not loaded")
+    entry = add_entry(hass, "thermostat_over_switch", "No area")
+    device, climate = add_device_and_climate(hass, entry)
+    by_name = {summary.name: summary.location.as_dict() for summary in list_thermostats(hass)}
+    assert by_name["Not loaded"] == {"device_id": None, "climate_entity_id": None, "area_id": None, "area_name": None, "floor_name": None, "floor_level": None}
+    assert (by_name["No area"]["device_id"], by_name["No area"]["climate_entity_id"], by_name["No area"]["area_id"]) == (device.id, climate.entity_id, None)
 
 
 @requires_vtherm

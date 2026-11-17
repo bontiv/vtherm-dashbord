@@ -59,3 +59,66 @@ describe("the configurations of the panel", () => {
     expect(listener).toHaveBeenCalled();
   });
 });
+
+describe("the areas of the thermostats", () => {
+  const located = (deviceArea: string | null, entityArea: string | null = null) => ({
+    devices: { "device-a": { area_id: deviceArea } },
+    entities: { "climate.salon": { area_id: entityArea } },
+  });
+
+  function sessionWithLocatedThermostat(): ConfigSession {
+    const api = fakeApi();
+    vi.mocked(api.thermostats).mockImplementation(async () => ({
+      thermostats: [
+        {
+          id: "a",
+          name: "Salon",
+          type: "over_switch",
+          read_only: false,
+          device_id: "device-a",
+          climate_entity_id: "climate.salon",
+          area_id: "living",
+          area_name: "Living room",
+          floor_name: null,
+          floor_level: null,
+        },
+      ],
+      has_central_config: false,
+      central_config_id: null,
+      supported_config_version: [2, 4],
+    }));
+    return new ConfigSession(api);
+  }
+
+  it("takes note of the areas first, then tells when the device of a thermostat moves to another area", async () => {
+    const session = sessionWithLocatedThermostat();
+    await session.refreshList();
+    expect(session.areasMoved(located("living"))).toBe(false);
+    expect(session.areasMoved(located("living"))).toBe(false);
+    expect(session.areasMoved(located("office"))).toBe(true);
+    expect(session.areasMoved(located("office"))).toBe(false);
+  });
+
+  it("tells when the climate entity gets an area of its own", async () => {
+    const session = sessionWithLocatedThermostat();
+    await session.refreshList();
+    session.areasMoved(located("living"));
+    expect(session.areasMoved(located("living", "office"))).toBe(true);
+  });
+
+  it("takes note of the areas again after the list is read again", async () => {
+    const session = sessionWithLocatedThermostat();
+    await session.refreshList();
+    session.areasMoved(located("living"));
+    await session.refreshList();
+    expect(session.areasMoved(located("office"))).toBe(false);
+  });
+
+  it("does nothing without the list, or without the registries of the devices and of the entities", async () => {
+    const session = sessionWithLocatedThermostat();
+    expect(session.areasMoved(located("living"))).toBe(false);
+    await session.refreshList();
+    expect(session.areasMoved({})).toBe(false);
+    expect(session.areasMoved({})).toBe(false);
+  });
+});

@@ -112,10 +112,21 @@ Lists the thermostats, ordered by name, and tells whether a central configuratio
 
 | Field of the result | Type | Meaning |
 | --- | --- | --- |
-| `thermostats` | `list` | Each thermostat: `id` (identifier of its configuration entry), `name`, `type` (`over_switch`, `over_climate` or `over_valve`) and `read_only`. The central configuration is not in the list. |
+| `thermostats` | `list` | Each thermostat: `id` (identifier of its configuration entry), `name`, `type` (`over_switch`, `over_climate` or `over_valve`), `read_only`, and where it is in Home Assistant (see below). The central configuration is not in the list. |
 | `has_central_config` | `boolean` | Whether the central configuration exists. |
 | `central_config_id` | `string` or `null` | The identifier of the central configuration. |
 | `supported_config_version` | `list` | The version and the minor version of configuration that the dashboard can edit, for example `[2, 4]`. |
+
+Where each thermostat is, read from the registries of Home Assistant. Every field is `null` when the registries do not have it, for
+example for a thermostat that is not loaded.
+
+| Field of a thermostat | Type | Meaning |
+| --- | --- | --- |
+| `device_id` | `string` or `null` | The device of the thermostat. |
+| `climate_entity_id` | `string` or `null` | The climate entity of the thermostat. |
+| `area_id` | `string` or `null` | The area of the thermostat: the area of its climate entity when it has one of its own, or else the area of its device, as Home Assistant gives an entity its area. |
+| `area_name` | `string` or `null` | The name of the area when the list was read. The frontend shows the live name of `hass.areas` and only uses this one as a fallback. |
+| `floor_name`, `floor_level` | `string`, `integer` or `null` | The floor of the area and its level, also a fallback for `hass.floors`. |
 
 ### `vtherm_dashboard/get_config`
 

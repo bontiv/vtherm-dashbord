@@ -33,7 +33,20 @@ async def test_list_the_thermostats_and_say_whether_there_is_a_central_configura
     central = add_entry(hass, CENTRAL_TYPE, "Central configuration")
     await client.send_json_auto_id({"type": f"{PREFIX}/get_thermostats"})
     result = (await client.receive_json())["result"]
-    assert result["thermostats"] == [{"id": salon.entry_id, "name": "Salon", "type": "over_climate", "read_only": False}]
+    assert result["thermostats"] == [
+        {
+            "id": salon.entry_id,
+            "name": "Salon",
+            "type": "over_climate",
+            "read_only": False,
+            "device_id": None,
+            "climate_entity_id": None,
+            "area_id": None,
+            "area_name": None,
+            "floor_name": None,
+            "floor_level": None,
+        }
+    ]
     assert (result["has_central_config"], result["central_config_id"]) == (True, central.entry_id)
     assert result["supported_config_version"] == [2, 4]
     json.dumps(result)

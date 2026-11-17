@@ -8,6 +8,17 @@ export interface ThermostatEntry {
   readonly name: string;
   readonly type: "over_switch" | "over_climate" | "over_valve";
   readonly read_only: boolean;
+  /** The device of the thermostat in Home Assistant, or null when the registry has none. */
+  readonly device_id: string | null;
+  /** The climate entity of the thermostat, or null when the registry has none. */
+  readonly climate_entity_id: string | null;
+  /** The area of the thermostat: the own area of its climate entity, or else the area of its device. */
+  readonly area_id: string | null;
+  /** The name of the area when the list was read, a fallback for `hass.areas`. */
+  readonly area_name: string | null;
+  /** The floor of the area and its level when the list was read, a fallback for `hass.floors`. */
+  readonly floor_name: string | null;
+  readonly floor_level: number | null;
 }
 
 /** The list of the thermostats. */
