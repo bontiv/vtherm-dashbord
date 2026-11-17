@@ -6,6 +6,7 @@
  * a tab that the flow does not offer cannot be saved.
  */
 
+import { defaultOf, missingRequired } from "./fields.ts";
 import { fieldsOf } from "./schemas.ts";
 import type { FieldSpec, SchemaName } from "./schemas.ts";
 
@@ -267,6 +268,90 @@ export function definitionOfContribution(contributionId: string): { definition: 
     }
   }
   return undefined;
+}
+
+/** The types of thermostat that a creation offers, as the flow names them. */
+export const THERMOSTAT_TYPES = ["thermostat_over_switch", "thermostat_over_climate", "thermostat_over_valve"] as const;
+
+/** The `thermostat_type` of the central configuration. */
+export const CENTRAL_TYPE = "thermostat_central_config";
+
+/**
+ * The sections that a creation shows, in their order: the ones that a new configuration needs. The menu of an existing thermostat
+ * follows the order of the flow instead, where the type comes after the main tab.
+ */
+export const CREATION_TABS: Readonly<Record<ConfigKind, readonly FlowTab[]>> = {
+  thermostat: ["type", "main", "tpi", "advanced"],
+  central: ["main", "tpi", "advanced"],
+};
+
+const layoutFor = (definition: TabDefinition, kind: ConfigKind, values: Values): TabLayout | undefined => (kind === "thermostat" ? definition.thermostat : definition.central)?.(values);
+
+const fieldsOfLayout = (layout: TabLayout): FieldSpec[] => [...layout.base, ...(layout.specific ?? []), ...(layout.extra ?? [])].flatMap((name) => fieldsOf(name));
+
+const creationDefinitions = (kind: ConfigKind): TabDefinition[] => CREATION_TABS[kind].map((tab) => TAB_DEFINITIONS.find((definition) => definition.tab === tab) as TabDefinition);
+
+/**
+ * The values of a creation as the flow will see them: the draft over the defaults of the forms of the creation. A new draft does not
+ * hold the defaults, but a rule such as "TPI applies when the function is `tpi`" reads them.
+ */
+export function creationValues(kind: ConfigKind, values: Values): Values {
+  const defaults: Record<string, unknown> = {};
+  for (const definition of creationDefinitions(kind)) {
+    const layout = layoutFor(definition, kind, values);
+    for (const field of layout === undefined ? [] : fieldsOfLayout(layout)) {
+      const value = defaultOf(field, undefined);
+      if (value !== undefined && value !== null && value !== "") {
+        defaults[field.key] = value;
+      }
+    }
+  }
+  return { ...defaults, ...Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined && value !== null)) };
+}
+
+/** The sections of a creation that apply for these values, in the order of the creation. */
+export function creationTabs(kind: ConfigKind, values: Values): TabDefinition[] {
+  const shown = creationValues(kind, values);
+  return creationDefinitions(kind).filter((definition) => definition.applies(shown, kind));
+}
+
+/** The identifiers of the contributions of the sections of a creation, in order. */
+export function creationContributionIds(kind: ConfigKind, values: Values): string[] {
+  return creationTabs(kind, values).map((definition) => (kind === "thermostat" ? thermostatContributionId(definition) : centralContributionId(definition)));
+}
+
+/** The fields that the sections of a creation show for these values, by key, with the section that holds each one. */
+export function creationFields(kind: ConfigKind, values: Values): ReadonlyMap<string, { readonly field: FieldSpec; readonly tab: FlowTab }> {
+  const found = new Map<string, { field: FieldSpec; tab: FlowTab }>();
+  const shown = creationValues(kind, values);
+  for (const definition of creationTabs(kind, values)) {
+    const layout = layoutFor(definition, kind, shown);
+    for (const field of layout === undefined ? [] : fieldsOfLayout(layout)) {
+      found.set(field.key, { field, tab: definition.tab });
+    }
+  }
+  return found;
+}
+
+/**
+ * The required fields that a creation still misses, by section. A section that uses the central configuration is not asked for its
+ * specific values.
+ *
+ * @param kind - The kind of configuration that is created.
+ * @param values - The values of the draft.
+ * @param hasCentral - Whether a central configuration exists.
+ */
+export function creationMissing(kind: ConfigKind, values: Values, hasCentral: boolean): { readonly definition: TabDefinition; readonly fields: readonly FieldSpec[] }[] {
+  const shown = creationValues(kind, values);
+  return creationTabs(kind, values).flatMap((definition) => {
+    const layout = layoutFor(definition, kind, shown);
+    if (layout === undefined) {
+      return [];
+    }
+    const inherited = layout.inherit !== undefined && hasCentral && shown[layout.inherit] !== false;
+    const fields = missingRequired([...layout.base, ...(inherited ? [] : (layout.specific ?? []))].flatMap((name) => fieldsOf(name)), shown);
+    return fields.length === 0 ? [] : [{ definition, fields }];
+  });
 }
 
 /** Values that make every layout of the tabs appear, to list the forms that a tab can show. */

@@ -8,7 +8,7 @@
 import { CORE_TOP_TABS, groupMenu } from "@vtherm/dashboard-sdk";
 import type { HookName, PlacedEntry, PlacementEngine, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
 
-import { buildPath } from "./router.ts";
+import { NEW_THERMOSTAT, buildPath } from "./router.ts";
 import type { Route } from "./router.ts";
 
 /** A thermostat of Versatile Thermostat, as the Thermostats tab lists it. */
@@ -29,6 +29,16 @@ export interface ThermostatInfo {
   readonly floorLevel?: number | null;
 }
 
+/** A configuration that is being created: the menu is limited to the sections that its creation needs. */
+export interface CreationInput {
+  /** `thermostat` for the page of a new thermostat, `central` for the central configuration in the Configuration tab. */
+  readonly kind: "thermostat" | "central";
+  /** The identifiers of the contributions of the sections, in the order of the menu. */
+  readonly entries: readonly string[];
+  /** The name of the new thermostat in the breadcrumb. */
+  readonly title: string;
+}
+
 /** What the navigation needs to know. */
 export interface NavigationInput {
   /** The engine that holds the contributions of the plugins. */
@@ -41,6 +51,8 @@ export interface NavigationInput {
   readonly translate: (entry: PlacedEntry, key: string) => string;
   /** Give the context that the visibility condition of an entry reads. */
   readonly contextOf: (entry: PlacedEntry, thermostat: ThermostatInfo | undefined) => VisibilityContext<HookName>;
+  /** The creation in progress, if any. It gives the page of the route `/thermostats/new` and limits the menu to its sections. */
+  readonly creation?: CreationInput;
 }
 
 /** A tab of the top bar. */
@@ -145,7 +157,12 @@ export function resolveNavigation(input: NavigationInput): NavigationModel {
   const crumbs: Crumb[] = [{ label: activeTab.title, path: activeTab.path }];
   let thermostat: ThermostatInfo | undefined;
   if (activeTab.id === CORE_TOP_TABS.thermostats) {
-    thermostat = route.thermostat === undefined ? undefined : input.thermostats.find((candidate) => candidate.id === route.thermostat);
+    thermostat =
+      route.thermostat === undefined
+        ? undefined
+        : route.thermostat === NEW_THERMOSTAT && input.creation?.kind === "thermostat"
+          ? { id: NEW_THERMOSTAT, name: input.creation.title, type: "over_switch" }
+          : input.thermostats.find((candidate) => candidate.id === route.thermostat);
     if (route.thermostat !== undefined && thermostat === undefined) {
       notice = "route_unknown";
     }
@@ -155,7 +172,11 @@ export function resolveNavigation(input: NavigationInput): NavigationModel {
     crumbs.push({ label: thermostat.name, path: buildPath({ tab: activeTab.id, thermostat: thermostat.id, rest: [] }) });
   }
 
-  const entries = engine.visible(engine.menu(activeTab.id), (entry) => input.contextOf(entry, thermostat));
+  const visible = engine.visible(engine.menu(activeTab.id), (entry) => input.contextOf(entry, thermostat));
+  const creation = input.creation;
+  const creating = creation !== undefined && (creation.kind === "thermostat" ? thermostat?.id === NEW_THERMOSTAT : activeTab.id === CORE_TOP_TABS.configuration);
+  // A creation shows its own sections, in its own order: the others are on the page of the configuration once it exists.
+  const entries = creating ? creation.entries.flatMap((id) => visible.filter((entry) => entry.id === id)) : visible;
   const wanted = route.entry === undefined || route.tab !== activeTab.id ? undefined : entries.find((entry) => entry.id === route.entry);
   if (route.entry !== undefined && route.tab === activeTab.id && wanted === undefined) {
     notice = "route_unknown";

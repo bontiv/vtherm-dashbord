@@ -21,6 +21,9 @@ export interface Route {
 /** The path of the panel in Home Assistant. */
 export const PANEL_PATH = "/vtherm";
 
+/** The identifier of the thermostat in the address of the creation of a thermostat: `/vtherm/<thermostats tab>/new/<section>`. */
+export const NEW_THERMOSTAT = "new";
+
 /** The route of the address of the panel. */
 export const EMPTY_ROUTE: Route = { rest: [] };
 

@@ -4,8 +4,8 @@ Prérequis : `central-config-flags`, `ha-save-actions` et `config-navigation-sta
 
 ## 1. Sections et navigation de la création
 
-- [ ] 1.1 Ajouter `CREATION_TABS` et une fonction qui renvoie les identifiants des contributions de création pour un genre et des valeurs donnés (`frontend/src/native/tab-definitions.ts`, `native-plugin.ts`) (design D1). Vérifier par un test que `over_switch` donne type, main, tpi, advanced, que `over_climate` sans vanne donne type, main, advanced, et que le central donne main, tpi, advanced.
-- [ ] 1.2 Ajouter l'option `creation` à `NavigationInput` et le thermostat « nouveau » à `resolveNavigation` (`frontend/src/navigation.ts`, design D2) : entrées filtrées et ordonnées, pas de sélecteur, fil d'ariane « Thermostats > Nouveau thermostat > section », retour à la première section avec `route_unknown` pour une section absente. Vérifier par des tests de `frontend/test/navigation.test.ts` les scénarios « Sections de la création », « Section d'une création » (fil d'ariane et itinéraire) et « Section absente de la création ».
+- [x] 1.1 Ajouter `CREATION_TABS` et une fonction qui renvoie les identifiants des contributions de création pour un genre et des valeurs donnés (`frontend/src/native/tab-definitions.ts`, `native-plugin.ts`) (design D1). Vérifier par un test que `over_switch` donne type, main, tpi, advanced, que `over_climate` sans vanne donne type, main, advanced, et que le central donne main, tpi, advanced.
+- [x] 1.2 Ajouter l'option `creation` à `NavigationInput` et le thermostat « nouveau » à `resolveNavigation` (`frontend/src/navigation.ts`, design D2) : entrées filtrées et ordonnées, pas de sélecteur, fil d'ariane « Thermostats > Nouveau thermostat > section », retour à la première section avec `route_unknown` pour une section absente. Vérifier par des tests de `frontend/test/navigation.test.ts` les scénarios « Sections de la création », « Section d'une création » (fil d'ariane et itinéraire) et « Section absente de la création ».
 
 ## 2. Brouillons et envoi de la création
 

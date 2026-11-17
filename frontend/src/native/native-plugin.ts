@@ -8,7 +8,7 @@
 import type { AnyTranslations, Contribution, VisibilityContext } from "@vtherm/dashboard-sdk";
 
 import { defineNativeTab } from "./native-tab.ts";
-import { TAB_DEFINITIONS, centralContributionId, thermostatContributionId } from "./tab-definitions.ts";
+import { CENTRAL_TYPE, TAB_DEFINITIONS, centralContributionId, thermostatContributionId } from "./tab-definitions.ts";
 import type { TabDefinition } from "./tab-definitions.ts";
 
 /** The first entry of the menu of a thermostat, which the native tabs follow. */
@@ -16,9 +16,6 @@ export const THERMOSTAT_OVERVIEW_ID = "core.page.thermostat_overview";
 
 /** The first page of the group "Dashboard" of the menu of the configuration, which the sections of the central configuration come before. */
 export const PLUGINS_PAGE_ID = "core.page.plugins";
-
-/** The `thermostat_type` of the central configuration. */
-const CENTRAL_TYPE = "thermostat_central_config";
 
 /** The tag name of the element of a native tab. */
 export const tagOf = (definition: TabDefinition, kind: "thermostat" | "central"): string => `vtherm-native-${definition.tab.replace(/_/g, "-")}-${kind}`;
