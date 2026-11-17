@@ -12,7 +12,6 @@ frontend:
 config:
 history:
 logbook:
-http:
 
 # Basic entities to create VTherm thermostats without hardware
 input_boolean:
