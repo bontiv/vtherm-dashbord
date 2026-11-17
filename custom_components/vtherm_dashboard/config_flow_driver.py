@@ -210,13 +210,19 @@ class FlowConfigWriter(ConfigWriter):
     async def _submit(self, manager: Any, result: Any, tab_changes: Mapping[str, Any], baseline: Mapping[str, Any], tab: str) -> tuple[Any, list[FieldError]]:
         """Fill the form with the values of the tab and send it.
 
-        A form takes the keys of its schema. The value of a key is the one that the tab changes, otherwise the current one.
+        A form takes the keys of its schema. The value of a key is the one that the tab changes, otherwise the one that the form suggests,
+        as the screens of Home Assistant send it, otherwise the current one. A key without any of them gets the default of the form.
         """
         schema = result["data_schema"]
         values: dict[str, Any] = {}
         for marker in schema.schema:
             name = str(marker)
-            value = tab_changes[name] if name in tab_changes else baseline.get(name)
+            if name in tab_changes:
+                value = tab_changes[name]
+            else:
+                value = _suggested_value(marker)
+                if value is None:
+                    value = baseline.get(name)
             if value is not None:
                 values[name] = value
         try:
@@ -239,6 +245,16 @@ class FlowConfigWriter(ConfigWriter):
 def _menu_options(result: Any) -> list[str]:
     """Return the options of a menu step, which Home Assistant gives as a list or as a dictionary."""
     return list(result["menu_options"])
+
+
+def _suggested_value(marker: Any) -> Any:
+    """Return the value that a form suggests for a key, or None.
+
+    Versatile Thermostat suggests the values that it holds, for example its central options set to False when there is no central
+    configuration, while the default of the schema can be True.
+    """
+    description = getattr(marker, "description", None)
+    return description.get("suggested_value") if isinstance(description, Mapping) else None
 
 
 def _invalid_fields(err: InvalidData) -> list[tuple[str, str]]:

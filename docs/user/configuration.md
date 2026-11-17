@@ -49,7 +49,9 @@ it can start.
 ## Create a thermostat
 In the Thermostats tab, **Create a thermostat** opens an assistant. Choose the type (over a switch, over a climate, over a valve),
 then fill in the main attributes and the underlying devices. The **Create** button stays off while a required field is empty,
-and the assistant says which ones. When there is a central configuration, a new thermostat uses it by default.
+and the assistant says which ones. When there is a central configuration, a new thermostat uses it by default. Without a central
+configuration, the options that need one are off and cannot be turned on, and the new thermostat gets the default TPI and advanced
+parameters of Versatile Thermostat: change them afterwards in its sections "TPI parameters" and "Advanced parameters".
 
 ## Use the central configuration
 Most sections have a switch "Use the central configuration". While it is on, the section shows the values of the central

@@ -11,7 +11,10 @@ Thermostat on the server, through the public API of Home Assistant, as the scree
 1. It opens the flow: the options flow of the entry to change a configuration (`hass.config_entries.options`), or the config
    flow of `versatile_thermostat` to create one (`hass.config_entries.flow`), in which it first chooses the type.
 2. For each tab that the draft changes, in the order of the menu, it chooses the step in the menu and submits the form. A form
-   gets every field of its schema: the value of the draft when the tab changes it, otherwise the current value. When a form leads
+   gets every field of its schema: the value of the draft when the tab changes it, otherwise the value that the form suggests (as
+   the screens of Home Assistant send it), otherwise the current value; a field without any of them gets the default of the form.
+   Versatile Thermostat suggests the values that it holds: without a central configuration, its options "use the central
+   configuration" and "central mode" are suggested off, while the default of their schema is on. When a form leads
    to another one (the specific values when the inheritance of the central configuration is off, the settings of Auto TPI), the
    following forms are submitted the same way, until the flow is back at the menu.
 3. It chooses `finalize`, which the menu only offers when the configuration is complete.

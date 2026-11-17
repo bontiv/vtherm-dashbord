@@ -77,6 +77,25 @@ export const thermostatTypeOf = (values: Values): string => String(values["therm
 /** Whether an over_climate thermostat regulates with a valve. */
 export const usesValveRegulation = (values: Values): boolean => values["auto_regulation_mode"] === "auto_regulation_valve";
 
+/**
+ * The options that Versatile Thermostat refuses when there is no central configuration (`validate_input` of its config flow): the
+ * inheritance of each section, the control by the central mode and the control of the central boiler. `tests/test_central_options.py`
+ * compares this list with the one of the Versatile Thermostat of the environment.
+ */
+export const CENTRAL_REQUIRED_OPTIONS: ReadonlySet<string> = new Set([
+  "use_main_central_config",
+  "use_tpi_central_config",
+  "use_window_central_config",
+  "use_motion_central_config",
+  "use_power_central_config",
+  "use_presence_central_config",
+  "use_presets_central_config",
+  "use_advanced_central_config",
+  "use_lock_central_config",
+  "use_central_mode",
+  "used_by_controls_central_boiler",
+]);
+
 const isOn = (values: Values, key: string): boolean => values[key] === true;
 const fixed = (layout: TabLayout) => (): TabLayout => layout;
 

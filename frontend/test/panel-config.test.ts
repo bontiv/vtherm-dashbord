@@ -192,6 +192,12 @@ describe("the assistant of creation", () => {
       thermostat_over_climate: { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor", underlying_entity_ids: ["climate.office"] },
       thermostat_over_valve: { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor", underlying_entity_ids: ["number.office"] },
     };
+    // The TPI and advanced tabs are sent with the values that Versatile Thermostat proposes; TPI only when the type uses it.
+    const tabs: Record<string, string[]> = {
+      thermostat_over_switch: ["advanced", "main", "tpi", "type"],
+      thermostat_over_climate: ["advanced", "main", "type"],
+      thermostat_over_valve: ["advanced", "main", "tpi", "type"],
+    };
     for (const [type, values] of Object.entries(fields)) {
       const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/new` });
       const { wizard, shadow } = wizardTabs(panel);
@@ -208,6 +214,7 @@ describe("the assistant of creation", () => {
       const [message] = calls(hass, "vtherm_dashboard/create_config");
       expect(message?.["thermostat_type"]).toBe(type);
       expect(message?.["changes"]).toMatchObject({ main: { name: "Bureau", use_main_central_config: false } });
+      expect(Object.keys(message?.["changes"] as object).sort(), type).toEqual(tabs[type]);
       expect(find(root(panel), "core-thermostat-overview-page")).not.toBeNull();
       cleanup();
     }

@@ -140,6 +140,41 @@ async def test_a_thermostat_cannot_use_the_central_configuration_when_there_is_n
     assert result.ok is False
 
 
+CENTRAL_OPTIONS = (
+    "use_main_central_config",
+    "use_tpi_central_config",
+    "use_window_central_config",
+    "use_motion_central_config",
+    "use_power_central_config",
+    "use_presence_central_config",
+    "use_presets_central_config",
+    "use_advanced_central_config",
+    "use_lock_central_config",
+    "use_central_mode",
+)
+
+
+async def test_a_thermostat_is_created_without_central_configuration(hass: HomeAssistant, writer: ConfigWriter) -> None:
+    """The fields that the draft does not change get the values that the flow suggests: the central options are off, and the TPI and
+    advanced tabs get the defaults of Versatile Thermostat."""
+    result = await writer.async_create(
+        "thermostat_over_switch",
+        {
+            "main": {"name": "Salon", INDOOR: "sensor.indoor", OUTDOOR: "sensor.outdoor", "use_main_central_config": False},
+            "type": {UNDERLYING: ["switch.heater"]},
+            "tpi": {},
+            "advanced": {},
+        },
+    )
+    assert result.ok, result.errors
+    await hass.async_block_till_done()
+    entry = next(entry for entry in entries(hass) if entry.entry_id == result.entry_id)
+    assert {option: entry.data.get(option) for option in CENTRAL_OPTIONS} == dict.fromkeys(CENTRAL_OPTIONS, False)
+    assert (entry.data["tpi_coef_int"], entry.data["tpi_coef_ext"]) == (0.6, 0.01)
+    assert entry.data["safety_delay_min"] == 60
+    assert flows_in_progress(hass) == 0
+
+
 # ---- update
 
 
@@ -154,6 +189,19 @@ async def test_update_a_tab_and_keep_everything_else(hass: HomeAssistant, writer
     assert entry.data["cycle_min"] == 8
     assert {key: value for key, value in entry.data.items() if key != "cycle_min"} == {key: value for key, value in before.items() if key != "cycle_min"}
     assert flows_in_progress(hass) == 0
+
+
+async def test_a_change_of_name_keeps_the_central_options_and_the_cycle(hass: HomeAssistant, writer: ConfigWriter) -> None:
+    """The suggested values of the main form are the saved ones: the central options and the cycle do not move."""
+    await create_central(hass, writer)
+    entry = await create_thermostat(hass, writer, "thermostat_over_switch", "Salon", ["switch.heater"])
+    before = {option: entry.data[option] for option in (*CENTRAL_OPTIONS, "cycle_min")}
+    assert before["use_central_mode"] is True
+    result = await writer.async_update(entry.entry_id, {"main": {"name": "Séjour"}})
+    await hass.async_block_till_done()
+    assert result.ok, result.errors
+    assert entry.data["name"] == "Séjour"
+    assert {option: entry.data[option] for option in before} == before
 
 
 async def test_update_several_tabs_in_one_save_and_enable_a_feature_with_its_tab(hass: HomeAssistant, writer: ConfigWriter) -> None:

@@ -10,6 +10,7 @@ import { shell, t } from "../shell-translations.ts";
 import { autoTpiDefaults, definitionOf, entityChoices, formatInput, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
 import type { FieldSpec } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
+import { CENTRAL_REQUIRED_OPTIONS } from "./tab-definitions.ts";
 import type { ConfigKind, TabDefinition, TabLayout } from "./tab-definitions.ts";
 import { commandsByUnderlying, formatBoilerService, formatCommand, needsCommands, parseBoilerService, parseCommand, storedCommands } from "./commands.ts";
 import { haState, isDefined, renderAlert, renderProgress, showMoreInfo } from "../components/ha.ts";
@@ -264,6 +265,14 @@ export class NativeTabElement extends LitElement {
   }
 
   /** Whether the tab uses the values of the central configuration. */
+  /**
+   * Whether a field is an option that needs the central configuration while there is none: Versatile Thermostat refuses it, so it is
+   * disabled and shown off.
+   */
+  private needsMissingCentral(field: FieldSpec, layout: TabLayout): boolean {
+    return !this.hasCentral && (field.key === layout.inherit || CENTRAL_REQUIRED_OPTIONS.has(field.key));
+  }
+
   private inherits(layout: TabLayout): boolean {
     return layout.inherit !== undefined && this.hasCentral && this.values[layout.inherit] !== false;
   }
@@ -432,7 +441,7 @@ export class NativeTabElement extends LitElement {
   private renderSelector(field: FieldSpec, layout: TabLayout): TemplateResult {
     const error = this.fieldError(field.key);
     const value = shownValue(field, this.values, this.unit);
-    const disabled = field.key === layout.inherit && !this.hasCentral;
+    const disabled = this.needsMissingCentral(field, layout);
     // An option that a thermostat plugin added is kept.
     const extra = field.kind === "select" && typeof value === "string" && value !== "" && !(field.options ?? []).includes(value) ? [value] : [];
     const selector = selectorOf(definitionOf(field, (option) => this.optionLabel(field, option), extra));
@@ -564,8 +573,7 @@ export class NativeTabElement extends LitElement {
     const id = `field-${field.key}`;
     const error = this.fieldError(field.key);
     const value = shownValue(field, this.values, this.unit);
-    const isInherit = field.key === layout.inherit;
-    const disabled = isInherit && !this.hasCentral;
+    const disabled = this.needsMissingCentral(field, layout);
     const describedBy = [`help-${field.key}`, error === undefined ? "" : `error-${field.key}`].filter(Boolean).join(" ");
     const errorLine = error === undefined ? undefined : html`<div class="error" id="error-${field.key}" role="alert">${error}</div>`;
     // fallback: the controls below replace ha-selector when it is not defined (an old version of Home Assistant, or out of it).

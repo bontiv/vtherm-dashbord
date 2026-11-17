@@ -64,6 +64,15 @@ describe("the fields of the native tabs", () => {
     expect(proposals).toEqual([{ use_main_central_config: true }]);
   });
 
+  it("disables and shows off every option that needs the central configuration when there is none", async () => {
+    const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: false }, { central: {} });
+    for (const key of ["use_main_central_config", "use_central_mode", "used_by_controls_central_boiler"]) {
+      expect(selector(root, key).disabled, key).toBe(true);
+      expect(selector(root, key).value, key).toBe(false);
+    }
+    expect(selector(root, "cycle_min").disabled).toBeFalsy();
+  });
+
   it("draws a number with its limits, its step and its unit, and stores the delay as a number of that unit", async () => {
     const { root, proposals } = await render("core.tab.main", { ...SWITCH, cycle_min: 5 });
     expect(selector(root, "cycle_min").selector).toMatchObject({ number: { mode: "box", unit_of_measurement: "min" } });

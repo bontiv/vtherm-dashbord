@@ -18,6 +18,12 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   spinners. An entity shown as text opens its card. Each control keeps a plain HTML fallback when Home Assistant does not load it.
 
 ### Fixed
+- A thermostat can be created without a central configuration. The creation was refused with "no central configuration found":
+  the fields that the user did not change were sent with the defaults of the forms of Versatile Thermostat (the central mode on),
+  instead of the values that its flow proposes, as the screens of Home Assistant send them. The creation also sends the TPI and
+  advanced parameters, with the defaults of Versatile Thermostat, that a thermostat without central configuration needs.
+- Without a central configuration, every option that needs one is off and disabled, with its explanation: the control by the
+  central mode and the central boiler, not only the use of the central configuration.
 - The UI plugins are no longer lost when the central configuration of Versatile Thermostat is the only entry and is saved: the
   dashboard keeps the instance of `vtherm_api` that holds them.
 - The panel follows the navigation again: Home Assistant set a property `route` on it that replaced the route of the panel.

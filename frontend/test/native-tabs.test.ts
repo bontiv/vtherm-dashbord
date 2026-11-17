@@ -105,6 +105,23 @@ describe("the tab main", () => {
     expect(labels(root)).toContain("external_temperature_sensor_entity_id");
   });
 
+  it("disables and shows off the central mode and the central boiler when there is no central configuration", async () => {
+    const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: false, used_by_controls_central_boiler: true }, { central: {} });
+    for (const key of ["use_central_mode", "used_by_controls_central_boiler"]) {
+      expect(input(root, key)?.disabled, key).toBe(true);
+      expect(input(root, key)?.checked, key).toBe(false);
+    }
+    expect(findAll(root, ".note").filter((note) => note.textContent?.includes("There is no central configuration"))).toHaveLength(3);
+  });
+
+  it("lets the central mode and the central boiler be changed when there is a central configuration", async () => {
+    const { root } = await render("core.tab.main", { ...SWITCH, use_central_mode: false });
+    for (const key of ["use_central_mode", "used_by_controls_central_boiler"]) {
+      expect(input(root, key)?.disabled, key).toBe(false);
+    }
+    expect(input(root, "use_central_mode")?.checked).toBe(false);
+  });
+
   it("proposes a change to the draft, never to Home Assistant", async () => {
     const { root, proposals } = await render("core.tab.main", SWITCH);
     change(input(root, "cycle_min"), "8");

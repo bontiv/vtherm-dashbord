@@ -6,9 +6,10 @@ import type { ConfigApi, TabChanges } from "../config/api.ts";
 import { ConfigDraft } from "../config/draft.ts";
 import { translateErrorCode } from "../i18n.ts";
 import type { DashboardRegistry } from "../registry.ts";
-import { missingRequired } from "../native/fields.ts";
+import { defaultOf, missingRequired } from "../native/fields.ts";
 import { tagOf } from "../native/native-plugin.ts";
 import { fieldsOf } from "../native/schemas.ts";
+import type { FieldSpec } from "../native/schemas.ts";
 import { TAB_DEFINITIONS } from "../native/tab-definitions.ts";
 import type { ConfigKind, TabDefinition } from "../native/tab-definitions.ts";
 import { shell, t } from "../shell-translations.ts";
@@ -31,10 +32,11 @@ const CENTRAL_TYPE = "thermostat_central_config";
 const WIZARD_TABS: Readonly<Record<ConfigKind, readonly string[]>> = { thermostat: ["main", "type"], central: ["main"] };
 
 /**
- * The tabs that the creation sends. The central configuration also sends its TPI and advanced tabs, with their defaults: without them the
- * thermostats that use the central values do not start.
+ * The tabs that the creation sends, when they apply. The TPI and advanced tabs are sent even though the assistant does not show them:
+ * the flow then gives them the values that Versatile Thermostat proposes, the central ones or its defaults. Without them, a thermostat
+ * without central configuration is not complete, and the thermostats that use the central values do not start.
  */
-const CREATED_TABS: Readonly<Record<ConfigKind, readonly string[]>> = { thermostat: ["main", "type"], central: ["main", "tpi", "advanced"] };
+const CREATED_TABS: Readonly<Record<ConfigKind, readonly string[]>> = { thermostat: ["main", "type", "tpi", "advanced"], central: ["main", "tpi", "advanced"] };
 
 /** The assistant that creates a thermostat, or the central configuration, with the flow of Versatile Thermostat. */
 export class VThermCreateWizard extends LitElement {
@@ -174,6 +176,26 @@ export class VThermCreateWizard extends LitElement {
     return WIZARD_TABS[this.kind].map((tab) => TAB_DEFINITIONS.find((definition) => definition.tab === tab) as TabDefinition);
   }
 
+  /** The fields of the forms of the assistant, as they are shown for the values of the draft. */
+  private fields(): FieldSpec[] {
+    const values = this.draft.values();
+    return this.definitions().flatMap((definition) => {
+      const layoutOf = this.kind === "thermostat" ? definition.thermostat : definition.central;
+      if (layoutOf === undefined) {
+        return [];
+      }
+      const layout = layoutOf(values);
+      return [...layout.base, ...(layout.specific ?? []), ...(layout.extra ?? [])].flatMap((name) => fieldsOf(name));
+    });
+  }
+
+  /** The values of the draft, with the defaults of the fields that it does not set, as the flow will see them. */
+  private shownValues(): Readonly<Record<string, unknown>> {
+    const defaults = Object.fromEntries(this.fields().map((field) => [field.key, defaultOf(field, undefined)]));
+    const values = Object.fromEntries(Object.entries(this.draft.values()).filter(([, value]) => value !== undefined && value !== null));
+    return { ...defaults, ...values };
+  }
+
   /** The required fields that the configuration still misses, in the forms of the assistant. */
   private missing(): string[] {
     const values = this.draft.values();
@@ -195,8 +217,12 @@ export class VThermCreateWizard extends LitElement {
     }
     this.busy = true;
     const changes: Record<string, Record<string, unknown>> = { ...(this.draft.tabChanges() as Record<string, Record<string, unknown>>) };
+    const shown = this.shownValues();
     for (const tab of CREATED_TABS[this.kind]) {
-      changes[tab] = { ...(changes[tab] ?? {}) };
+      // A tab that the menu of the flow does not offer for these values, like TPI for a thermostat over a climate, is not sent.
+      if (TAB_DEFINITIONS.find((definition) => definition.tab === tab)?.applies(shown, this.kind) === true) {
+        changes[tab] = { ...(changes[tab] ?? {}) };
+      }
     }
     if (!this.central) {
       // The value that the draft started from is not a change, but the flow needs it.
