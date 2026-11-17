@@ -18,5 +18,5 @@
 
 ## 4. Vérification d'ensemble
 
-- [ ] 4.1 Exécuter `npm run check`, `npm test` et `npm run test:python` sans erreur
+- [x] 4.1 Exécuter `npm run check`, `npm test` et `npm run test:python` sans erreur
 - [x] 4.2 Dans le devcontainer, créer deux étages et trois pièces, y placer les thermostats (un sans pièce), vérifier la liste, le choix « Par nom », le sélecteur et le renommage d'une pièce en direct, sur bureau et à 360 px

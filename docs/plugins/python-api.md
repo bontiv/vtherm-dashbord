@@ -86,7 +86,11 @@ are not listed. The order is not a load order: a plugin that requires another on
 | --- | --- |
 | `plugin_id`, `js_url` or `dashboard_version` is missing, not a string, or empty | `The UI plugin field '<name>' is required and must be a non-empty string` |
 | `requires`, `load_after` or `load_before` is not a list of non-empty strings | `The UI plugin field '<name>' must be a list of plugin identifiers` or `... must only contain non-empty strings, got <value>` |
-| A plugin with the same identifier is already registered (the existing one is kept) | `A UI plugin with the identifier '<id>' is already registered` |
+| Another declaration with the same identifier is already registered (the existing one is kept) | `A UI plugin with the identifier '<id>' is already registered` |
+
+Registering again a declaration equal to the registered one is not an error and changes nothing: Home Assistant can run
+`async_setup_entry` again (a retry of the setup, one call per configuration entry) without unloading the entry first. The plugin
+keeps its place in the order of registration.
 
 ## What the dashboard checks later
 

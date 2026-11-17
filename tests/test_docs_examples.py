@@ -31,8 +31,14 @@ def test_register_ui_plugin_example(api) -> None:
     assert plugins[0].requires == ("core",)
     assert plugins[0].load_after == ("core_tpi",)
 
+    # Home Assistant can set the integration up again: the same declaration registered again changes nothing.
+    example.register_my_ui_plugin(hass)
+    assert [plugin.id for plugin in vtherm_api.get_ui_plugins()] == [example.PLUGIN_ID]
+
+    # Another declaration with the same identifier is refused, and the registered one is kept.
     with pytest.raises(ValueError, match="already registered"):
-        example.register_my_ui_plugin(hass)
+        vtherm_api.register_ui_plugin(example.PLUGIN_ID, "/other/ui.js", ">=1.0,<2.0")
+    assert vtherm_api.get_ui_plugins()[0].js_url == example.JS_URL
 
     example.unregister_my_ui_plugin(hass)
     assert vtherm_api.get_ui_plugins() == []
