@@ -6,6 +6,9 @@
  * flow, and they are applied after it.
  */
 
+import { domainsOf } from "../native/fields.ts";
+import type { FieldSpec } from "../native/schemas.ts";
+import { creationFields } from "../native/tab-definitions.ts";
 import type { ConfigApi, SaveError, SaveResponse, TabChanges } from "./api.ts";
 
 /** The prefix of a key that changes a preset temperature, in the changes that a component proposes: `preset:eco_temp`. */
@@ -23,6 +26,26 @@ export function sameValue(first: unknown, second: unknown): boolean {
     return false;
   }
   return JSON.stringify(first) === JSON.stringify(second);
+}
+
+/**
+ * What a value becomes in a field of another type of thermostat: itself, or nothing when the field cannot hold it. An entity is kept
+ * when its domain is accepted, and a list keeps the entities that are accepted.
+ */
+function acceptedValue(field: FieldSpec, value: unknown): unknown {
+  if (field.kind === "select" && field.options !== undefined && typeof value === "string") {
+    return field.options.includes(value) ? value : undefined;
+  }
+  const domains = field.kind === "entity" ? domainsOf(field) : [];
+  if (domains.length === 0) {
+    return value;
+  }
+  const accepts = (entity: unknown): boolean => typeof entity === "string" && domains.includes(entity.split(".")[0] ?? "");
+  if (Array.isArray(value)) {
+    const entities = value.filter(accepts);
+    return entities.length === 0 ? undefined : entities;
+  }
+  return accepts(value) ? value : undefined;
 }
 
 /** The outcome of a save, for the user. */
@@ -180,6 +203,28 @@ export class ConfigDraft {
     }
     this.notify();
     return { ok: response.ok, configSaved: response.config_saved, generalErrors: this.generalErrors() };
+  }
+
+  /**
+   * Change the type of the thermostat that a creation makes. A value that the new type accepts stays in the draft: its field must be
+   * in a section of the creation of the new type, and an entity must have an accepted domain. The other values are dropped.
+   *
+   * @param type - The new `thermostat_type`.
+   */
+  changeType(type: string): void {
+    const previous = [...this.changes.values()].flatMap((values) => [...values]);
+    this.saved = { ...this.saved, thermostat_type: type };
+    const accepted = creationFields("thermostat", { ...this.saved, ...Object.fromEntries(previous) });
+    this.changes.clear();
+    for (const [key, value] of previous) {
+      const field = accepted.get(key);
+      const next = field === undefined ? undefined : acceptedValue(field.field, value);
+      if (field !== undefined && next !== undefined && !sameValue(next, this.saved[key])) {
+        this.changes.set(field.tab, new Map([...(this.changes.get(field.tab) ?? []), [key, next]]));
+      }
+    }
+    this.errors = [];
+    this.notify();
   }
 
   /** Show errors that do not come from a save of the draft, such as the errors of a creation. */

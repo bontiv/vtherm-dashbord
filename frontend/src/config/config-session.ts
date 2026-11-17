@@ -5,10 +5,26 @@
  * dropped when the user leaves the thermostat after confirming it.
  */
 
+import { CENTRAL_TYPE, THERMOSTAT_TYPES, creationTabs } from "../native/tab-definitions.ts";
+import type { ConfigKind } from "../native/tab-definitions.ts";
 import { areaSignature } from "../thermostat-areas.ts";
 import type { HassRegistries } from "../thermostat-areas.ts";
-import type { ConfigApi, ConfigData, ThermostatList } from "./api.ts";
+import type { ConfigApi, ConfigData, TabChanges, ThermostatList } from "./api.ts";
 import { ConfigDraft } from "./draft.ts";
+
+/** The key of the draft of a creation, which is not the identifier of an entry: there is none yet. */
+export const creationKey = (kind: ConfigKind): string => `new:${kind}`;
+
+/** Whether a key is the one of the draft of a creation. */
+export const isCreationKey = (key: string | null): boolean => key !== null && key.startsWith("new:");
+
+/** The outcome of a creation. */
+export interface CreateOutcome {
+  /** Whether the configuration was created. */
+  readonly ok: boolean;
+  /** The entry that was created. */
+  readonly entryId: string | null;
+}
 
 /** A configuration that is open, with its draft. */
 export interface OpenConfig {
@@ -139,6 +155,65 @@ export class ConfigSession {
       await this.refreshList();
     }
     return outcome;
+  }
+
+  /**
+   * Open the draft of a creation, or give the one that is open. A thermostat starts as the first type, using the central configuration
+   * when there is one, as the config flow proposes.
+   *
+   * @param kind - What is created.
+   * @param type - The type of the thermostat to start with.
+   */
+  startCreation(kind: ConfigKind, type: string = THERMOSTAT_TYPES[0]): ConfigDraft {
+    const key = creationKey(kind);
+    const known = this.open.get(key);
+    if (known !== undefined) {
+      return known.draft;
+    }
+    const thermostatType = kind === "central" ? CENTRAL_TYPE : type;
+    const draft = new ConfigDraft(key, { thermostat_type: thermostatType, ...(kind === "central" ? {} : { use_main_central_config: this.centralId !== null }) });
+    draft.subscribe(this.notify);
+    // Nothing was read: the data of the entry only gives the draft the shape of an open configuration, which is never read-only.
+    const data: ConfigData = { id: key, name: "", type: kind === "central" ? "central" : "over_switch", values: draft.savedValues(), version: 0, minor_version: 0, read_only: false, read_only_reason: null };
+    this.open.set(key, { data, draft });
+    this.notify();
+    return draft;
+  }
+
+  /** The creation that is in progress, if any. */
+  creation(kind: ConfigKind): OpenConfig | undefined {
+    return this.open.get(creationKey(kind));
+  }
+
+  /**
+   * Create the configuration of a draft of creation. Every section of the creation that applies is sent, even without change: the flow
+   * then gives it the values that Versatile Thermostat proposes. When the creation succeeds the draft is dropped and the list is read
+   * again; when it is refused the errors are put on the draft, which is kept.
+   *
+   * @param kind - What is created.
+   */
+  async create(kind: ConfigKind): Promise<CreateOutcome> {
+    const draft = this.open.get(creationKey(kind))?.draft;
+    if (draft === undefined) {
+      throw new Error(`There is no creation of a ${kind} in progress`);
+    }
+    const values = draft.values();
+    const tabs = creationTabs(kind, values).map((definition) => definition.tab);
+    // A change of a section that does not apply any more, such as TPI after a change of the type, is not sent: the flow would refuse it.
+    const changes: Record<string, Record<string, unknown>> = Object.fromEntries(tabs.map((tab) => [tab, { ...draft.tabChanges()[tab] }]));
+    if (kind === "thermostat") {
+      // The value that the draft started from is not a change, but the flow needs it.
+      changes["main"] = { use_main_central_config: this.centralId !== null, ...changes["main"] };
+    }
+    const response = await this.api.create(String(values["thermostat_type"]), changes as TabChanges);
+    if (!response.ok || response.entry_id === null) {
+      draft.setErrors(response.errors);
+      return { ok: false, entryId: null };
+    }
+    // The entry exists: a list that cannot be read again must not make the creation look like a failure, which would invite a second one.
+    await this.refreshList().catch(() => undefined);
+    this.close(creationKey(kind));
+    return { ok: true, entryId: response.entry_id };
   }
 
   /** The drafts that have changes that are not saved. */

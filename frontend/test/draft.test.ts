@@ -131,3 +131,44 @@ describe("saving a draft", () => {
     expect(draft.allErrors()).toEqual([]);
   });
 });
+
+describe("the change of type during a creation", () => {
+  const started = () => new ConfigDraft("new:thermostat", { thermostat_type: "thermostat_over_switch", use_main_central_config: false });
+
+  it("keeps the values that the new type accepts and drops the entities of another domain", () => {
+    const draft = started();
+    draft.propose("main", { name: "Office", temperature_sensor_entity_id: "sensor.office" });
+    draft.propose("type", { underlying_entity_ids: ["switch.office"] });
+    draft.changeType("thermostat_over_valve");
+    expect(draft.values()).toMatchObject({ thermostat_type: "thermostat_over_valve", name: "Office", temperature_sensor_entity_id: "sensor.office" });
+    expect(draft.values()["underlying_entity_ids"]).toBeUndefined();
+    expect(draft.tabChanges()).toEqual({ main: { name: "Office", temperature_sensor_entity_id: "sensor.office" } });
+  });
+
+  it("keeps the entities of a domain that the new type accepts, and the others of the list are dropped", () => {
+    const draft = started();
+    draft.changeType("thermostat_over_climate");
+    draft.propose("type", { underlying_entity_ids: ["climate.office"] });
+    draft.changeType("thermostat_over_switch");
+    expect(draft.values()["underlying_entity_ids"]).toEqual(["climate.office"]);
+    draft.propose("type", { underlying_entity_ids: ["climate.office", "number.valve"] });
+    draft.changeType("thermostat_over_switch");
+    expect(draft.values()["underlying_entity_ids"]).toEqual(["climate.office"]);
+  });
+
+  it("drops the values of the old type that the new type has no field for", () => {
+    const draft = started();
+    draft.propose("type", { inverse_switch_command: true, underlying_entity_ids: ["switch.office"] });
+    draft.changeType("thermostat_over_climate");
+    expect(draft.values()["inverse_switch_command"]).toBeUndefined();
+    expect(draft.tabChanges()).toEqual({});
+    expect(draft.dirty).toBe(false);
+  });
+
+  it("drops the errors of the previous attempt", () => {
+    const draft = started();
+    draft.setErrors([{ tab: "type", field: "underlying_entity_ids", code: "unknown_entity" }]);
+    draft.changeType("thermostat_over_valve");
+    expect(draft.allErrors()).toEqual([]);
+  });
+});

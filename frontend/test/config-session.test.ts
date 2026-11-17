@@ -122,3 +122,88 @@ describe("the areas of the thermostats", () => {
     expect(session.areasMoved({})).toBe(false);
   });
 });
+
+describe("the creation of a configuration", () => {
+  const complete = { name: "Office", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor", underlying_entity_ids: ["switch.office"] };
+
+  const createCalls = (api: ConfigApi) => vi.mocked(api.create).mock.calls;
+
+  function creating(response: unknown = { ok: true, entry_id: "new_entry", errors: [] }) {
+    const api = fakeApi();
+    vi.mocked(api.create).mockResolvedValue(response as never);
+    return { api, session: new ConfigSession(api) };
+  }
+
+  it("starts a draft of the first type, which stays the same until it is closed", () => {
+    const { session } = creating();
+    const draft = session.startCreation("thermostat");
+    expect(session.startCreation("thermostat")).toBe(draft);
+    expect(session.creation("thermostat")?.draft).toBe(draft);
+    expect(draft.values()).toMatchObject({ thermostat_type: "thermostat_over_switch", use_main_central_config: false });
+    expect(draft.dirty).toBe(false);
+    expect(session.creation("central")).toBeUndefined();
+  });
+
+  it("sends a section for every section of the creation that applies, with the changes of the draft", async () => {
+    const { api, session } = creating();
+    const draft = session.startCreation("thermostat");
+    draft.propose("main", { name: "Office", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor" });
+    draft.propose("type", { underlying_entity_ids: ["switch.office"] });
+    draft.propose("tpi", { tpi_coef_int: 0.7 });
+    expect(await session.create("thermostat")).toEqual({ ok: true, entryId: "new_entry" });
+    const [type, changes] = createCalls(api)[0] as [string, Record<string, Record<string, unknown>>];
+    expect(type).toBe("thermostat_over_switch");
+    expect(Object.keys(changes).sort()).toEqual(["advanced", "main", "tpi", "type"]);
+    expect(changes["tpi"]).toEqual({ tpi_coef_int: 0.7 });
+    expect(changes["advanced"]).toEqual({});
+    expect(changes["main"]).toMatchObject({ name: "Office", use_main_central_config: false });
+  });
+
+  it("does not send a section that does not apply, nor its changes", async () => {
+    const { api, session } = creating();
+    const draft = session.startCreation("thermostat");
+    draft.propose("tpi", { tpi_coef_int: 0.7 });
+    draft.changeType("thermostat_over_climate");
+    draft.propose("tpi", { tpi_coef_int: 0.7 });
+    await session.create("thermostat");
+    const [type, changes] = createCalls(api)[0] as [string, Record<string, unknown>];
+    expect(type).toBe("thermostat_over_climate");
+    expect(Object.keys(changes).sort()).toEqual(["advanced", "main", "type"]);
+  });
+
+  it("sends the main, TPI and advanced sections of the central configuration", async () => {
+    const { api, session } = creating();
+    session.startCreation("central").propose("main", { external_temperature_sensor_entity_id: "sensor.outdoor" });
+    await session.create("central");
+    const [type, changes] = createCalls(api)[0] as [string, Record<string, unknown>];
+    expect(type).toBe("thermostat_central_config");
+    expect(Object.keys(changes).sort()).toEqual(["advanced", "main", "tpi"]);
+  });
+
+  it("uses the central configuration when one exists", async () => {
+    const { api, session } = creating();
+    await session.refreshList();
+    expect(session.startCreation("thermostat").values()["use_main_central_config"]).toBe(true);
+    await session.create("thermostat");
+    expect(createCalls(api)[0]?.[1]).toMatchObject({ main: { use_main_central_config: true } });
+  });
+
+  it("drops the draft and reads the list again once the configuration is created", async () => {
+    const { api, session } = creating();
+    session.startCreation("thermostat").propose("main", complete);
+    await session.create("thermostat");
+    expect(session.creation("thermostat")).toBeUndefined();
+    expect(api["thermostats"]).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the draft and puts the errors on it when the creation is refused", async () => {
+    const { api, session } = creating({ ok: false, entry_id: null, errors: [{ tab: "main", field: "name", code: "name_exists" }] });
+    const draft = session.startCreation("thermostat");
+    draft.propose("main", complete);
+    expect(await session.create("thermostat")).toEqual({ ok: false, entryId: null });
+    expect(session.creation("thermostat")?.draft).toBe(draft);
+    expect(draft.errorsOf("main")).toEqual({ name: "name_exists" });
+    expect(draft.dirty).toBe(true);
+    expect(api["thermostats"]).not.toHaveBeenCalled();
+  });
+});

@@ -9,8 +9,8 @@ Prérequis : `central-config-flags`, `ha-save-actions` et `config-navigation-sta
 
 ## 2. Brouillons et envoi de la création
 
-- [ ] 2.1 Ajouter `startCreation`, `creation` et `create` à `ConfigSession` (`frontend/src/config/config-session.ts`, design D3). L'envoi comprend un onglet vide pour chaque section de création qui s'applique ; en cas de succès, le brouillon est retiré et la liste relue ; en cas de refus, les erreurs sont posées sur le brouillon. Vérifier par des tests de `config-session.test.ts` les onglets envoyés, le succès et le refus.
-- [ ] 2.2 Ajouter à `ConfigDraft` le changement de type avec filtrage des clés et des domaines d'entités (`frontend/src/config/draft.ts`, design D4). Vérifier par des tests de `draft.test.ts` les deux scénarios de « Changement de type pendant la création » et « Entités compatibles conservées ».
+- [x] 2.1 Ajouter `startCreation`, `creation` et `create` à `ConfigSession` (`frontend/src/config/config-session.ts`, design D3). L'envoi comprend un onglet vide pour chaque section de création qui s'applique ; en cas de succès, le brouillon est retiré et la liste relue ; en cas de refus, les erreurs sont posées sur le brouillon. Vérifier par des tests de `config-session.test.ts` les onglets envoyés, le succès et le refus.
+- [x] 2.2 Ajouter à `ConfigDraft` le changement de type avec filtrage des clés et des domaines d'entités (`frontend/src/config/draft.ts`, design D4). Vérifier par des tests de `draft.test.ts` les deux scénarios de « Changement de type pendant la création » et « Entités compatibles conservées ».
 
 ## 3. Page de création dans le panel
 
