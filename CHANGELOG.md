@@ -8,6 +8,16 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### Changed
+- Creating a thermostat or the central configuration is a page of configuration, like an existing one: a menu on the left, one
+  section at a time, the draft kept from a section to another. A new thermostat has the sections Underlyings (which starts with the
+  type), Main attributes, TPI parameters when the type uses them, and Advanced parameters, so the TPI and advanced parameters that a
+  thermostat without central configuration needs can be set at creation. The central configuration has Main attributes, TPI parameters
+  and Advanced parameters. **Create** and **Cancel** replace **Save** and **Discard**, and the message above them lists the missing
+  fields by section. Changing the type keeps the values that the new type accepts. The assistant of creation is gone, and the central
+  configuration is no longer created at `/vtherm/<thermostats tab>/new/central`: **Create the central configuration** opens its sections
+  in the Configuration tab.
+
 ### For contributors
 - The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not
   published yet can no longer make `npm ci` fail for the whole repository. The CI job `sample-plugin` builds the SDK, installs it in the

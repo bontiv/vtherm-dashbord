@@ -21,9 +21,9 @@ Prérequis : `central-config-flags`, `ha-save-actions` et `config-navigation-sta
 
 ## 4. Retrait de l'assistant, textes et documentation
 
-- [ ] 4.1 Supprimer `frontend/src/components/create-wizard.ts`, son import dans `panel.ts` et ses tests. Déplacer les textes utiles sous `creation.*` en en/fr/de dans `frontend/src/shell-translations.ts`. Vérifier que `npm run build`, `npm run lint` et `shell-translations.test.ts` passent.
-- [ ] 4.2 Réécrire les sections « Create the central configuration » et « Create a thermostat » de `docs/user/configuration.md` (sections de la création, type en premier, Créer, abandon) et mettre à jour `docs/contributing/architecture.md` (plus d'assistant). Ajouter une entrée « Changed » au `CHANGELOG.md`. Vérifier que `npm test -- docs` passe.
-- [ ] 4.3 Mettre à jour les tâches 5.x de `openspec/changes/field-help-diagrams/tasks.md` et la mention de l'assistant dans `openspec/changes/live-setting-insights/tasks.md` pour qu'elles visent la section Type et la page de création. Vérifier que `openspec validate field-help-diagrams` et `openspec validate live-setting-insights` passent.
+- [x] 4.1 Supprimer `frontend/src/components/create-wizard.ts`, son import dans `panel.ts` et ses tests. Déplacer les textes utiles sous `creation.*` en en/fr/de dans `frontend/src/shell-translations.ts`. Vérifier que `npm run build`, `npm run lint` et `shell-translations.test.ts` passent.
+- [x] 4.2 Réécrire les sections « Create the central configuration » et « Create a thermostat » de `docs/user/configuration.md` (sections de la création, type en premier, Créer, abandon) et mettre à jour `docs/contributing/architecture.md` (plus d'assistant). Ajouter une entrée « Changed » au `CHANGELOG.md`. Vérifier que `npm test -- docs` passe.
+- [x] 4.3 Mettre à jour les tâches 5.x de `openspec/changes/field-help-diagrams/tasks.md` et la mention de l'assistant dans `openspec/changes/live-setting-insights/tasks.md` pour qu'elles visent la section Type et la page de création. Vérifier que `openspec validate field-help-diagrams` et `openspec validate live-setting-insights` passent.
 
 ## 5. Vérification d'ensemble
 

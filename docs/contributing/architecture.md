@@ -15,7 +15,7 @@ screen.
 │            │                                 │          │                           │              │
 │ vtherm_dashboard                             │ WebSocket│   top bar · menu · breadcrumb · pages    │
 │   plugin_list: validate, check, sort ───────────────────►   plugins: core, core_*, third parties   │
-│   websocket_api: get_ui_plugins, get_config, │◄─────────│   draft · save actions · wizard          │
+│   websocket_api: get_ui_plugins, get_config, │◄─────────│   draft · save actions · creation        │
 │     save_config, create_config, …            │          │                                          │
 │   config_flow_driver ──► config flow of      │          └──────────────────────────────────────────┘
 │     Versatile Thermostat                     │
@@ -59,7 +59,7 @@ The browser imports the ready plugins in that order and does not sort. See [Load
 | --- | --- |
 | `packages/sdk/` | `@vtherm/dashboard-sdk`: the types, `registerUiPlugin`, `defineTranslations`, the placement engine and the fake dashboard `testing`. |
 | `frontend/src/` | The panel, the loader, the registry, the router and the navigation. |
-| `frontend/src/components/` | The frame: top bar, side menu, breadcrumb, lists, the creation wizard. |
+| `frontend/src/components/` | The frame: top bar, side menu, breadcrumb, lists, the save actions. |
 | `frontend/src/native/` | The native plugins and their tabs. |
 | `frontend/src/config/` | The draft of a configuration, the session and the API. |
 | `frontend/src/complements/`, `frontend/src/dev/` | The add-ons and the development mode. |
@@ -97,6 +97,14 @@ central configuration. The panel keeps one draft for each configuration that was
 configuration component `draft` (`DraftControls`): its state and the commands save and discard. The native tabs draw the save actions
 at the foot of their card (`components/card-actions.ts`); under a component of a plugin without `save_actions: "component"`, the
 panel draws them in a card of its own. **Save** sends the changes by tab with `vtherm_dashboard/save_config`.
+
+A creation is a configuration like the others, with a draft that is not read from the server. `ConfigSession.startCreation`
+(`config/config-session.ts`) opens it under the key `new:thermostat` or `new:central`, and `entryOf` of the panel gives that key for
+the route `/vtherm/<thermostats tab>/new/<section>` and, while the draft of the central configuration is open, for the Configuration
+tab. The menu is limited to the sections of `CREATION_TABS` that apply (`native/tab-definitions.ts`): the navigation gets them with its
+`creation` option, and the type is chosen at the top of the native section Type, which gives the draft `changeType`. **Create** is the
+command `ConfigSession.create`, which sends an empty section for each section of the creation that applies, so that the flow gives
+it the values that Versatile Thermostat proposes. Plugins of third parties have no section in a creation.
 
 ## Driving the config flow
 The server saves the draft by driving the real config flow of Versatile Thermostat, tab by tab, and aborts at the first error. It

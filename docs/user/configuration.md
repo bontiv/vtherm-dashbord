@@ -47,16 +47,32 @@ When the dashboard is opened directly, its sections may show "Loading the contro
 Home Assistant without these controls (they were checked on Home Assistant 2026.10) shows plain fields instead, with the same values.
 
 ## Create the central configuration
-Until it exists, the section "Central configuration" of the gear offers to create it. Its assistant asks for the main
-attributes, then creates the central configuration with the default TPI and advanced parameters, so that the thermostats that use
-it can start.
+Until it exists, the section "Central configuration" of the gear offers to create it. **Create the central configuration** opens
+its sections in the same page as for any configuration: Main attributes, TPI parameters and Advanced parameters, with the default
+values of Versatile Thermostat. Change what you need, then press **Create** at the foot of the card of any section. The thermostats
+that use the central configuration can then start. **Cancel** drops the creation, without asking, and brings back the offer.
 
 ## Create a thermostat
-In the Thermostats tab, **Create a thermostat** opens an assistant. Choose the type (over a switch, over a climate, over a valve),
-then fill in the main attributes and the underlying devices. The **Create** button stays off while a required field is empty,
-and the assistant says which ones. When there is a central configuration, a new thermostat uses it by default. Without a central
-configuration, the options that need one are off and cannot be turned on, and the new thermostat gets the default TPI and advanced
-parameters of Versatile Thermostat: change them afterwards in its sections "TPI parameters" and "Advanced parameters".
+In the Thermostats tab, **Create a thermostat** opens a new thermostat in the same page as an existing one, with a menu on the left
+and one section at a time. The menu only lists what a new thermostat needs, in this order:
+
+1. **Underlyings** starts with the type (over a switch, over a climate, over a valve), then the devices that the thermostat controls.
+   Changing the type keeps the values that the new type accepts, such as the name and the sensors, and drops the others, such as an
+   underlying of another domain.
+2. **Main attributes**.
+3. **TPI parameters**, when the type uses them.
+4. **Advanced parameters**.
+
+The features, the presets and the sections of the add-ons are on the page of the thermostat once it is created.
+
+**Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty, and the
+message above it says which ones, section by section. When Versatile Thermostat refuses the creation, the error shows on its field
+and your draft stays. When it succeeds, the overview of the new thermostat opens. Leaving a creation that has a value asks you to
+confirm, as for any draft; **Cancel** does not ask.
+
+When there is a central configuration, a new thermostat uses it by default. Without a central configuration, the options that need
+one are off and cannot be turned on, and the new thermostat has its own TPI and advanced parameters, with the defaults of Versatile
+Thermostat unless you change them in the sections "TPI parameters" and "Advanced parameters".
 
 ## Use the central configuration
 Most sections have a switch "Use the central configuration". While it is on, the section shows the values of the central

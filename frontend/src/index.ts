@@ -4,6 +4,7 @@
 
 import "./components/plugin-status-page.ts";
 import "./components/widgets-page.ts";
+import "./dev/dev-plugins-page.ts";
 import "./panel.ts";
 
 // Served by the development server (`npm run dev`), a module that uses `import.meta.hot` gets the client of Vite. The page belongs to

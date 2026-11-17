@@ -28,10 +28,10 @@
 - [ ] 4.5 Écrire en en/fr/de dans `scripts/native-texts.ts` les `hint.<clé>` de tous les champs natifs et les `info.<clé>` des champs à schéma ou à aide insuffisante, en langage simple (une phrase par indication) ; régénérer les catalogues ; vérifier `npm run check:catalogs` et relire le rendu des onglets TPI, vanne, ouverture et avancé dans le devcontainer
 - [ ] 4.6 Mettre à jour `docs/plugins/native-plugins.md` et `docs/plugins/internationalization.md` (clés `hint.*`, `info.*`, `diagram.*`, règle de repli), en anglais ; vérifier `npm run check:docs`
 
-## 5. Cartes de type dans l'assistant de création
+## 5. Cartes de type dans la section Type de la création
 
-- [ ] 5.1 Dans `frontend/src/components/create-wizard.ts`, remplacer la liste du type par le sélecteur en boîtes de Home Assistant (`ha-select-box`) avec icône, titre, explication et exemples, et un repli `ha-card` en groupe de boutons radio ; vérifier par des tests la sélection au clavier, le changement de type et le repli
-- [ ] 5.2 Ajouter les textes `wizard.type_card.<type>.*` en en/fr/de ; vérifier `frontend/test/shell-translations.test.ts` et l'empilement des cartes à 360 px
+- [ ] 5.1 Dans `frontend/src/native/native-tab.ts`, en tête de la section Type d'une création (propriété `creating`, `renderTypeChoice`, change `creation-as-config-page`), remplacer le `ha-selector` en liste du type par le sélecteur en boîtes de Home Assistant (`ha-select-box`) avec icône, titre, explication et exemples, et remplacer le repli en boutons radio par un repli `ha-card` en groupe de boutons radio ; vérifier par des tests la sélection au clavier, le changement de type et le repli
+- [ ] 5.2 Ajouter les textes `creation.type_card.<type>.*` en en/fr/de ; vérifier `frontend/test/shell-translations.test.ts` et l'empilement des cartes à 360 px
 - [ ] 5.3 Mettre à jour la description de la création d'un thermostat dans la documentation utilisateur de `docs/` et le `CHANGELOG.md` ; vérifier `npm run check:docs`
 
 ## 6. Vérification d'ensemble
