@@ -2,6 +2,8 @@
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import manifest from "../../custom_components/vtherm_dashboard/manifest.json" with { type: "json" };
+
 import { cleanup, find, findAll, mountPanel, nativePlugins, page, plugin, thermostats } from "./support/dashboard-harness.ts";
 import { settle } from "./support/dashboard-harness.ts";
 import type { TestPlugin } from "./support/dashboard-harness.ts";
@@ -235,7 +237,7 @@ describe("the version", () => {
   it("shows the version of the frontend on the panel, and warns when the server has another one", async () => {
     const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const { panel } = await mountPanel();
-    expect(panel.dataset["version"]).toBe("0.1.0");
+    expect(panel.dataset["version"]).toBe(manifest.version);
     expect(warning).not.toHaveBeenCalled();
     cleanup();
 

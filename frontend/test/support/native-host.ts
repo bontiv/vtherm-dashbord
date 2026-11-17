@@ -5,6 +5,8 @@ import { createFakeHost } from "@vtherm/dashboard-sdk/testing";
 import type { FakeHost } from "@vtherm/dashboard-sdk/testing";
 import { vi } from "vitest";
 
+import { DASHBOARD_VERSION } from "../../src/version.ts";
+
 /** The native plugins, in their load order: `core` first, then the order of the menu of the flow. */
 export const NATIVE_LOAD_ORDER = [
   "core",
@@ -28,7 +30,7 @@ export const NATIVE_LOAD_ORDER = [
 /** Import the module of each native plugin with a fake dashboard in the page, and return the host and the definitions. */
 export async function nativeHost(): Promise<{ host: FakeHost; definitions: Map<string, UiPluginDefinition> }> {
   vi.resetModules();
-  const host = createFakeHost({ dashboardVersion: "0.1.0" });
+  const host = createFakeHost({ dashboardVersion: DASHBOARD_VERSION });
   host.install();
   const definitions = new Map<string, UiPluginDefinition>();
   try {

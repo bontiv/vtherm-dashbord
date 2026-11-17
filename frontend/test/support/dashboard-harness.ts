@@ -10,6 +10,7 @@ import "../../src/index.ts";
 import type { ThermostatInfo } from "../../src/navigation.ts";
 import type { VThermDashboardPanel } from "../../src/panel.ts";
 import { uninstallRegistry } from "../../src/registry.ts";
+import { DASHBOARD_VERSION } from "../../src/version.ts";
 
 /** A plugin of the test: its definition, and the elements that its contributions show. */
 export interface TestPlugin {
@@ -87,13 +88,14 @@ export const thermostats: readonly ThermostatInfo[] = [
 export function serverAnswer(plugins: readonly TestPlugin[]) {
   let rank = 0;
   return {
-    dashboard_version: "0.1.0",
+    // The server gives the version of the dashboard under test, as the real one does: a pre-release included.
+    dashboard_version: DASHBOARD_VERSION,
     plugins: plugins.map((item) => {
       const state = item.state ?? "ready";
       return {
         id: item.definition.id,
         js_url: `/${item.definition.id}/ui.js`,
-        dashboard_version: ">=0.1,<1.0",
+        dashboard_version: `>=${DASHBOARD_VERSION}`,
         requires: item.requires ?? [],
         load_after: [],
         load_before: [],

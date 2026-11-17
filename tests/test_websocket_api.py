@@ -13,7 +13,9 @@ from custom_components.vtherm_dashboard.native_plugins import unregister_native_
 
 MANIFEST = json.loads((Path(__file__).resolve().parent.parent / "custom_components" / "vtherm_dashboard" / "manifest.json").read_text(encoding="utf-8"))
 COMMAND = "vtherm_dashboard/get_ui_plugins"
-DEV_ENTRY = {"id": "mine", "js_url": "http://localhost:5173/ui.js", "dashboard_version": ">=0.1,<1.0"}
+ACCEPTED = f">={MANIFEST['version']}"
+"""A constraint that the dashboard under test satisfies, whatever its version, a pre-release included."""
+DEV_ENTRY = {"id": "mine", "js_url": "http://localhost:5173/ui.js", "dashboard_version": ACCEPTED}
 
 
 @pytest.fixture(name="api")
@@ -34,8 +36,8 @@ async def _call(client, **fields) -> dict:
 
 async def test_authenticated_user_gets_the_ordered_list(hass: HomeAssistant, api, hass_ws_client, hass_read_only_access_token) -> None:
     """Any authenticated user receives the plugins in load order, with their state and the dashboard version."""
-    api.register_ui_plugin("b", "/b/ui.js", ">=0.1,<1.0", requires=["a"])
-    api.register_ui_plugin("a", "/a/ui.js", ">=0.1,<1.0")
+    api.register_ui_plugin("b", "/b/ui.js", ACCEPTED, requires=["a"])
+    api.register_ui_plugin("a", "/a/ui.js", ACCEPTED)
     api.register_ui_plugin("too_new", "/t/ui.js", ">=5.0")
 
     for client in (await hass_ws_client(hass), await hass_ws_client(hass, hass_read_only_access_token)):
@@ -61,7 +63,7 @@ async def test_plugin_registered_later_appears_in_next_calls(hass: HomeAssistant
     client = await hass_ws_client(hass)
     assert (await _call(client))["result"]["plugins"] == []
 
-    api.register_ui_plugin("late", "/late/ui.js", ">=0.1,<1.0")
+    api.register_ui_plugin("late", "/late/ui.js", ACCEPTED)
     assert [plugin["id"] for plugin in (await _call(client))["result"]["plugins"]] == ["late"]
 
 
