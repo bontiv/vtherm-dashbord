@@ -46,3 +46,15 @@ export function openHomeAssistantPage(path: string): void {
   window.history.pushState(null, "", path);
   window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
 }
+
+/** The event that the page "create the central configuration" sends to start the creation, which the panel then shows as sections. */
+export const CREATE_CENTRAL_EVENT = "vtherm-create-central";
+
+/**
+ * Ask the panel to start the creation of the central configuration.
+ *
+ * @param source - The page that offers it. The event goes up through the shadow roots.
+ */
+export function requestCentralCreation(source: HTMLElement): void {
+  source.dispatchEvent(new CustomEvent(CREATE_CENTRAL_EVENT, { bubbles: true, composed: true }));
+}

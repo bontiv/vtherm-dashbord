@@ -1,22 +1,21 @@
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
-import type { DraftControls, DraftMessage, Hass, HookName, PlacedEntry, SaveResult, VisibilityContext } from "@vtherm/dashboard-sdk";
+import type { DraftMessage, Hass, HookName, PlacedEntry, SaveResult, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
 import { bootstrap } from "./bootstrap.ts";
-import "./components/create-wizard.ts";
-import { CANCELLED_EVENT, CREATED_EVENT } from "./components/create-wizard.ts";
 import { createConfigApi } from "./config/api.ts";
-import { ConfigSession } from "./config/config-session.ts";
+import { ConfigSession, creationKey, isCreationKey } from "./config/config-session.ts";
 import type { OpenConfig } from "./config/config-session.ts";
 import { PRESET_PREFIX } from "./config/draft.ts";
-import { NEW_THERMOSTAT } from "./native/core-pages.ts";
-import { definitionOfContribution } from "./native/tab-definitions.ts";
+import { creationContributionIds, creationMissing, creationValues, definitionOfContribution } from "./native/tab-definitions.ts";
+import type { ConfigKind } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
 import "./components/contribution-host.ts";
 import { renderCardActions } from "./components/card-actions.ts";
-import { NAVIGATE_EVENT, PAGE_TITLE_EVENT } from "./components/events.ts";
+import type { CardDraft } from "./components/card-actions.ts";
+import { CREATE_CENTRAL_EVENT, NAVIGATE_EVENT, PAGE_TITLE_EVENT } from "./components/events.ts";
 import type { NavigateDetail } from "./components/events.ts";
 import "./components/side-menu.ts";
 import { THERMOSTAT_SELECTED_EVENT } from "./components/side-menu.ts";
@@ -28,8 +27,8 @@ import { createLanguageController } from "./i18n.ts";
 import type { LanguageController } from "./i18n.ts";
 import type { PluginStatus } from "./loader.ts";
 import { resolveNavigation, routeForThermostat } from "./navigation.ts";
-import type { NavigationInput, NavigationModel, ThermostatInfo } from "./navigation.ts";
-import { PANEL_PATH, buildPath, parseRoute } from "./router.ts";
+import type { CreationInput, NavigationInput, NavigationModel, ThermostatInfo } from "./navigation.ts";
+import { NEW_THERMOSTAT, PANEL_PATH, buildPath, parseRoute } from "./router.ts";
 import { toThermostatInfo } from "./thermostat-areas.ts";
 import type { HassRegistries } from "./thermostat-areas.ts";
 import { publishState } from "./state.ts";
@@ -327,8 +326,7 @@ export class VThermDashboardPanel extends LitElement {
     this.addEventListener(NAVIGATE_EVENT, this.onNavigate as EventListener);
     this.addEventListener(THERMOSTAT_SELECTED_EVENT, this.onThermostatSelected as EventListener);
     this.addEventListener(PAGE_TITLE_EVENT, this.onPageTitle as EventListener);
-    this.addEventListener(CREATED_EVENT, this.onCreated as EventListener);
-    this.addEventListener(CANCELLED_EVENT, this.onCancelled as EventListener);
+    this.addEventListener(CREATE_CENTRAL_EVENT, this.onCreateCentral);
     this.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("beforeunload", this.onBeforeUnload);
     this.query = window.matchMedia(NARROW_QUERY);
@@ -389,15 +387,37 @@ export class VThermDashboardPanel extends LitElement {
     this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: this.pathOf(target) } }));
   };
 
+  /**
+   * What a route creates: a thermostat on the page of a new thermostat, or the central configuration in the Configuration tab while its
+   * draft of creation is open.
+   */
+  private creationKind(route: Route): ConfigKind | undefined {
+    if (route.tab === CORE_TOP_TABS.thermostats && route.thermostat === NEW_THERMOSTAT) {
+      return "thermostat";
+    }
+    return route.tab === CORE_TOP_TABS.configuration && this.session?.creation("central") !== undefined ? "central" : undefined;
+  }
+
+  /** The key of the configuration of a thermostat of the navigation: the draft of the creation for a new thermostat. */
+  private thermostatKey(thermostat: ThermostatInfo | undefined): string | null {
+    return thermostat?.id === NEW_THERMOSTAT ? creationKey("thermostat") : (thermostat?.id ?? null);
+  }
+
+  /** The key of the central configuration that the Configuration tab edits: the draft of its creation when one is open. */
+  private centralKey(): string | null {
+    return this.session?.creation("central") === undefined ? (this.session?.centralId ?? null) : creationKey("central");
+  }
+
   /** The configuration that a route edits: the thermostat of the Thermostats tab, or the central configuration of the Configuration tab. */
   private entryOf(route: Route): string | null {
-    if (route.tab === CORE_TOP_TABS.thermostats && route.thermostat !== undefined && route.thermostat !== NEW_THERMOSTAT) {
+    const creating = this.creationKind(route);
+    if (creating !== undefined) {
+      return creationKey(creating);
+    }
+    if (route.tab === CORE_TOP_TABS.thermostats && route.thermostat !== undefined) {
       return route.thermostat;
     }
-    if (route.tab === CORE_TOP_TABS.configuration) {
-      return this.session?.centralId ?? null;
-    }
-    return null;
+    return route.tab === CORE_TOP_TABS.configuration ? this.centralKey() : null;
   }
 
   /**
@@ -408,7 +428,14 @@ export class VThermDashboardPanel extends LitElement {
   private confirmLeave(target: Route): boolean {
     const current = this.entryOf(this.currentRoute);
     const draft = this.session?.get(current)?.draft;
-    if (current === null || draft === undefined || !draft.dirty || this.entryOf(target) === current) {
+    if (current === null || draft === undefined || this.entryOf(target) === current) {
+      return true;
+    }
+    if (!draft.dirty) {
+      // A creation that was not started has nothing to keep: leaving it drops the draft, so that it starts again from the defaults.
+      if (isCreationKey(current)) {
+        this.session?.close(current);
+      }
       return true;
     }
     if (isDefined("ha-dialog")) {
@@ -463,24 +490,16 @@ export class VThermDashboardPanel extends LitElement {
     }
   };
 
-  private readonly onCreated = (event: CustomEvent<string>): void => {
-    event.stopPropagation();
-    void (async () => {
-      const list = await this.session?.refreshList();
-      this.thermostats = (list?.thermostats ?? []).map(toThermostatInfo);
-      const central = list?.central_config_id === event.detail;
-      this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: central ? buildPath({ tab: CORE_TOP_TABS.configuration, rest: [] }) : buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: event.detail, rest: [] }) } }));
-    })();
-  };
-
   private readonly onPageTitle = (event: CustomEvent<string>): void => {
     event.stopPropagation();
     this.pageTitle = event.detail;
   };
 
-  private readonly onCancelled = (event: Event): void => {
+  /** The user wants to create the central configuration: its draft opens and the Configuration tab shows its sections. */
+  private readonly onCreateCentral = (event: Event): void => {
     event.stopPropagation();
-    window.history.back();
+    this.session?.startCreation("central");
+    this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: buildPath({ tab: CORE_TOP_TABS.configuration, rest: [] }) } }));
   };
 
   /** The configuration of an entry, read when it is needed. */
@@ -489,7 +508,8 @@ export class VThermDashboardPanel extends LitElement {
       return undefined;
     }
     const opened = this.session.get(entryId);
-    if (opened === undefined) {
+    // The draft of a creation is opened by the panel: there is nothing to read.
+    if (opened === undefined && !isCreationKey(entryId)) {
       this.session.load(entryId).catch((error: unknown) => {
         this.failure = error instanceof Error ? error.message : String(error);
       });
@@ -528,15 +548,64 @@ export class VThermDashboardPanel extends LitElement {
   }
 
   /**
+   * Create the configuration of a draft of creation, then open it. It never rejects: a failure of the connection is an `error`, with its
+   * message above the actions.
+   *
+   * @returns `success` when the configuration was created.
+   */
+  private async create(kind: ConfigKind): Promise<SaveResult> {
+    if (this.session === undefined || this.saving) {
+      return "error";
+    }
+    this.saving = true;
+    this.saveNotice = undefined;
+    try {
+      const outcome = await this.session.create(kind);
+      this.thermostats = (this.session.list?.thermostats ?? []).map(toThermostatInfo);
+      if (!outcome.ok) {
+        return "error";
+      }
+      const route: Route = kind === "central" ? { tab: CORE_TOP_TABS.configuration, rest: [] } : { tab: CORE_TOP_TABS.thermostats, thermostat: outcome.entryId ?? "", rest: [] };
+      this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: buildPath(route) } }));
+      return "success";
+    } catch (error) {
+      this.saveNotice = { entryId: creationKey(kind), message: { type: "error", text: t("creation.failed", { message: error instanceof Error ? error.message : String(error) }) } };
+      return "error";
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  /** Abandon a creation, without confirmation, and go back to the list of the thermostats, or to the page of the central configuration. */
+  private abandon(kind: ConfigKind): void {
+    this.session?.close(creationKey(kind));
+    this.saveNotice = undefined;
+    const route: Route = kind === "central" ? { tab: CORE_TOP_TABS.configuration, rest: [] } : { tab: CORE_TOP_TABS.thermostats, rest: [] };
+    this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: buildPath(route) } }));
+  }
+
+  /** The required fields that a creation misses, by section, as a text: the section, then its fields. */
+  private missingText(kind: ConfigKind, draft: { values(): Readonly<Record<string, unknown>> }): string {
+    const registry = (this.loaded as BootstrapResult).registry;
+    return creationMissing(kind, draft.values(), this.session?.centralId !== null)
+      .map(({ definition, fields }) => `${registry.translate(definition.plugin, `title.${definition.tab}`)}: ${fields.map((field) => registry.translate(definition.plugin, `field.${field.key}`)).join(", ")}`)
+      .join("; ");
+  }
+
+  /**
    * The state of the draft of a configuration and its commands, for the save actions. A new object at each drawing, so that the
    * components draw again. Undefined when the configuration is not read yet or is read-only: it cannot be saved.
    */
-  private draftControls(entryId: string | null): DraftControls | undefined {
+  private draftControls(entryId: string | null): CardDraft | undefined {
     const opened = this.session?.get(entryId);
     if (entryId === null || opened === undefined || opened.data.read_only === true) {
       return undefined;
     }
     const draft = opened.draft;
+    const creating = (["thermostat", "central"] as const).find((kind) => creationKey(kind) === entryId);
+    if (creating !== undefined) {
+      return this.creationControls(creating, draft);
+    }
     const messages: DraftMessage[] = [
       ...(draft.dirty ? [{ type: "info" as const, text: t("draft.unsaved") }] : []),
       ...draft.generalErrors().map((error) => ({ type: "error" as const, text: translateErrorCode(shell, error.code) })),
@@ -551,6 +620,25 @@ export class VThermDashboardPanel extends LitElement {
         this.saveNotice = undefined;
         draft.discard();
       },
+    };
+  }
+
+  /** The controls of a draft of creation: Create is ready when nothing required is missing, and Cancel abandons the creation. */
+  private creationControls(kind: ConfigKind, draft: NonNullable<ReturnType<ConfigSession["get"]>>["draft"]): CardDraft {
+    const missing = this.missingText(kind, draft);
+    const refusals = draft.generalErrors().map((error) => translateErrorCode(shell, error.code));
+    const messages: DraftMessage[] = [
+      ...(missing === "" ? [] : [{ type: "info" as const, text: t("creation.missing", { fields: missing }) }]),
+      ...(refusals.length === 0 ? [] : [{ type: "error" as const, text: `${t("creation.refused")} ${refusals.join(" ")}` }]),
+      ...(this.saveNotice?.entryId === creationKey(kind) ? [this.saveNotice.message] : []),
+    ];
+    return {
+      dirty: draft.dirty,
+      saving: this.saving,
+      messages,
+      save: () => this.create(kind),
+      discard: () => draft.discard(),
+      creation: { ready: missing === "", cancel: () => this.abandon(kind) },
     };
   }
 
@@ -586,6 +674,10 @@ export class VThermDashboardPanel extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues): void {
+    // The page of a new thermostat has its draft of creation, whether the user came from the list or opened the address.
+    if (this.phase === "ready" && (changed.has("currentRoute") || changed.has("phase")) && this.creationKind(this.currentRoute) === "thermostat") {
+      this.session?.startCreation("thermostat");
+    }
     if (changed.has("hass") && this.hass !== undefined) {
       this.pluginHass = this.hass;
       if (!this.started) {
@@ -680,14 +772,29 @@ export class VThermDashboardPanel extends LitElement {
     const hass = this.hass as Hass;
     const central = this.valuesOf(this.session?.centralId ?? null);
     if (entry.hook === "thermostat_config" || entry.hook === "thermostat_widget") {
-      return { hass, thermostatId: thermostat?.id ?? "", thermostatType: thermostat?.type ?? "over_switch", values: this.valuesOf(thermostat?.id ?? null), centralValues: central };
+      const values = this.valuesOf(this.thermostatKey(thermostat));
+      if (thermostat?.id === NEW_THERMOSTAT) {
+        // A new thermostat has the type of its draft, and the defaults of the forms, which the rules of the sections read.
+        const type = String(values["thermostat_type"] ?? "").replace("thermostat_", "") as ThermostatType;
+        return { hass, thermostatId: thermostat.id, thermostatType: type, values: creationValues("thermostat", values), centralValues: central };
+      }
+      return { hass, thermostatId: thermostat?.id ?? "", thermostatType: thermostat?.type ?? "over_switch", values, centralValues: central };
     }
-    return entry.hook === "general_config" ? { hass, values: central } : { hass };
+    return entry.hook === "general_config" ? { hass, values: this.valuesOf(this.centralKey()) } : { hass };
   };
+
+  /** The creation that a route shows, if any: its kind and the sections that its draft needs. */
+  private creationOf(route: Route): CreationInput | undefined {
+    const kind = this.creationKind(route);
+    const draft = kind === undefined ? undefined : this.session?.creation(kind)?.draft;
+    return kind === undefined || draft === undefined ? undefined : { kind, title: t("creation.title"), entries: creationContributionIds(kind, draft.values()) };
+  }
 
   private navigationInput(route: Route): NavigationInput {
     const registry = (this.loaded as BootstrapResult).registry;
+    const creation = this.creationOf(route);
     return {
+      ...(creation === undefined ? {} : { creation }),
       engine: registry.engine,
       route,
       thermostats: this.thermostats,
@@ -706,13 +813,22 @@ export class VThermDashboardPanel extends LitElement {
     if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
       return { hass, narrow: this.compact, language: String(this.languageVersion), subpath: this.currentRoute.rest };
     }
-    const entryId = entry.hook === "thermostat_config" ? (thermostat?.id ?? null) : (this.session?.centralId ?? null);
+    const entryId = entry.hook === "thermostat_config" ? this.thermostatKey(thermostat) : this.centralKey();
     const draft = this.session?.get(entryId)?.draft;
     // A native tab saves into a step of the flow. The configuration of a third-party plugin has no place to be saved yet.
     const tab = definitionOfContribution(entry.id)?.definition.tab;
     const proposeChanges = (changes: Readonly<Record<string, unknown>>) => {
       if (draft === undefined || tab === undefined) {
         console.warn(`The contribution ${entry.id} proposed changes that the dashboard cannot save`, changes);
+        return;
+      }
+      if (entryId === creationKey("thermostat") && typeof changes["thermostat_type"] === "string") {
+        // The type of a new thermostat is not a change of a section: the draft changes its type and keeps the values that fit.
+        const { thermostat_type: type, ...others } = changes;
+        draft.changeType(String(type));
+        if (Object.keys(others).length > 0) {
+          draft.propose(tab, others);
+        }
         return;
       }
       draft.propose(tab, changes);
@@ -724,6 +840,7 @@ export class VThermDashboardPanel extends LitElement {
       errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab),
       proposeChanges,
       draft: this.draftControls(entryId),
+      ...(isCreationKey(entryId) ? { creating: true } : {}),
     };
     return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
   }
@@ -741,17 +858,6 @@ export class VThermDashboardPanel extends LitElement {
   }
 
   private renderBody(model: NavigationModel): TemplateResult {
-    if (this.currentRoute.tab === CORE_TOP_TABS.thermostats && this.currentRoute.thermostat === NEW_THERMOSTAT) {
-      const central = this.currentRoute.entry === "central";
-      return html`<vtherm-create-wizard
-        .hass=${this.pluginHass ?? this.hass}
-        .api=${this.session?.api}
-        .central=${central}
-        .hasCentral=${this.session?.centralId !== null && this.session?.centralId !== undefined}
-        .centralValues=${this.valuesOf(this.session?.centralId ?? null)}
-        .language=${String(this.languageVersion)}
-      ></vtherm-create-wizard>`;
-    }
     if (model.mode === "list") {
       return html`<vtherm-thermostat-list .thermostats=${this.thermostats} .hass=${this.hass} .language=${String(this.languageVersion)}></vtherm-thermostat-list>`;
     }
@@ -778,12 +884,13 @@ export class VThermDashboardPanel extends LitElement {
   }
 
   private renderMenu(model: NavigationModel): TemplateResult {
-    const selecting = model.thermostat !== undefined;
+    // A new thermostat is not one of the thermostats to choose from.
+    const selecting = model.thermostat !== undefined && model.thermostat.id !== NEW_THERMOSTAT;
     return html`<vtherm-side-menu
       .sections=${model.sections}
       .thermostats=${selecting ? this.thermostats : []}
       .hass=${this.hass}
-      .selected=${model.thermostat?.id ?? ""}
+      .selected=${selecting ? (model.thermostat?.id ?? "") : ""}
       .label=${t("shell.menu.label")}
       .language=${String(this.languageVersion)}
     ></vtherm-side-menu>`;
@@ -796,16 +903,8 @@ export class VThermDashboardPanel extends LitElement {
     if (this.phase === "error") {
       return renderAlert("error", t("shell.plugins_error", { message: this.failure }), "message error");
     }
-    const creating = this.currentRoute.tab === CORE_TOP_TABS.thermostats && this.currentRoute.thermostat === NEW_THERMOSTAT;
-    // The assistant has its own page in the Thermostats tab: the navigation is the one of the tab.
-    const model = this.navigationModel(creating ? { tab: CORE_TOP_TABS.thermostats, rest: [] } : this.currentRoute);
-    if (creating) {
-      (model as { breadcrumb: unknown }).breadcrumb = [
-        { label: model.activeTab?.title ?? "", path: buildPath({ tab: CORE_TOP_TABS.thermostats, rest: [] }) },
-        { label: t(this.currentRoute.entry === "central" ? "wizard.title_central" : "wizard.title"), path: undefined },
-      ];
-    }
-    if (!creating && this.pageTitle !== "" && this.currentRoute.rest.length > 0 && model.breadcrumb.length > 0) {
+    const model = this.navigationModel(this.currentRoute);
+    if (this.pageTitle !== "" && this.currentRoute.rest.length > 0 && model.breadcrumb.length > 0) {
       // A page that shows one item of a list adds it to the breadcrumb, and the page of the list becomes a link.
       const last = model.breadcrumb[model.breadcrumb.length - 1] as { label: string; path: string | undefined };
       (model as { breadcrumb: unknown }).breadcrumb = [
@@ -816,7 +915,7 @@ export class VThermDashboardPanel extends LitElement {
     }
     // The Dashboard tab with a single page needs no menu: the page takes the full width.
     const singleDashboardPage = model.activeTab?.id === CORE_TOP_TABS.dashboard && model.sections.flatMap((section) => section.items).length <= 1;
-    const hasMenu = !creating && model.mode === "page" && !singleDashboardPage && (model.sections.length > 0 || model.thermostat !== undefined);
+    const hasMenu = model.mode === "page" && !singleDashboardPage && (model.sections.length > 0 || model.thermostat !== undefined);
     return html`<vtherm-top-bar
         .tabs=${model.tabs}
         .heading=${t("shell.title")}

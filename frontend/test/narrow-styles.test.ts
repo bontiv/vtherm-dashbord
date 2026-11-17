@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 /** The styles of the narrow screen: one threshold, shared by the frame of the dashboard and by its native pages. */
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
+import type { UiPluginDefinition } from "@vtherm/dashboard-sdk";
 import type { CSSResultGroup } from "lit";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { ComplementsCatalogPage, ComplementsInstalledPage } from "../src/complements/complements-page.ts";
 import { VThermBreadcrumb } from "../src/components/breadcrumb.ts";
 import { VThermCardActions } from "../src/components/card-actions.ts";
-import { VThermCreateWizard } from "../src/components/create-wizard.ts";
 import { NARROW_QUERY as SHARED_QUERY, TOUCH_TARGET, narrowStyles } from "../src/components/narrow-styles.ts";
 import { VThermPluginStatus } from "../src/components/plugin-status.ts";
 import { VThermSideMenu } from "../src/components/side-menu.ts";
@@ -19,6 +19,7 @@ import { CoreThermostatOverviewPage } from "../src/native/core-pages.ts";
 import { NativeTabElement } from "../src/native/native-tab.ts";
 import { NARROW_QUERY, VThermDashboardPanel } from "../src/panel.ts";
 import { cleanup, find, findAll, mountPanel, settle } from "./support/dashboard-harness.ts";
+import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
 afterEach(() => cleanup());
 
@@ -39,7 +40,6 @@ describe("the styles of the narrow screen", () => {
       VThermSideMenu,
       VThermBreadcrumb,
       VThermCardActions,
-      VThermCreateWizard,
       VThermThermostatList,
       VThermWidgets,
       VThermPluginStatus,
@@ -82,9 +82,11 @@ describe("the save actions on a phone", () => {
 
 describe("the type of a new thermostat", () => {
   it("is chosen by touching its label", async () => {
-    const { panel } = await mountPanel({ path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
-    const wizard = find(panel.shadowRoot as ShadowRoot, "vtherm-create-wizard") as HTMLElement;
-    const radios = findAll<HTMLInputElement>(wizard.shadowRoot as ShadowRoot, 'input[type="radio"]');
+    const { definitions } = await nativeHost();
+    const natives = NATIVE_LOAD_ORDER.map((id) => ({ definition: definitions.get(id) as UiPluginDefinition }));
+    const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
+    const type = find(panel.shadowRoot as ShadowRoot, "vtherm-native-type-thermostat") as HTMLElement;
+    const radios = findAll<HTMLInputElement>(type.shadowRoot as ShadowRoot, 'input[type="radio"]');
     expect(radios.length).toBeGreaterThan(1);
     expect(radios.every((radio) => radio.parentElement?.localName === "label")).toBe(true);
     const last = radios[radios.length - 1] as HTMLInputElement;

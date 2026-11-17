@@ -1,4 +1,3 @@
-import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import type { ConfigValues, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
@@ -6,14 +5,10 @@ import type { TemplateResult } from "lit";
 import "../components/plugin-status-page.ts";
 import "../components/widgets-page.ts";
 import "../dev/dev-plugins-page.ts";
-import { navigate } from "../components/events.ts";
-import { buildPath } from "../router.ts";
+import { requestCentralCreation } from "../components/events.ts";
 import { t } from "../shell-translations.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
 import { isDefined } from "../components/ha.ts";
-
-/** The address of the assistant that creates a thermostat or the central configuration. */
-export const NEW_THERMOSTAT = "new";
 
 /** The page Overview of the Dashboard tab: the widgets of the plugins. */
 export class CoreOverviewPage extends LitElement {
@@ -87,7 +82,7 @@ export class CoreDevPluginsPage extends LitElement {
     return html`<vtherm-dev-plugins-page .language=${this.language}></vtherm-dev-plugins-page>`;
   }
 }
-/** The section of the general configuration shown while there is no central configuration: it offers to create it. */
+/** The section of the general configuration shown while there is no central configuration: it offers to start creating it. */
 export class CoreCreateCentralPage extends LitElement {
   static override properties = { language: { type: String } };
   static override styles = css`
@@ -114,14 +109,14 @@ export class CoreCreateCentralPage extends LitElement {
     this.language = "";
   }
   protected override render(): TemplateResult {
-    const create = () => navigate(this, buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: NEW_THERMOSTAT, entry: "central", rest: [] }));
+    const create = () => requestCentralCreation(this);
     if (isDefined("ha-button")) {
       return html`<p>${t("config.create_central")}</p>
-        <ha-button @click=${create}>${t("wizard.create_central")}</ha-button>`;
+        <ha-button @click=${create}>${t("creation.create_central")}</ha-button>`;
     }
     // fallback: ha-button is not defined.
     return html`<p>${t("config.create_central")}</p>
-      <button @click=${create}>${t("wizard.create_central")}</button>`;
+      <button @click=${create}>${t("creation.create_central")}</button>`;
   }
 }
 

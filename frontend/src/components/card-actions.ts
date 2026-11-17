@@ -22,6 +22,17 @@ export const RESTORE_ICON =
 /** How long the result of a save stays shown, as `ha-progress-button` does. */
 export const RESULT_DURATION = 2000;
 
+/** What a creation adds to the controls of a draft: **Create** replaces Save, and **Cancel** replaces Discard. */
+export interface CreationControls {
+  /** Whether Create can be pressed: nothing required is missing. A new draft has no change, so `dirty` does not tell. */
+  readonly ready: boolean;
+  /** Abandon the creation, without confirmation. */
+  cancel(): void;
+}
+
+/** The controls of a draft as the dashboard gives them to its own sections: those of the SDK, and the creation when one is in progress. */
+export type CardDraft = DraftControls & { readonly creation?: CreationControls };
+
 /** The progress button of Home Assistant, as the actions use it. */
 type ProgressButton = HTMLElement & { progress: boolean; actionSuccess(): void; actionError(): void };
 
@@ -101,7 +112,7 @@ export class VThermCardActions extends LitElement {
   ];
 
   /** The state of the draft and its commands. Without it, nothing is drawn: the configuration cannot be saved. */
-  declare draft: DraftControls | undefined;
+  declare draft: CardDraft | undefined;
   /** The language, to draw again when it changes. */
   declare language: string;
   /** The result of the last save, shown as a text when the progress button of Home Assistant is not defined. */
@@ -125,7 +136,11 @@ export class VThermCardActions extends LitElement {
   }
 
   private get disabled(): boolean {
-    return this.draft === undefined || !this.draft.dirty || this.draft.saving;
+    const draft = this.draft;
+    if (draft === undefined || draft.saving) {
+      return true;
+    }
+    return draft.creation === undefined ? !draft.dirty : !draft.creation.ready;
   }
 
   /** Save, as the save button of Home Assistant does: one save at a time, then the result on the button. */
@@ -158,11 +173,12 @@ export class VThermCardActions extends LitElement {
       this.timer = setTimeout(() => (this.result = undefined), RESULT_DURATION);
     }
     // The button only shows the result: the screen readers are told the success.
-    this.announcement = result === "success" ? t("draft.saved") : "";
+    this.announcement = result === "success" ? t(draft.creation === undefined ? "draft.saved" : "creation.created") : "";
   }
 
-  private renderMessages(draft: DraftControls): TemplateResult | undefined {
-    const result = this.result === undefined ? undefined : renderAlert(this.result === "success" ? "success" : "error", t(this.result === "success" ? "draft.saved" : "draft.not_saved"), "result");
+  private renderMessages(draft: CardDraft): TemplateResult | undefined {
+    const [done, notDone] = draft.creation === undefined ? (["draft.saved", "draft.not_saved"] as const) : (["creation.created", "creation.not_created"] as const);
+    const result = this.result === undefined ? undefined : renderAlert(this.result === "success" ? "success" : "error", t(this.result === "success" ? done : notDone), "result");
     if (draft.messages.length === 0 && result === undefined) {
       return undefined;
     }
@@ -171,7 +187,10 @@ export class VThermCardActions extends LitElement {
     </div>`;
   }
 
-  private renderDiscard(draft: DraftControls): TemplateResult {
+  private renderDiscard(draft: CardDraft): TemplateResult {
+    if (draft.creation !== undefined) {
+      return this.renderCancel(draft.creation);
+    }
     const discard = () => draft.discard();
     if (isDefined("ha-button")) {
       const icon = isDefined("ha-svg-icon") ? html`<ha-svg-icon slot="start" .path=${RESTORE_ICON}></ha-svg-icon>` : undefined;
@@ -181,13 +200,24 @@ export class VThermCardActions extends LitElement {
     return html`<button class="discard" ?disabled=${this.disabled} @click=${discard}>${t("draft.discard")}</button>`;
   }
 
-  private renderSave(draft: DraftControls): TemplateResult {
+  /** Abandon the creation: the action on the left of a creation, where Discard is on the left of a save. */
+  private renderCancel(creation: CreationControls): TemplateResult {
+    const cancel = () => creation.cancel();
+    if (isDefined("ha-button")) {
+      return html`<ha-button class="cancel" appearance="plain" .disabled=${this.draft?.saving === true} @click=${cancel}>${t("creation.cancel")}</ha-button>`;
+    }
+    // fallback: ha-button is not defined.
+    return html`<button class="discard cancel" ?disabled=${this.draft?.saving === true} @click=${cancel}>${t("creation.cancel")}</button>`;
+  }
+
+  private renderSave(draft: CardDraft): TemplateResult {
     const save = (event: Event) => void this.save(event);
+    const creating = draft.creation !== undefined;
     if (isDefined("ha-progress-button")) {
-      return html`<ha-progress-button class="save" appearance="filled" .disabled=${this.disabled} @click=${save}>${t("draft.save")}</ha-progress-button>`;
+      return html`<ha-progress-button class="save" appearance="filled" .disabled=${this.disabled} @click=${save}>${t(creating ? "creation.create" : "draft.save")}</ha-progress-button>`;
     }
     // fallback: ha-progress-button is not defined, the label tells that the save is in progress.
-    const label = t(draft.saving ? "draft.saving" : "draft.save");
+    const label = t(creating ? (draft.saving ? "creation.creating" : "creation.create") : draft.saving ? "draft.saving" : "draft.save");
     if (isDefined("ha-button")) {
       return html`<ha-button class="save" appearance="filled" .disabled=${this.disabled} @click=${save}>${label}</ha-button>`;
     }
@@ -213,6 +243,6 @@ defineElement("vtherm-card-actions", VThermCardActions);
  * @param draft - The state of the draft and its commands, from the properties of the section.
  * @param language - The language, so that the actions are drawn again when it changes.
  */
-export function renderCardActions(draft: DraftControls | undefined, language = ""): TemplateResult | undefined {
+export function renderCardActions(draft: CardDraft | undefined, language = ""): TemplateResult | undefined {
   return draft === undefined ? undefined : html`<vtherm-card-actions .draft=${draft} .language=${language}></vtherm-card-actions>`;
 }

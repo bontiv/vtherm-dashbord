@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
 
-import { buildPath } from "../router.ts";
+import { NEW_THERMOSTAT, buildPath } from "../router.ts";
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
 import type { Hass } from "@vtherm/dashboard-sdk";
 import type { ThermostatInfo } from "../navigation.ts";
@@ -201,12 +201,12 @@ export class VThermThermostatList extends LitElement {
   }
 
   private renderCreate(): TemplateResult {
-    const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: "new", rest: [] });
+    const path = buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: NEW_THERMOSTAT, rest: [] });
     if (isDefined("ha-button")) {
-      return html`<p><ha-button class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("wizard.create_thermostat")}</ha-button></p>`;
+      return html`<p><ha-button class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("creation.create_thermostat")}</ha-button></p>`;
     }
     // fallback: a plain link, when ha-button is not defined.
-    return html`<p><a class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("wizard.create_thermostat")}</a></p>`;
+    return html`<p><a class="create" href=${path} @click=${(event: MouseEvent) => followLink(this, event, path)}>${t("creation.create_thermostat")}</a></p>`;
   }
 
   /** The choice between the list by area and the list by name: a group of two buttons, the chosen one filled. */

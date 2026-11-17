@@ -85,32 +85,36 @@ describe("the page of the add-ons", () => {
   });
 });
 
-describe("the assistant of creation", () => {
-  it("chooses the type of the thermostat with the selector of Home Assistant, and creates with its buttons", async () => {
-    const { panel } = await mountPanel({ plugins: natives, path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
-    const wizard = find(root(panel), "vtherm-create-wizard") as HTMLElement & { updateComplete: Promise<boolean> };
-    const type = find<MockHaElement>(wizard.shadowRoot as ShadowRoot, "ha-selector.type") as MockHaElement;
-    expect((type.selector as { select: { mode: string; options: unknown[] } }).select).toMatchObject({ mode: "list" });
-    expect((type.selector as { select: { options: unknown[] } }).select.options).toHaveLength(3);
-    type.change("thermostat_over_valve");
-    await wizard.updateComplete;
-    expect((find<MockHaElement>(wizard.shadowRoot as ShadowRoot, "ha-selector.type") as MockHaElement).value).toBe("thermostat_over_valve");
-    expect(find(wizard.shadowRoot as ShadowRoot, "ha-button.primary")).not.toBeNull();
-    expect(find(wizard.shadowRoot as ShadowRoot, "input[type=radio]")).toBeNull();
+describe("the creation of a thermostat", () => {
+  const NEW = `/vtherm/${CORE_TOP_TABS.thermostats}/new`;
+  const section = (panel: HTMLElement, tag: string) => find(root(panel), tag) as HTMLElement & { updateComplete: Promise<boolean> };
+
+  it("chooses the type with the selector of Home Assistant, and creates with the actions of the card", async () => {
+    const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: NEW });
+    const type = () => find<MockHaElement>(section(panel, "vtherm-native-type-thermostat").shadowRoot as ShadowRoot, "ha-selector.type");
+    await vi.waitFor(() => expect(type()).not.toBeNull());
+    expect((type()?.selector as { select: { mode: string; options: unknown[] } }).select).toMatchObject({ mode: "list" });
+    expect((type()?.selector as { select: { options: unknown[] } }).select.options).toHaveLength(3);
+    type()?.change("thermostat_over_valve");
+    await settle(panel);
+    await section(panel, "vtherm-native-type-thermostat").updateComplete;
+    expect(type()?.value).toBe("thermostat_over_valve");
+    const actions = find(section(panel, "vtherm-native-type-thermostat").shadowRoot as ShadowRoot, "vtherm-card-actions") as HTMLElement & { updateComplete: Promise<boolean> };
+    await actions.updateComplete;
+    expect(find(actions.shadowRoot as ShadowRoot, "ha-progress-button.save")?.textContent).toContain("Create");
+    expect(find(actions.shadowRoot as ShadowRoot, "ha-button.cancel")).not.toBeNull();
+    expect(find(section(panel, "vtherm-native-type-thermostat").shadowRoot as ShadowRoot, "input[type=radio]")).toBeNull();
   });
 
   it("keeps the field of the name while it is typed in, so that it keeps the focus", async () => {
-    const { panel } = await mountPanel({ plugins: natives, path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
-    const wizard = find(root(panel), "vtherm-create-wizard") as HTMLElement & { updateComplete: Promise<boolean> };
-    const nameField = (): MockHaElement | null =>
-      ([...(wizard.shadowRoot as ShadowRoot).children].map((tab) => tab.shadowRoot?.querySelector('.field[data-key="name"] ha-selector')).find((field) => field !== null && field !== undefined) ??
-        null) as MockHaElement | null;
+    const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: `${NEW}/core.tab.main` });
+    const nameField = (): MockHaElement | null => section(panel, "vtherm-native-main-thermostat").shadowRoot?.querySelector('.field[data-key="name"] ha-selector') as MockHaElement | null;
     await vi.waitFor(() => expect(nameField()).not.toBeNull());
     const before = nameField() as MockHaElement;
     before.change("S");
-    await wizard.updateComplete;
+    await settle(panel);
     before.change("Sa");
-    await wizard.updateComplete;
+    await settle(panel);
     expect(nameField()).toBe(before);
     expect(before.isConnected).toBe(true);
     expect(before.value).toBe("Sa");

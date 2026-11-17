@@ -139,3 +139,43 @@ describe("with the components of Home Assistant", () => {
     expect(draft.discard).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("the actions of a creation", () => {
+  beforeAll(() => defineHaControlMocks());
+
+  const creating = (ready: boolean, saving = false) => ({ ...draftOf({ dirty: false, saving }), creation: { ready, cancel: vi.fn() } });
+  const button = (element: VThermCardActions, selector: string) => shadow(element).querySelector<MockHaElement>(selector) as MockHaElement;
+
+  it("draws Cancel on the left and Create on the right", async () => {
+    const element = await mount(creating(true));
+    const [first, second] = [...(shadow(element).querySelector(".card-actions")?.children ?? [])];
+    expect([first?.localName, second?.localName]).toEqual(["ha-button", "ha-progress-button"]);
+    expect([first?.textContent?.trim(), second?.textContent?.trim()]).toEqual(["Cancel", "Create"]);
+    expect(shadow(element).querySelector("ha-svg-icon")).toBeNull();
+  });
+
+  it("keeps Create off while something required is missing, and on once nothing is, with no change in the draft", async () => {
+    expect(button(await mount(creating(false)), "ha-progress-button.save").disabled).toBe(true);
+    expect(button(await mount(creating(true)), "ha-progress-button.save").disabled).toBe(false);
+  });
+
+  it("keeps Create off while the creation is in progress", async () => {
+    expect(button(await mount(creating(true, true)), "ha-progress-button.save").disabled).toBe(true);
+  });
+
+  it("abandons the creation with Cancel, which stays available, and does not discard the draft", async () => {
+    const draft = creating(false);
+    const element = await mount(draft);
+    expect(button(element, "ha-button.cancel").disabled).toBeFalsy();
+    button(element, "ha-button.cancel").click();
+    expect(draft.creation.cancel).toHaveBeenCalledTimes(1);
+    expect(draft.discard).not.toHaveBeenCalled();
+  });
+
+  it("creates with Create", async () => {
+    const draft = creating(true);
+    const element = await mount(draft);
+    button(element, "ha-progress-button.save").click();
+    expect(draft.save).toHaveBeenCalledTimes(1);
+  });
+});
