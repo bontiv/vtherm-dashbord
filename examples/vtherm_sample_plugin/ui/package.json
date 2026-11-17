@@ -8,7 +8,8 @@
     "dev": "vite",
     "dev:rollup": "rollup -c rollup.config.ts --configPlugin typescript -w",
     "build": "vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@vtherm/dashboard-sdk": "^0.1.0-beta2",

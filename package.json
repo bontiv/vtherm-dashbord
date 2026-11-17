@@ -14,8 +14,7 @@
   },
   "workspaces": [
     "packages/sdk",
-    "frontend",
-    "examples/vtherm_sample_plugin/ui"
+    "frontend"
   ],
   "scripts": {
     "dev": "npm run dev -w frontend",

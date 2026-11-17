@@ -8,6 +8,12 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### For contributors
+- The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not
+  published yet can no longer make `npm ci` fail for the whole repository. The CI job `sample-plugin` builds the SDK, installs it in the
+  sample from a tarball, then builds and tests the sample. When it fails, the run shows the warning "Sample plugin" and stays green. The
+  release check of the version of the sample is unchanged.
+
 ## [0.1.0-beta2]
 The second beta.
 

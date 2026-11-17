@@ -66,6 +66,17 @@ describe("the workflows", () => {
     expect(ci).toContain("category: integration");
   });
 
+  it("builds the sample plugin apart from the workspaces, and only warns when it fails", () => {
+    const ci = read("workflows/ci.yml");
+    const job = ci.slice(ci.indexOf("  sample-plugin:\n"), ci.indexOf("  checks:\n"));
+    expect(job).toContain("::warning title=Sample plugin::");
+    expect(job).toContain("continue-on-error: true");
+    expect(ci.slice(0, ci.indexOf("  sample-plugin:\n"))).not.toContain("vtherm_sample_plugin");
+    expect(read("workflows/release.yml")).not.toContain("sample-plugin");
+    const root = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { workspaces: string[] };
+    expect(root.workspaces).not.toContain("examples/vtherm_sample_plugin/ui");
+  });
+
   it("ignores only the check of the brands in the HACS action, and says why", () => {
     const ci = read("workflows/ci.yml");
     expect(ci).toMatch(/^\s+ignore: brands$/m);

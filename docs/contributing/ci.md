@@ -18,12 +18,13 @@ Tags do not start `ci.yml`: `release.yml` calls it, so a tag does not run the sa
 | Job | What it runs |
 | --- | --- |
 | `python` | Python 3.14, `pip install -r requirements-dev.txt`, then `pytest --cov`. |
-| `frontend` | Node.js 24, `npm ci`, `npm run build` (the SDK, the frontend and the sample plugin), then `npm test -- --coverage`. |
+| `frontend` | Node.js 24, `npm ci`, `npm run build` (the SDK and the frontend), then `npm test -- --coverage`. |
+| `sample-plugin` | Builds the SDK, installs it from a tarball in `examples/vtherm_sample_plugin/ui`, then builds and tests the sample. Its steps have `continue-on-error`: a failure shows a warning, never a red run. |
 | `checks` | `npm run check`: the single command of the developers (types, lint, no JavaScript, documentation, SDK reference, catalogs, Black and pylint). |
 | `hassfest` | The action of Home Assistant that validates `manifest.json`, the translations and the structure of the integration. |
 | `hacs` | The HACS action, category `integration`: it validates `hacs.json`, the structure of the repository and its settings on GitHub. |
 
-The jobs are independent and run in parallel. The same commands run on your computer, so a red job is reproduced with the command of its name.
+The jobs are independent and run in parallel. The sample plugin is not a workspace of `package.json`: it depends on the SDK like the plugin of an author, and an SDK whose version is not published yet would make `npm ci` fail for the whole repository. When `sample-plugin` fails, the run stays green and shows the warning "Sample plugin" and a note in its summary. Do not require this job in the branch protection, and `release.yml` does not wait for it separately: it waits for `ci`, which is green. The same commands run on your computer, so a red job is reproduced with the command of its name.
 
 ### What the tests read
 - `vtherm_api` comes from its package index, at the version that `manifest.json` requires.

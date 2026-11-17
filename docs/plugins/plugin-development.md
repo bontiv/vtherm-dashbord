@@ -33,6 +33,8 @@ npm install @vtherm/dashboard-sdk lit
 npm install --save-dev typescript vite vitest happy-dom @types/node
 ```
 
+In this repository, the sample is not a workspace: it takes Vite, Vitest and TypeScript from the root, and the SDK from a tarball of the working copy. See [the development environment](../contributing/development-environment.md#the-tests).
+
 Add a `tsconfig.json` and `"type": "module"` to `package.json`:
 
 ```json

@@ -12,7 +12,7 @@ GitHub CLI. Its `postCreateCommand` runs `.devcontainer/post-create.sh`, which:
    Versatile Thermostat needs;
 3. installs the packages that the browser of Home Assistant needs at its start (voice assistants, cameras): without them the page stays
    on "Loading data", because Home Assistant does not install them for a development instance;
-4. runs `npm install` for the workspaces;
+4. runs `npm install` for the workspaces, then builds the SDK and installs it in the sample plugin, which is not a workspace (see below);
 5. copies `.devcontainer/configuration.yaml` to `config/configuration.yaml`, the configuration of the development instance.
 
 Versatile Thermostat and HACS are cloned at the commit of `external-refs.txt`, the one that the continuous integration tests against (`scripts/fetch-external.sh`).
@@ -102,12 +102,24 @@ Logs: `config/home-assistant.log`, with debug for `custom_components.vtherm_dash
 | Command | What it runs |
 | --- | --- |
 | `pytest` | The Python tests: the server, the config flow driver (with the real Versatile Thermostat in `external/`), the registry, the catalog of add-ons. |
-| `npm test` | The TypeScript tests (Vitest): the SDK, the frontend, the scripts, the examples and the sample plugin. |
+| `npm test` | The TypeScript tests (Vitest): the SDK, the frontend, the scripts and the examples. The sample plugin has its own tests: see below. |
 | `npm run check` | Everything that is not a test: types, lint, no JavaScript, documentation, SDK reference, generated catalogs, Python format and pylint. |
 
 Run all three before a pull request. The tests that need the real Versatile Thermostat are skipped when `external/versatile_thermostat`
 is missing. A test file of the frontend runs in `happy-dom` (a comment `// @vitest-environment happy-dom` on its first line), or in `jsdom` when the
 code needs a complete DOM, as the sanitizer of the add-ons does.
+
+The sample plugin (`examples/vtherm_sample_plugin/ui`) is not a workspace of the root `package.json`, so `npm install`, `npm run build` and `npm test` at the root leave it out. It reads the SDK like the plugin of an author. Give it the SDK of your working copy, then build and test it from its folder:
+
+```
+npm run build -w packages/sdk
+npm pack -w packages/sdk --ignore-scripts --pack-destination /tmp
+cd examples/vtherm_sample_plugin/ui
+npm install --no-save --ignore-scripts /tmp/vtherm-dashboard-sdk-*.tgz
+npm run build && npm test
+```
+
+It uses Vite, Vitest and TypeScript from the root `node_modules`, so run `npm install` at the root first. In the continuous integration, the job `sample-plugin` does the same and only warns when it fails.
 
 Useful variants: `npx vitest run frontend/test/panel.test.ts`, `pytest tests/test_plugin_list.py -k cycle`, `scripts/check-python.sh path.py`.
 

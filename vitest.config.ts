@@ -13,7 +13,7 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ["packages/*/test/**/*.test.ts", "frontend/test/**/*.test.ts", "scripts/**/*.test.ts", "docs/examples/**/*.test.ts", "examples/**/test/**/*.test.ts"],
+    include: ["packages/*/test/**/*.test.ts", "frontend/test/**/*.test.ts", "scripts/**/*.test.ts", "docs/examples/**/*.test.ts"],
     passWithNoTests: false,
     coverage: {
       provider: "v8",

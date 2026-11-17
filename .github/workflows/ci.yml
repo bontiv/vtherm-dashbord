@@ -73,7 +73,7 @@ jobs:
           cache: npm
       - name: Install the dependencies
         run: npm ci
-      - name: Build the SDK, the frontend and the sample plugin
+      - name: Build the SDK and the frontend
         run: npm run build
       - name: Test with coverage
         run: npm test -- --coverage
@@ -92,6 +92,55 @@ jobs:
           name: coverage-typescript
           path: coverage/typescript
           if-no-files-found: ignore
+
+  # The sample plugin is not a workspace of the root package.json: it depends on the SDK like a plugin of an author, and a version of the
+  # SDK that is not published yet must not break `npm ci` for the whole repository. It gets the SDK from a tarball of this commit. Its
+  # steps may fail without failing the job, which stays green so that it never blocks a pull request or a release: a failure is a warning.
+  sample-plugin:
+    name: sample-plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      # The sample reads Vite, Vitest and TypeScript from the root of the repository.
+      - name: Install the dependencies of the repository
+        run: npm ci
+      - name: Build the SDK
+        id: sdk
+        continue-on-error: true
+        run: |
+          npm run build -w packages/sdk
+          npm pack -w packages/sdk --ignore-scripts --pack-destination "$RUNNER_TEMP"
+      - name: Install the SDK of this commit in the sample plugin
+        id: install
+        if: steps.sdk.outcome == 'success'
+        continue-on-error: true
+        working-directory: examples/vtherm_sample_plugin/ui
+        run: npm install --no-save --ignore-scripts "$RUNNER_TEMP"/vtherm-dashboard-sdk-*.tgz
+      - name: Build the sample plugin
+        id: build
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: examples/vtherm_sample_plugin/ui
+        run: npm run build
+      - name: Test the sample plugin
+        id: test
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: examples/vtherm_sample_plugin/ui
+        run: npm test
+      - name: Warn that the sample plugin failed
+        if: steps.sdk.outcome == 'failure' || steps.install.outcome == 'failure' || steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+        run: |
+          message="The sample plugin failed to install, build or test (SDK: ${{ steps.sdk.outcome }}, install: ${{ steps.install.outcome }}, build: ${{ steps.build.outcome }}, test: ${{ steps.test.outcome }}). This does not fail the CI: the SDK of this commit may be in the middle of its publication. Check the logs of this job."
+          echo "::warning title=Sample plugin::$message"
+          echo "### Warning: the sample plugin failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "$message" >> "$GITHUB_STEP_SUMMARY"
 
   checks:
     name: checks

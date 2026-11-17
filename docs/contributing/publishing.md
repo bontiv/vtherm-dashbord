@@ -13,7 +13,7 @@ The dashboard, the SDK and the manifest share one version, which the tag states.
 | `package.json` (root) | The workspace. |
 | `packages/sdk/package.json` | The SDK on npm. |
 | `frontend/package.json` | The frontend. |
-| `examples/vtherm_sample_plugin/ui/package.json` | The sample plugin, which is built with the SDK. |
+| `examples/vtherm_sample_plugin/ui/package.json` | The sample plugin, which is not a workspace: the CI builds it with the SDK of the commit, and its range `^0.1.0-beta2` is the one that a plugin author copies. |
 
 The frontend reads the version of the manifest at build time, and the server sends the same version to the frontend, which warns when
 they differ (a browser that kept an old bundle).

@@ -56,6 +56,15 @@ if [ -f package.json ]; then
     npm install
 fi
 
+# The sample plugin is not a workspace. It gets the SDK of this repository from a tarball, like a plugin of an author. This is best effort:
+# the sample is not needed to work on the dashboard, and the build of the SDK may fail while it is changing.
+if [ -d examples/vtherm_sample_plugin/ui ]; then
+    if npm run build -w packages/sdk && npm pack -w packages/sdk --ignore-scripts --pack-destination /tmp; then
+        (cd examples/vtherm_sample_plugin/ui && npm install --no-save --ignore-scripts /tmp/vtherm-dashboard-sdk-*.tgz) \
+            || echo "The sample plugin is not installed: see docs/contributing/development-environment.md."
+    fi
+fi
+
 # Home Assistant configuration (config/ is ignored by git).
 mkdir -p config
 if [ ! -f config/configuration.yaml ]; then
