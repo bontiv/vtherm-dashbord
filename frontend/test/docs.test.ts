@@ -9,9 +9,15 @@ import { SERVER_STATES } from "../src/plugin-list.ts";
 import { shell } from "../src/shell-translations.ts";
 import { usedVariables } from "./support/css-variables.ts";
 
+/**
+ * The checks of the documentation are long, so `npm test` skips them: run them with `npm run test:docs`, which starts Vitest in the
+ * mode `docs`.
+ */
+const docs = describe.runIf(import.meta.env.MODE === "docs");
+
 const page = (name: string): string => readFileSync(fileURLToPath(new URL(`../../docs/plugins/${name}`, import.meta.url)), "utf8");
 
-describe("the documentation of the loading", () => {
+docs("the documentation of the loading", () => {
   const loading = page("loading-and-dependencies.md");
 
   it("describes every state of a plugin, the ones of the server and the ones of the browser", () => {
@@ -33,7 +39,7 @@ describe("the documentation of the loading", () => {
   });
 });
 
-describe("the documentation of the version constraints", () => {
+docs("the documentation of the version constraints", () => {
   const constraints = page("version-constraints.md");
 
   it("lists every operator and the pre-release rule", () => {
@@ -44,7 +50,7 @@ describe("the documentation of the version constraints", () => {
   });
 });
 
-describe("the documentation of the translations", () => {
+docs("the documentation of the translations", () => {
   const translations = page("internationalization.md");
 
   it("covers every point that the specification asks for", () => {
@@ -69,7 +75,7 @@ describe("the documentation of the translations", () => {
   });
 });
 
-describe("the documentation of the hooks and the placements", () => {
+docs("the documentation of the hooks and the placements", () => {
   const hooks = page("hooks-and-placement.md");
 
   it("describes each of the seven hooks", () => {
@@ -95,7 +101,7 @@ describe("the documentation of the hooks and the placements", () => {
   });
 });
 
-describe("the documentation of the test harness", () => {
+docs("the documentation of the test harness", () => {
   const testing = page("testing.md");
 
   it("describes every member of the fake host and the translation checks", () => {
@@ -105,22 +111,24 @@ describe("the documentation of the test harness", () => {
   });
 });
 
-describe("the documentation of the theme", () => {
+docs("the documentation of the theme", () => {
   const theming = page("theming.md");
 
   it("lists the variables that the dashboard uses, and only variables that its code uses or that are documented as Home Assistant ones", () => {
-    for (const variable of usedVariables()) {
+    // Reading every source file is slow: the variables are read once.
+    const used = usedVariables();
+    for (const variable of used) {
       expect(theming, variable).toContain(`\`${variable}\``);
     }
     const cited = [...theming.matchAll(/\|\s*`(--[a-z0-9_-]+)`/g)].map((match) => match[1]);
     expect(cited.length).toBeGreaterThan(0);
     for (const variable of cited) {
-      expect(usedVariables(), `${variable} is in the table but no component uses it`).toContain(variable);
+      expect(used, `${variable} is in the table but no component uses it`).toContain(variable);
     }
   });
 });
 
-describe("the documentation for the user", () => {
+docs("the documentation for the user", () => {
   const user = readFileSync(fileURLToPath(new URL("../../docs/user/dashboard.md", import.meta.url)), "utf8");
 
   it("describes every state of the plugin status page, with the label that the page shows", () => {

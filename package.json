@@ -32,6 +32,7 @@
     "check:python": "bash scripts/check-python.sh",
     "check": "npm run typecheck && npm run lint && npm run check:js && npm run check:docs && npm run check:completeness && npm run check:reference && npm run check:catalogs && npm run check:python",
     "test": "vitest run",
+    "test:docs": "vitest run --mode docs frontend/test/docs.test.ts",
     "test:python": "pytest",
     "check:completeness": "node scripts/check-doc-completeness.ts"
   },

@@ -102,10 +102,11 @@ Logs: `config/home-assistant.log`, with debug for `custom_components.vtherm_dash
 | Command | What it runs |
 | --- | --- |
 | `pytest` | The Python tests: the server, the config flow driver (with the real Versatile Thermostat in `external/`), the registry, the catalog of add-ons. |
-| `npm test` | The TypeScript tests (Vitest): the SDK, the frontend, the scripts and the examples. The sample plugin has its own tests: see below. |
+| `npm test` | The TypeScript tests (Vitest): the SDK, the frontend, the scripts and the examples. The sample plugin has its own tests: see below. The checks of the documentation (`frontend/test/docs.test.ts`) are skipped. |
+| `npm run test:docs` | The checks of the documentation: each page that describes the plugins, the theme and the dashboard says what the code does. They are long, so they run apart, in the Vitest mode `docs`. |
 | `npm run check` | Everything that is not a test: types, lint, no JavaScript, documentation, SDK reference, generated catalogs, Python format and pylint. |
 
-Run all three before a pull request. The tests that need the real Versatile Thermostat are skipped when `external/versatile_thermostat`
+Run all of them before a pull request. The tests that need the real Versatile Thermostat are skipped when `external/versatile_thermostat`
 is missing. A test file of the frontend runs in `happy-dom` (a comment `// @vitest-environment happy-dom` on its first line), or in `jsdom` when the
 code needs a complete DOM, as the sanitizer of the add-ons does.
 
