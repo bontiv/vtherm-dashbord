@@ -53,6 +53,14 @@ Le dashboard SHALL afficher sous les onglets un fil d'ariane composé de l'ongle
 - **WHEN** l'utilisateur ouvre la section Window de la configuration générale
 - **THEN** le fil d'ariane affiche "Configuration > Window"
 
+#### Scenario: Section d'une création
+- **WHEN** l'utilisateur ouvre la section TPI pendant la création d'un thermostat
+- **THEN** le fil d'ariane affiche "Thermostats > Nouveau thermostat > TPI", et le segment "Nouveau thermostat" ouvre l'écran de choix du type
+
+#### Scenario: Écran de choix du type
+- **WHEN** l'utilisateur ouvre l'écran de choix du type de la création d'un thermostat
+- **THEN** le fil d'ariane affiche "Thermostats > Nouveau thermostat", et la page n'a pas de menu de sections
+
 #### Scenario: Navigation par le fil d'ariane
 - **WHEN** l'utilisateur clique sur le segment "Thermostats"
 - **THEN** la liste des thermostats est affichée
@@ -67,6 +75,18 @@ Chaque page du dashboard SHALL avoir un itinéraire propre dans l'URL du panel, 
 #### Scenario: Itinéraire inconnu
 - **WHEN** l'URL désigne une page qui n'existe pas ou n'est plus disponible
 - **THEN** la page par défaut de l'onglet est affichée avec un message d'explication
+
+#### Scenario: Adresse du choix du type
+- **WHEN** l'utilisateur ouvre l'adresse `/thermostats/new`, sans section
+- **THEN** l'écran de choix du type est affiché, avec le brouillon de création en cours s'il existe, sinon avec un brouillon nouveau
+
+#### Scenario: Section d'une création
+- **WHEN** l'utilisateur ouvre l'adresse de la section Avancé d'une création de thermostat, directement ou par l'historique
+- **THEN** la section Avancé d'une création est affichée, avec le brouillon de création en cours s'il existe, sinon avec un brouillon nouveau
+
+#### Scenario: Section absente de la création
+- **WHEN** l'URL désigne une section qui ne fait pas partie de la création, comme les presets
+- **THEN** la première section de la création, Principal, est affichée avec un message d'explication
 
 ### Requirement: Onglet Dashboard
 L'onglet Dashboard SHALL ouvrir par défaut la page Overview, qui affiche les widgets `global_widget`. Son menu SHALL lister cette page puis les pages `global_page`.
@@ -209,7 +229,7 @@ Sur un écran étroit, chaque contrôle interactif du cadre du dashboard et de s
 - **THEN** chaque champ de recherche, liste de filtre et bouton offre une zone de toucher d'au moins 44 px de haut
 
 #### Scenario: Choix du type dans l'assistant de création
-- **WHEN** l'assistant de création d'un thermostat est affiché sur un écran étroit
+- **WHEN** l'écran de choix du type de la création d'un thermostat est affiché sur un écran étroit
 - **THEN** toucher le libellé d'un type de thermostat le sélectionne, et la zone de chaque choix fait au moins 44 px de haut
 
 ### Requirement: Aucun débordement horizontal sur mobile
