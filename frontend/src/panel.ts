@@ -866,8 +866,12 @@ export class VThermDashboardPanel extends LitElement {
     return html`<vtherm-type-choice
       .hass=${this.hass}
       .value=${String(values["thermostat_type"] ?? "")}
-      .choose=${(type: string) => draft.changeType(type)}
-      .next=${next}
+      .select=${(type: string) => {
+        if (type !== values["thermostat_type"]) {
+          draft.changeType(type);
+        }
+        next();
+      }}
       .cancel=${() => this.abandon("thermostat")}
       .language=${String(this.languageVersion)}
     ></vtherm-type-choice>`;

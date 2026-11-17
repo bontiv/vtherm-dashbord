@@ -81,18 +81,19 @@ describe("the save actions on a phone", () => {
 });
 
 describe("the choice of the type of a new thermostat", () => {
-  it("is chosen by touching its label", async () => {
+  it("is made with focusable cards that a key or a touch chooses, with a name, a description and a touch target", async () => {
     const { definitions } = await nativeHost();
     const natives = NATIVE_LOAD_ORDER.map((id) => ({ definition: definitions.get(id) as UiPluginDefinition }));
     const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: `/vtherm/${CORE_TOP_TABS.thermostats}/new` });
     const type = find(panel.shadowRoot as ShadowRoot, "vtherm-type-choice") as HTMLElement;
-    const radios = findAll<HTMLInputElement>(type.shadowRoot as ShadowRoot, 'input[type="radio"]');
-    expect(radios.length).toBeGreaterThan(1);
-    expect(radios.every((radio) => radio.parentElement?.localName === "label")).toBe(true);
-    const last = radios[radios.length - 1] as HTMLInputElement;
-    expect(last.checked).toBe(false);
-    (last.parentElement as HTMLLabelElement).click();
+    const cards = findAll<HTMLElement>(type.shadowRoot as ShadowRoot, '[role="button"].type-card');
+    expect(cards).toHaveLength(3);
+    expect(cards.every((card) => card.getAttribute("tabindex") === "0")).toBe(true);
+    expect(cards.every((card) => (type.shadowRoot as ShadowRoot).getElementById(card.getAttribute("aria-labelledby") ?? "")?.textContent?.trim() !== "")).toBe(true);
+    expect(((type.constructor as unknown as { styles: { cssText: string }[] }).styles.map((style) => style.cssText).join(" "))).toMatch(/min-height: 44px/);
+    cards[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     await settle(panel);
-    expect(last.checked).toBe(true);
+    expect(window.location.pathname).toBe(`/vtherm/${CORE_TOP_TABS.thermostats}/new/core.tab.main`);
+    expect(find(panel.shadowRoot as ShadowRoot, "vtherm-type-choice")).toBeNull();
   });
 });

@@ -28,10 +28,14 @@ Le dashboard SHALL permettre de créer un thermostat dans une page de configurat
 
 #### Scenario: Choix du type
 - **WHEN** l'administrateur démarre une création, avec ou sans configuration centrale
-- **THEN** un écran propose les types `over_switch`, `over_climate` et `over_valve`, sans le type central, sans menu de sections, avec une action pour continuer
+- **THEN** un écran propose les types `over_switch`, `over_climate` et `over_valve`, sans le type central, sans menu de sections
+
+#### Scenario: Choix du type par cartes
+- **WHEN** l'écran de choix du type est affiché
+- **THEN** chaque type est une carte cliquable, focusable et de nom accessible son titre, qui dit ce que le type commande et donne des exemples d'appareils, avec les couleurs du thème, trois cartes côte à côte sur un écran large et empilées sur un écran étroit, avec la carte du type du brouillon visiblement sélectionnée, et aucune action Continuer
 
 #### Scenario: Type choisi
-- **WHEN** l'administrateur choisit `over_climate` sur l'écran de choix du type et continue
+- **WHEN** l'administrateur clique une carte, ou l'active par Entrée ou Espace, sur l'écran de choix du type, par exemple celle de `over_climate`
 - **THEN** la page de configuration s'ouvre sur la section Principal, première du menu, avec un brouillon du type choisi
 
 #### Scenario: Retour au choix du type

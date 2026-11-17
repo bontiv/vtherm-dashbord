@@ -53,8 +53,8 @@ values of Versatile Thermostat. Change what you need, then press **Create** at t
 that use the central configuration can then start. **Cancel** drops the creation, without asking, and brings back the offer.
 
 ## Create a thermostat
-In the Thermostats tab, **Create a thermostat** first asks for the type: over a switch, over a climate or over a valve. Pick one
-and press **Continue**. The page of a new thermostat then opens, the same as for an existing one, with a menu on the left and one
+In the Thermostats tab, **Create a thermostat** first asks what the thermostat controls, with one card per type: switch a heater on and off (over a switch), drive a device with its own thermostat (over a climate), or set how far a valve opens (over a valve). Each card gives
+examples of devices. Click a card, or press Enter or Space on it, and the page of a new thermostat then opens, the same as for an existing one, with a menu on the left and one
 section at a time. The menu only lists what a new thermostat needs, in this order:
 
 1. **Main attributes**.
@@ -64,7 +64,7 @@ section at a time. The menu only lists what a new thermostat needs, in this orde
 
 To change the type later, select **New thermostat** in the breadcrumb above the page: the choice of the type opens again, with
 your draft kept. Changing the type keeps the values that the new type accepts, such as the name and the sensors, and drops the
-others, such as an underlying of another domain. **Cancel** on the choice of the type drops the creation.
+others, such as an underlying of another domain. The card of the current type is outlined when you come back. **Cancel** on the choice of the type drops the creation.
 The features, the presets and the sections of the add-ons are on the page of the thermostat once it is created.
 
 **Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty. A warning at the top of the page, above the card, says which ones, section by

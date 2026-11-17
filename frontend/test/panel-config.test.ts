@@ -280,12 +280,10 @@ describe("the creation of a thermostat", () => {
   const REQUIRED = { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor" };
   const menuTexts = (panel: HTMLElement) => texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"));
   const cancelButton = (panel: HTMLElement) => find<HTMLButtonElement>(actions(panel)?.shadowRoot as ShadowRoot, "button.cancel") as HTMLButtonElement;
-  const choice = (panel: HTMLElement) => find(root(panel), "vtherm-type-choice") as unknown as { value: string; choose(type: string): void; next(): void };
-  /** Choose the type on the screen of the choice, then go on to the page of configuration. */
+  const choice = (panel: HTMLElement) => find(root(panel), "vtherm-type-choice") as unknown as { value: string; select(type: string): void };
+  /** Choose the type on the screen of the choice, which goes on to the page of configuration. */
   async function chooseType(panel: HTMLElement, type: string): Promise<void> {
-    choice(panel).choose(type);
-    await drawn(panel);
-    choice(panel).next();
+    choice(panel).select(type);
     await drawn(panel);
   }
   /** Fill the required fields of every section of a creation, going through the type then the menu as a user does. */
@@ -311,7 +309,7 @@ describe("the creation of a thermostat", () => {
     expect(choice(panel)).not.toBeNull();
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat"]);
-    choice(panel).next();
+    choice(panel).select(choice(panel).value);
     await drawn(panel);
     expect(window.location.pathname).toBe(`${NEW}/core.tab.main`);
     expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "TPI parameters", "Advanced parameters"]);
@@ -407,7 +405,7 @@ describe("the creation of a thermostat", () => {
     expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}`);
     find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
     await settle(panel);
-    choice(panel).next();
+    choice(panel).select(choice(panel).value);
     await drawn(panel);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBeUndefined();
   });

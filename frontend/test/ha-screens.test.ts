@@ -89,22 +89,21 @@ describe("the creation of a thermostat", () => {
   const NEW = `/vtherm/${CORE_TOP_TABS.thermostats}/new`;
   const section = (panel: HTMLElement, tag: string) => find(root(panel), tag) as HTMLElement & { updateComplete: Promise<boolean> };
 
-  it("chooses the type with the selector of Home Assistant, then creates with the actions of the card on the page of configuration", async () => {
+  it("chooses the type with one card of Home Assistant per type, which opens the page of configuration, with the actions of the card", async () => {
     const { panel } = await mountPanel({ plugins: natives, realThermostats: true, configs: {}, path: NEW });
     const choice = () => find(root(panel), "vtherm-type-choice") as (HTMLElement & { updateComplete: Promise<boolean> }) | null;
-    const type = () => find<MockHaElement>(choice()?.shadowRoot as ShadowRoot, "ha-selector.type");
-    await vi.waitFor(() => expect(type()).not.toBeNull());
-    expect((type()?.selector as { select: { mode: string; options: unknown[] } }).select).toMatchObject({ mode: "list" });
-    expect((type()?.selector as { select: { options: unknown[] } }).select.options).toHaveLength(3);
+    const cards = () => findAll<HTMLElement>(choice()?.shadowRoot as ShadowRoot, "ha-card.type-card");
+    await vi.waitFor(() => expect(cards()).toHaveLength(3));
+    expect(cards().map((card) => card.dataset["type"])).toEqual(["thermostat_over_switch", "thermostat_over_climate", "thermostat_over_valve"]);
+    expect(cards()[0]?.getAttribute("aria-pressed")).toBe("true");
+    expect(find(choice()?.shadowRoot as ShadowRoot, "ha-selector")).toBeNull();
+    expect(find(choice()?.shadowRoot as ShadowRoot, "ha-button.continue")).toBeNull();
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
-    type()?.change("thermostat_over_valve");
-    await settle(panel);
-    await choice()?.updateComplete;
-    expect(type()?.value).toBe("thermostat_over_valve");
-    find<HTMLElement>(choice()?.shadowRoot as ShadowRoot, "ha-button.continue")?.click();
+    cards()[2]?.click();
     await settle(panel);
     await vi.waitFor(() => expect(find(root(panel), "vtherm-native-main-thermostat")).not.toBeNull());
     expect(find(root(panel), "vtherm-type-choice")).toBeNull();
+    expect((section(panel, "vtherm-native-main-thermostat") as unknown as { values: Record<string, unknown> }).values["thermostat_type"]).toBe("thermostat_over_valve");
     const main = section(panel, "vtherm-native-main-thermostat");
     const actions = find(main.shadowRoot as ShadowRoot, "vtherm-card-actions") as HTMLElement & { updateComplete: Promise<boolean> };
     await actions.updateComplete;
