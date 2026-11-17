@@ -140,6 +140,34 @@ export interface ThermostatProps extends BaseProps {
   thermostatId: string;
 }
 
+/** The outcome of a save: everything was written, nothing was written, or the configuration was written but not every preset temperature. */
+export type SaveResult = "success" | "error" | "partial";
+
+/** A message about the draft, translated, to show above the save actions. */
+export interface DraftMessage {
+  /** The kind of message: `info` for the unsaved changes, `warning` for a partial save, `error` for a refused or failed save. */
+  readonly type: "info" | "warning" | "error";
+  /** The translated text. */
+  readonly text: string;
+}
+
+/**
+ * The state of the draft of the edited configuration and its commands, to draw the save actions at the foot of a card, as the
+ * configuration pages of Home Assistant do. The draft is shared by every section of the configuration: saving writes all of it.
+ */
+export interface DraftControls {
+  /** Whether the draft has changes that are not saved. */
+  readonly dirty: boolean;
+  /** Whether a save is in progress. */
+  readonly saving: boolean;
+  /** The messages to show above the actions: the unsaved changes, the general errors of a refused save, a partial save. */
+  readonly messages: readonly DraftMessage[];
+  /** Save the whole draft. It never rejects: a failure of the connection gives `error`, with a message in `messages`. */
+  save(): Promise<SaveResult>;
+  /** Drop every change of the draft, in every section, without confirmation. */
+  discard(): void;
+}
+
 /** What a configuration component receives, and how it proposes changes. It never writes the configuration itself: the dashboard saves the draft. */
 export interface ConfigProps {
   /** The current values of the edited configuration, draft included. */
@@ -148,6 +176,11 @@ export interface ConfigProps {
   errors: ConfigErrors;
   /** Propose changes to the draft. The real configuration is not changed until the user saves. */
   proposeChanges(changes: ConfigValues): void;
+  /**
+   * The state of the draft and its commands. A new object is given at each change of the draft. It is undefined when the configuration
+   * cannot be saved, for example when it is read-only: no save action is drawn then.
+   */
+  draft?: DraftControls;
 }
 
 /** The properties of a component of `general_config`. It has no thermostat identifier. */
@@ -268,11 +301,20 @@ export interface GlobalPageContribution extends ContributionBase<"global_page">,
 /** A widget of the Overview page. */
 export interface GlobalWidgetContribution extends ContributionBase<"global_widget">, ComponentFields {}
 
+/** The fields of a configuration contribution. */
+interface ConfigFields {
+  /**
+   * Who draws the save actions (save, discard) of the section: `component` when the component draws them at the foot of its own card
+   * from `draft`, `dashboard` (default) when the dashboard draws them in a card under the component.
+   */
+  readonly save_actions?: "component" | "dashboard";
+}
+
 /** A section of the general configuration of Versatile Thermostat. */
-export interface GeneralConfigContribution extends ContributionBase<"general_config">, MenuEntryFields, ComponentFields {}
+export interface GeneralConfigContribution extends ContributionBase<"general_config">, MenuEntryFields, ComponentFields, ConfigFields {}
 
 /** An entry of the menu of a thermostat, in particular a configuration section. */
-export interface ThermostatConfigContribution extends ContributionBase<"thermostat_config">, MenuEntryFields, ComponentFields {}
+export interface ThermostatConfigContribution extends ContributionBase<"thermostat_config">, MenuEntryFields, ComponentFields, ConfigFields {}
 
 /** A widget of the overview of a thermostat. */
 export interface ThermostatWidgetContribution extends ContributionBase<"thermostat_widget">, ComponentFields {}

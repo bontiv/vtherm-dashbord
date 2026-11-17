@@ -111,6 +111,24 @@ describe("the fields of the native tabs", () => {
   });
 });
 
+describe("the save actions of a native tab", () => {
+  const draft = { dirty: false, saving: false, messages: [], save: async () => "success" as const, discard: () => undefined };
+
+  it("are at the foot of the card of the tab, after its content", async () => {
+    const { element, root } = await render("core.tab.main", SWITCH);
+    Object.assign(element, { draft });
+    await (element as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    const card = find(root, "ha-card") as HTMLElement;
+    expect([...card.children].map((child) => child.localName)).toEqual(["div", "vtherm-card-actions"]);
+    expect(card.lastElementChild?.shadowRoot?.querySelector(".card-actions ha-progress-button.save")).not.toBeNull();
+  });
+
+  it("are not drawn without the state of the draft, as for a read-only configuration", async () => {
+    const { root } = await render("core.tab.main", SWITCH);
+    expect(find(root, "vtherm-card-actions")).toBeNull();
+  });
+});
+
 describe("the underlyings", () => {
   it("are an ordered list of the entities that the type of the thermostat accepts", async () => {
     const climate = await render("core.tab.type", { thermostat_type: "thermostat_over_climate", underlying_entity_ids: ["climate.ac"] });

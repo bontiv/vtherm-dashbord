@@ -16,6 +16,10 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   underlyings in an ordered list, numbers with their unit, the switch commands with a service picker for each underlying, messages
   in `ha-alert`, confirmations in `ha-dialog` (leaving unsaved changes, installing and restarting in VT add-ons), cards, menus and
   spinners. An entity shown as text opens its card. Each control keeps a plain HTML fallback when Home Assistant does not load it.
+- **Save** and **Discard** are at the foot of the card of each section, as in the configuration pages of Home Assistant: Discard on
+  the left, Save on the right with the progress button of Home Assistant, which turns green with a check mark when the save succeeds
+  and red with an alert icon when it fails. The bar that stayed at the bottom of the screen is gone, on a phone too: scroll to the
+  foot of the card to save. The message "Saved." is gone; screen readers are still told.
 
 ### Fixed
 - A thermostat can be created without a central configuration. The creation was refused with "no central configuration found":
@@ -40,6 +44,12 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 - The SDK has a contract for the fields of configuration (`FieldDefinition`, `selectorOf`) that gives the `ha-selector` of each
   field, and a loader of the components of Home Assistant (`ensureHaControls`, `haControlsStatus`). `@vtherm/dashboard-sdk/testing`
   adds `defineHaControlMocks`. The change is compatible: nothing to migrate.
+- A configuration component (`general_config`, `thermostat_config`) receives `draft` (`DraftControls`): whether the draft has changes,
+  whether a save is running, the translated messages to show above the actions, `save()` (which resolves to `success`, `error` or
+  `partial`) and `discard()`. A contribution that draws the save actions at the foot of its own card declares
+  `save_actions: "component"`; without it, the dashboard draws them in a card under the component. `ha-progress-button` is in
+  `HA_CONTROLS`, and its simulated version in `defineHaControlMocks` records `actionSuccess()` and `actionError()`. The change is
+  compatible: a plugin without `save_actions` keeps its save actions, under its component.
 
 ## [0.1.0]
 The first version.

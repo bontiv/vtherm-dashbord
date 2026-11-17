@@ -98,6 +98,17 @@ function checkRequiredText(contribution: UnknownRecord, key: string, path: strin
   }
 }
 
+/** The hooks whose contributions edit a configuration, and can declare who draws their save actions. */
+const CONFIG_HOOKS: readonly HookName[] = ["general_config", "thermostat_config"];
+
+function checkSaveActions(hook: HookName, value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (!CONFIG_HOOKS.includes(hook)) {
+    issues.push({ path, message: `'save_actions' is only accepted by the contributions of ${CONFIG_HOOKS.join(" and ")}` });
+  } else if (value !== "component" && value !== "dashboard") {
+    issues.push({ path, message: `'save_actions' must be "component" or "dashboard", got ${describe(value)}` });
+  }
+}
+
 function checkContribution(pluginId: string, hook: HookName, contribution: unknown, path: string, issues: ValidationIssue[]): string | undefined {
   if (!isRecord(contribution)) {
     issues.push({ path, message: "A contribution must be an object" });
@@ -142,6 +153,9 @@ function checkContribution(pluginId: string, hook: HookName, contribution: unkno
     }
     if (hook === "top_tab" && "zone" in contribution && contribution["zone"] !== "start" && contribution["zone"] !== "end") {
       issues.push({ path: `${path}.zone`, message: `'zone' must be "start" or "end", got ${describe(contribution["zone"])}` });
+    }
+    if ("save_actions" in contribution) {
+      checkSaveActions(hook, contribution["save_actions"], `${path}.save_actions`, issues);
     }
     checkOptionalText(contribution, "icon", path, issues);
     checkOptionalText(contribution, "group", path, issues);

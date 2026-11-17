@@ -1,5 +1,5 @@
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
-import type { Hass, HookName, PlacedEntry, VisibilityContext } from "@vtherm/dashboard-sdk";
+import type { DraftControls, DraftMessage, Hass, HookName, PlacedEntry, SaveResult, VisibilityContext } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
@@ -15,6 +15,7 @@ import { definitionOfContribution } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
 import "./components/contribution-host.ts";
+import { renderCardActions } from "./components/card-actions.ts";
 import { NAVIGATE_EVENT, PAGE_TITLE_EVENT } from "./components/events.ts";
 import type { NavigateDetail } from "./components/events.ts";
 import "./components/side-menu.ts";
@@ -68,7 +69,7 @@ export class VThermDashboardPanel extends LitElement {
     saving: { state: true },
     pageTitle: { state: true },
     developmentPlugins: { state: true },
-    savedMessage: { state: true },
+    saveNotice: { state: true },
     configRevision: { state: true },
   };
 
@@ -145,6 +146,9 @@ export class VThermDashboardPanel extends LitElement {
       flex: 1 1 auto;
       min-width: 0;
       overflow: auto;
+      /* The actions at the foot of the last card can be brought above the navigation bar of the system on a phone. */
+      padding-bottom: max(16px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+      box-sizing: border-box;
     }
     .drawer {
       position: absolute;
@@ -182,41 +186,16 @@ export class VThermDashboardPanel extends LitElement {
     .message.error {
       color: var(--error-color);
     }
-    .savebar {
-      position: sticky;
-      bottom: 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px 16px;
-      padding: 8px 16px;
-      /* Above the navigation bar of the system on a phone. */
-      padding-bottom: max(8px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    .actions-card {
+      display: block;
+      max-width: 760px;
+      margin: 0 16px 16px;
+    }
+    /* fallback: the card of the actions when ha-card is not defined. */
+    div.actions-card {
       background-color: var(--card-background-color);
-      border-top: 1px solid var(--divider-color);
-    }
-    .savebar .text {
-      /* On a phone, the buttons go under the message rather than squeezing it. */
-      flex: 1 1 12em;
-    }
-    .savebar .error {
-      color: var(--error-color);
-    }
-    .savebar button {
-      padding: 6px 16px;
-      font: inherit;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .savebar .save {
-      color: var(--text-primary-color);
-      background-color: var(--primary-color);
-      border: 0;
-    }
-    .savebar .discard {
-      color: var(--primary-color);
-      background: none;
-      border: 1px solid var(--primary-color);
+      border: 1px solid var(--divider-color);
+      border-radius: var(--ha-card-border-radius, 12px);
     }
     .readonly {
       margin: 16px 16px 0;
@@ -283,8 +262,8 @@ export class VThermDashboardPanel extends LitElement {
   /** Whether a save is running. */
   declare saving: boolean;
 
-  /** The message of the last save, shown in the save bar. */
-  declare savedMessage: string;
+  /** A message of the last save that the draft does not hold: a partial save, or a save that failed. */
+  declare saveNotice: { readonly entryId: string; readonly message: DraftMessage } | undefined;
 
   /** Changes each time a configuration or a draft changes, so that the panel draws again. */
   declare configRevision: number;
@@ -324,7 +303,7 @@ export class VThermDashboardPanel extends LitElement {
     this.pageTitle = "";
     this.developmentPlugins = [];
     this.saving = false;
-    this.savedMessage = "";
+    this.saveNotice = undefined;
     this.configRevision = 0;
     this.language = createLanguageController(
       () => [shell, ...(this.loaded?.registry.translations() ?? [])],
@@ -516,19 +495,61 @@ export class VThermDashboardPanel extends LitElement {
     return opened;
   }
 
-  private async save(entryId: string): Promise<void> {
-    if (this.session === undefined) {
-      return;
+  /**
+   * Save the draft of a configuration. It never rejects: a failure of the connection is an `error`, with its message above the actions.
+   *
+   * @returns `success` when everything was written, `partial` when the configuration was written but not every preset temperature.
+   */
+  private async save(entryId: string): Promise<SaveResult> {
+    if (this.session === undefined || this.saving) {
+      return "error";
     }
     this.saving = true;
-    this.savedMessage = "";
+    this.saveNotice = undefined;
     try {
       const outcome = await this.session.save(entryId);
       this.thermostats = (this.session.list?.thermostats ?? []).map((item) => ({ id: item.id, name: item.name, type: item.type }));
-      this.savedMessage = outcome.ok ? t("draft.saved") : outcome.configSaved ? t("draft.config_saved_presets_failed") : "";
+      if (outcome.ok) {
+        return "success";
+      }
+      if (outcome.configSaved) {
+        this.saveNotice = { entryId, message: { type: "warning", text: t("draft.config_saved_presets_failed") } };
+        return "partial";
+      }
+      return "error";
+    } catch (error) {
+      this.saveNotice = { entryId, message: { type: "error", text: t("draft.save_failed", { message: error instanceof Error ? error.message : String(error) }) } };
+      return "error";
     } finally {
       this.saving = false;
     }
+  }
+
+  /**
+   * The state of the draft of a configuration and its commands, for the save actions. A new object at each drawing, so that the
+   * components draw again. Undefined when the configuration is not read yet or is read-only: it cannot be saved.
+   */
+  private draftControls(entryId: string | null): DraftControls | undefined {
+    const opened = this.session?.get(entryId);
+    if (entryId === null || opened === undefined || opened.data.read_only === true) {
+      return undefined;
+    }
+    const draft = opened.draft;
+    const messages: DraftMessage[] = [
+      ...(draft.dirty ? [{ type: "info" as const, text: t("draft.unsaved") }] : []),
+      ...draft.generalErrors().map((error) => ({ type: "error" as const, text: translateErrorCode(shell, error.code) })),
+      ...(this.saveNotice?.entryId === entryId ? [this.saveNotice.message] : []),
+    ];
+    return {
+      dirty: draft.dirty,
+      saving: this.saving,
+      messages,
+      save: () => this.save(entryId),
+      discard: () => {
+        this.saveNotice = undefined;
+        draft.discard();
+      },
+    };
   }
 
   private pathOf(route: Route): string {
@@ -684,24 +705,27 @@ export class VThermDashboardPanel extends LitElement {
       }
       draft.propose(tab, changes);
     };
-    const common = { hass, narrow: this.compact, values: this.valuesOf(entryId), errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab), proposeChanges };
+    const common = {
+      hass,
+      narrow: this.compact,
+      values: this.valuesOf(entryId),
+      errors: tab === undefined || draft === undefined ? {} : draft.errorsOf(tab),
+      proposeChanges,
+      draft: this.draftControls(entryId),
+    };
     return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
   }
 
-  private renderSaveBar(entryId: string): TemplateResult | undefined {
-    const draft = this.session?.get(entryId)?.draft;
-    if (draft === undefined || (!draft.dirty && draft.allErrors().length === 0 && this.savedMessage === "")) {
+  /** The card of the save actions under a configuration component that does not draw them itself (`save_actions` is not `component`). */
+  private renderActionsCard(entry: PlacedEntry, entryId: string | null): TemplateResult | undefined {
+    if ((entry.contribution as { save_actions?: string }).save_actions === "component") {
       return undefined;
     }
-    const general = draft.generalErrors();
-    return html`<div class="savebar" role="region" aria-label=${t("draft.unsaved")}>
-      <span class="text">${draft.dirty ? t("draft.unsaved") : this.savedMessage}</span>
-      ${general.map((error) => renderAlert("error", translateErrorCode(shell, error.code), "error"))}
-      ${draft.dirty
-        ? html`${renderButton(t("draft.discard"), () => draft.discard(), { className: "discard", disabled: this.saving, plain: true })}
-          ${renderButton(t(this.saving ? "draft.saving" : "draft.save"), () => void this.save(entryId), { className: "save", disabled: this.saving })}`
-        : undefined}
-    </div>`;
+    const actions = renderCardActions(this.draftControls(entryId), String(this.languageVersion));
+    if (actions === undefined) {
+      return undefined;
+    }
+    return isDefined("ha-card") ? html`<ha-card class="actions-card">${actions}</ha-card>` : html`<div class="actions-card">${actions}</div>`;
   }
 
   private renderBody(model: NavigationModel): TemplateResult {
@@ -738,7 +762,7 @@ export class VThermDashboardPanel extends LitElement {
         .props=${this.propsOf(entry, model.thermostat)}
         .language=${String(this.languageVersion)}
       ></vtherm-contribution>
-      ${entryId === null || readOnly ? undefined : this.renderSaveBar(entryId)}`;
+      ${isConfig ? this.renderActionsCard(entry, entryId) : undefined}`;
   }
 
   private renderMenu(model: NavigationModel): TemplateResult {

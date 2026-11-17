@@ -97,6 +97,12 @@ describe("the same rules as the dashboard", () => {
     }
   });
 
+  it("refuses save_actions on a hook that is not a configuration, as the dashboard does", () => {
+    const host = createFakeHost();
+    const page = { id: "smartpi", translations: defineTranslations({ t: "T" }), contributions: { global_page: [{ id: "smartpi.page", title: "t", component: "smartpi-page", save_actions: "component" }] } };
+    expect(() => host.registerPlugin(page as never)).toThrow(/contributions\.global_page\[0\]\.save_actions/);
+  });
+
   it("receives the registration of registerUiPlugin once installed", () => {
     const host = createFakeHost({ dashboardVersion: "2.3.0" });
     host.install();

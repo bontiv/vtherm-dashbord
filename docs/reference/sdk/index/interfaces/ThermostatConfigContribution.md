@@ -11,6 +11,7 @@ An entry of the menu of a thermostat, in particular a configuration section.
 - `ContributionBase`\<`"thermostat_config"`\>
 - `MenuEntryFields`
 - `ComponentFields`
+- `ConfigFields`
 
 ## Properties
 
@@ -83,6 +84,19 @@ Where the contribution goes. Without it, the contribution goes `last`.
 #### Inherited from
 
 `ContributionBase.placement`
+
+***
+
+### save\_actions?
+
+> `readonly` `optional` **save\_actions?**: `"component"` \| `"dashboard"`
+
+Who draws the save actions (save, discard) of the section: `component` when the component draws them at the foot of its own card
+from `draft`, `dashboard` (default) when the dashboard draws them in a card under the component.
+
+#### Inherited from
+
+`ConfigFields.save_actions`
 
 ***
 

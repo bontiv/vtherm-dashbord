@@ -36,12 +36,18 @@ export const definition: UiPluginDefinition = {
         title: "page.create_central",
         group: "group.vtherm",
         component: "core-create-central-page",
+        // The page edits nothing: it draws no save action, and the dashboard draws none under it.
+        save_actions: "component",
         placement: { before: PLUGINS_PAGE_ID },
         visible: (context: VisibilityContext<"general_config">) => context.values["thermostat_type"] !== "thermostat_central_config",
       },
       ...tabs.general_config,
     ],
-    thermostat_config: [{ id: THERMOSTAT_OVERVIEW_ID, title: "page.thermostat_overview", component: "core-thermostat-overview-page", placement: { first: true } }, ...tabs.thermostat_config],
+    thermostat_config: [
+      // The overview edits nothing: it draws no save action, and the dashboard draws none under it.
+      { id: THERMOSTAT_OVERVIEW_ID, title: "page.thermostat_overview", component: "core-thermostat-overview-page", save_actions: "component", placement: { first: true } },
+      ...tabs.thermostat_config,
+    ],
   },
 };
 

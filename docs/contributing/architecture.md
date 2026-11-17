@@ -15,7 +15,7 @@ screen.
 │            │                                 │          │                           │              │
 │ vtherm_dashboard                             │ WebSocket│   top bar · menu · breadcrumb · pages    │
 │   plugin_list: validate, check, sort ───────────────────►   plugins: core, core_*, third parties   │
-│   websocket_api: get_ui_plugins, get_config, │◄─────────│   draft · save bar · wizard              │
+│   websocket_api: get_ui_plugins, get_config, │◄─────────│   draft · save actions · wizard          │
 │     save_config, create_config, …            │          │                                          │
 │   config_flow_driver ──► config flow of      │          └──────────────────────────────────────────┘
 │     Versatile Thermostat                     │
@@ -93,8 +93,10 @@ comes from the placement engine and a third-party plugin can insert a tab anywhe
 
 ### Configuration and its draft
 A native tab never writes. It reads `values` and proposes changes to the **draft** (`config/draft.ts`) of the thermostat or of the
-central configuration. The panel keeps one draft for each configuration that was opened, shows the save bar when it has changes, and
-asks before leaving. **Save** sends the changes by tab with `vtherm_dashboard/save_config`.
+central configuration. The panel keeps one draft for each configuration that was opened, and asks before leaving. It gives each
+configuration component `draft` (`DraftControls`): its state and the commands save and discard. The native tabs draw the save actions
+at the foot of their card (`components/card-actions.ts`); under a component of a plugin without `save_actions: "component"`, the
+panel draws them in a card of its own. **Save** sends the changes by tab with `vtherm_dashboard/save_config`.
 
 ## Driving the config flow
 The server saves the draft by driving the real config flow of Versatile Thermostat, tab by tab, and aborts at the first error. It

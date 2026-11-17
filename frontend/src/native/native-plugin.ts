@@ -49,6 +49,8 @@ export function nativeTabContributions(plugin: string, translations: AnyTranslat
         id: thermostatContributionId(definition),
         title: `title.${definition.tab}`,
         component: tag,
+        // The tab draws the save actions at the foot of its own card.
+        save_actions: "component",
         placement: { after: before === undefined ? THERMOSTAT_OVERVIEW_ID : thermostatContributionId(before) },
         visible: (context: VisibilityContext<"thermostat_config">) => definition.applies(context.values, "thermostat"),
       });
@@ -62,6 +64,7 @@ export function nativeTabContributions(plugin: string, translations: AnyTranslat
         title: `title.${definition.tab}`,
         group: "group.vtherm",
         component: tag,
+        save_actions: "component",
         placement: before === undefined ? { before: PLUGINS_PAGE_ID } : { after: centralContributionId(before) },
         // The sections of the general configuration exist once the central configuration exists.
         visible: (context: VisibilityContext<"general_config">) => context.values["thermostat_type"] === CENTRAL_TYPE && definition.applies(context.values, "central"),

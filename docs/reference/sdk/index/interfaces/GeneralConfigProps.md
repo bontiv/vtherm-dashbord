@@ -13,6 +13,19 @@ The properties of a component of `general_config`. It has no thermostat identifi
 
 ## Properties
 
+### draft?
+
+> `optional` **draft?**: [`DraftControls`](DraftControls.md)
+
+The state of the draft and its commands. A new object is given at each change of the draft. It is undefined when the configuration
+cannot be saved, for example when it is read-only: no save action is drawn then.
+
+#### Inherited from
+
+[`ConfigProps`](ConfigProps.md).[`draft`](ConfigProps.md#draft)
+
+***
+
 ### errors
 
 > **errors**: [`ConfigErrors`](../type-aliases/ConfigErrors.md)

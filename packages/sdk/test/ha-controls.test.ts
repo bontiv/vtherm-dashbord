@@ -39,6 +39,14 @@ describe("the loader of the components of Home Assistant", () => {
     expect(registry.whenDefined).not.toHaveBeenCalled();
   });
 
+  it("does not wait for the progress button, which only some versions of Home Assistant define, and reports it", async () => {
+    const { registry } = fakeRegistry(["home-assistant", ...HA_CONTROLS.filter((tag) => tag !== "ha-progress-button"), "ha-spinner"]);
+    const result = await ensureHaControls({ registry, timeout: 60_000 });
+    expect(result.loaded).toBe(true);
+    expect(result.defined["ha-progress-button"]).toBe(false);
+    expect(registry.whenDefined).not.toHaveBeenCalled();
+  });
+
   it("answers at once out of Home Assistant, so that the fields use their fallback", async () => {
     const { registry } = fakeRegistry([]);
     const result = await ensureHaControls({ registry, timeout: 60_000 });

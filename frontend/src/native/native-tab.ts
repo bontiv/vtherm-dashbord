@@ -1,5 +1,5 @@
 import { selectorOf } from "@vtherm/dashboard-sdk";
-import type { AnyTranslations, ConfigErrors, ConfigValues, Hass } from "@vtherm/dashboard-sdk";
+import type { AnyTranslations, ConfigErrors, ConfigValues, DraftControls, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
@@ -13,6 +13,7 @@ import { fieldsOf } from "./schemas.ts";
 import { CENTRAL_REQUIRED_OPTIONS } from "./tab-definitions.ts";
 import type { ConfigKind, TabDefinition, TabLayout } from "./tab-definitions.ts";
 import { commandsByUnderlying, formatBoilerService, formatCommand, needsCommands, parseBoilerService, parseCommand, storedCommands } from "./commands.ts";
+import { renderCardActions } from "../components/card-actions.ts";
 import { haState, isDefined, renderAlert, renderProgress, showMoreInfo } from "../components/ha.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
 
@@ -40,6 +41,7 @@ export class NativeTabElement extends LitElement {
     centralValues: { attribute: false },
     errors: { attribute: false },
     proposeChanges: { attribute: false },
+    draft: { attribute: false },
     language: { type: String },
     narrow: { type: Boolean },
     presetData: { state: true },
@@ -218,6 +220,8 @@ export class NativeTabElement extends LitElement {
   declare centralValues: ConfigValues;
   declare errors: ConfigErrors;
   declare proposeChanges: (changes: ConfigValues) => void;
+  /** The state of the draft and its commands: the save actions at the foot of the card. None when the configuration cannot be saved. */
+  declare draft: DraftControls | undefined;
   declare language: string;
   declare narrow: boolean;
   declare presetData: readonly PresetData[] | undefined;
@@ -234,6 +238,7 @@ export class NativeTabElement extends LitElement {
     this.centralValues = {};
     this.errors = {};
     this.proposeChanges = () => undefined;
+    this.draft = undefined;
     this.language = "";
     this.narrow = false;
     this.presetData = undefined;
@@ -744,11 +749,12 @@ export class NativeTabElement extends LitElement {
       ? html`<p class="note">${t("config.calculation_method", { method: t(method === "ema" ? "config.method.ema" : "config.method.average") })}</p>`
       : undefined}
     ${layout.presets === true ? this.renderPresets(layout, ha) : undefined}`;
+    const actions = renderCardActions(this.draft, this.language);
     if (ha && isDefined("ha-card")) {
-      return html`<ha-card .header=${title}><div class="card-content">${content}</div></ha-card>`;
+      return html`<ha-card .header=${title}><div class="card-content">${content}</div>${actions}</ha-card>`;
     }
     // fallback: a plain card, when ha-card is not defined.
-    return html`<div class="card"><h2>${title}</h2>${content}</div>`;
+    return html`<div class="card"><h2>${title}</h2>${content}${actions}</div>`;
   }
 }
 

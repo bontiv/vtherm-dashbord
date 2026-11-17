@@ -138,7 +138,7 @@ describe("leaving a draft", () => {
 
   it("asks in a dialog of Home Assistant, and the user stays on the page when it cancels", async () => {
     const { panel } = await dirtyConfiguration();
-    expect(find(root(panel), "ha-button.save")).not.toBeNull();
+    expect(find(root(panel), "ha-progress-button.save")).not.toBeNull();
     await goToDashboard(panel);
     const dialog = find(root(panel), "ha-dialog") as MockHaElement;
     expect(dialog).not.toBeNull();
@@ -147,7 +147,7 @@ describe("leaving a draft", () => {
     await settle(panel as never);
     expect(find(root(panel), "ha-dialog")).toBeNull();
     expect(window.location.pathname).toBe(CONFIG);
-    expect(find(root(panel), "ha-button.save")).not.toBeNull();
+    expect(find(root(panel), "ha-progress-button.save")).not.toBeNull();
   });
 
   it("leaves without the draft when the user confirms", async () => {

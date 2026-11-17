@@ -140,6 +140,24 @@ describe("fields of the hooks", () => {
     expect(paths({ id: "smartpi", translations, contributions: { tab_page: [{ id: "smartpi.x", title: "t", component: "c" }] } })).toEqual(["contributions.tab_page[0].tab"]);
   });
 
+  it("accepts a configuration contribution without save_actions, as a plugin published before it", () => {
+    expect(issuesOf({ id: "smartpi", translations, contributions: { thermostat_config: [tab], general_config: [{ ...tab, id: "smartpi.general" }] } })).toEqual([]);
+  });
+
+  it("accepts save_actions on the configuration contributions, with a known value", () => {
+    const contributions = { thermostat_config: [{ ...tab, save_actions: "component" }], general_config: [{ ...tab, id: "smartpi.general", save_actions: "dashboard" }] };
+    expect(issuesOf({ id: "smartpi", translations, contributions })).toEqual([]);
+    expect(issuesOf({ id: "smartpi", translations, contributions: { thermostat_config: [{ ...tab, save_actions: "panel" }] } })).toEqual([
+      'contributions.thermostat_config[0].save_actions: \'save_actions\' must be "component" or "dashboard", got "panel"',
+    ]);
+  });
+
+  it("refuses save_actions on a hook that is not a configuration", () => {
+    expect(paths({ id: "smartpi", translations, contributions: { global_page: [{ id: "smartpi.page", title: "t", component: "smartpi-page", save_actions: "component" }] } })).toEqual([
+      "contributions.global_page[0].save_actions",
+    ]);
+  });
+
   it("accepts only start and end as zone", () => {
     expect(paths({ id: "smartpi", translations, contributions: { top_tab: [{ id: "smartpi.x", title: "t", zone: "middle" }] } })).toEqual(["contributions.top_tab[0].zone"]);
   });

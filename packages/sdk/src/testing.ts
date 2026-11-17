@@ -298,6 +298,18 @@ export interface MockHaElement extends HTMLElement {
   header: string | undefined;
   /** The type of `ha-alert`: `error`, `warning`, `info` or `success`. */
   alertType: string | undefined;
+  /** The appearance of `ha-button` and `ha-progress-button`, for example `plain` or `filled`. */
+  appearance: string | undefined;
+  /** Whether `ha-progress-button` shows its indicator of progress. */
+  progress: boolean;
+  /** The last result that `ha-progress-button` was told to show, by `actionSuccess()` or `actionError()`. */
+  result: "success" | "error" | undefined;
+  /** The path of the icon of `ha-svg-icon`. */
+  path: string | undefined;
+  /** Show the success on `ha-progress-button`: green with a check mark, in Home Assistant. */
+  actionSuccess(): void;
+  /** Show the failure on `ha-progress-button`: red with an alert icon, in Home Assistant. */
+  actionError(): void;
   /**
    * Change the value as the user would: the new value is kept and sent with the event that Home Assistant sends, `value-changed`
    * (`change` for `ha-switch`).
@@ -320,6 +332,8 @@ export const MOCKED_HA_CONTROLS = [
   "ha-service-picker",
   "ha-data-table",
   "ha-md-list-item",
+  "ha-progress-button",
+  "ha-svg-icon",
   "ha-spinner",
 ] as const;
 
@@ -346,6 +360,18 @@ export function defineHaControlMocks(): void {
     heading: string | undefined = undefined;
     header: string | undefined = undefined;
     alertType: string | undefined = undefined;
+    appearance: string | undefined = undefined;
+    progress = false;
+    result: "success" | "error" | undefined = undefined;
+    path: string | undefined = undefined;
+
+    actionSuccess(): void {
+      this.result = "success";
+    }
+
+    actionError(): void {
+      this.result = "error";
+    }
 
     change(value: unknown): void {
       this.value = value;

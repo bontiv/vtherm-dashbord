@@ -14,8 +14,8 @@ A hook is a place of the dashboard. A plugin gives its contributions grouped by 
 | `tab_page` | An entry of the left menu of a top tab, chosen with `tab`. | `hass`, `narrow` |
 | `global_page` | An entry of the left menu of the Dashboard tab. | `hass`, `narrow` |
 | `global_widget` | A widget of the Overview page. | `hass`, `narrow` |
-| `general_config` | A section of the general configuration of Versatile Thermostat. | `hass`, `narrow`, `values`, `errors`, `proposeChanges` |
-| `thermostat_config` | An entry of the menu of a thermostat, in particular a configuration section. | `hass`, `narrow`, `thermostatId`, `values`, `centralValues`, `errors`, `proposeChanges` |
+| `general_config` | A section of the general configuration of Versatile Thermostat. | `hass`, `narrow`, `values`, `errors`, `proposeChanges`, `draft` |
+| `thermostat_config` | An entry of the menu of a thermostat, in particular a configuration section. | `hass`, `narrow`, `thermostatId`, `values`, `centralValues`, `errors`, `proposeChanges`, `draft` |
 | `thermostat_widget` | A widget of the overview of a thermostat. | `hass`, `narrow`, `thermostatId` |
 
 `narrow` is true when the dashboard is shown on a narrow screen, such as a phone (under 700 px): the menu is then a drawer and the
@@ -30,7 +30,10 @@ that your plugin defines. The dashboard creates it and sets its properties. The 
 
 A configuration component never writes the configuration itself. It reads `values` (and `centralValues` for a thermostat),
 shows the `errors` of its fields, and calls `proposeChanges` to change the draft. The dashboard saves the draft when the user
-saves.
+saves. The save actions are at the foot of the card of the section: a contribution that draws them itself from `draft` declares
+`save_actions: "component"`; otherwise (`"dashboard"`, the default) the dashboard draws them in a card under the component. Only
+`general_config` and `thermostat_config` accept `save_actions`. See
+[Save actions](plugin-development.md#save-actions).
 
 ## The menus
 

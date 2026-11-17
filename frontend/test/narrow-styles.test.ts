@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { ComplementsCatalogPage, ComplementsInstalledPage } from "../src/complements/complements-page.ts";
 import { VThermBreadcrumb } from "../src/components/breadcrumb.ts";
+import { VThermCardActions } from "../src/components/card-actions.ts";
 import { VThermCreateWizard } from "../src/components/create-wizard.ts";
 import { NARROW_QUERY as SHARED_QUERY, TOUCH_TARGET, narrowStyles } from "../src/components/narrow-styles.ts";
 import { VThermPluginStatus } from "../src/components/plugin-status.ts";
@@ -37,6 +38,7 @@ describe("the styles of the narrow screen", () => {
       VThermTopBar,
       VThermSideMenu,
       VThermBreadcrumb,
+      VThermCardActions,
       VThermCreateWizard,
       VThermThermostatList,
       VThermWidgets,
@@ -51,6 +53,30 @@ describe("the styles of the narrow screen", () => {
       .filter(([, component]) => !flatten((component as unknown as { styles?: CSSResultGroup }).styles).includes(narrowStyles))
       .map(([name]) => name);
     expect(without).toEqual([]);
+  });
+});
+
+describe("the save actions on a phone", () => {
+  const css = flatten(VThermCardActions.styles)
+    .map((style) => (style as { cssText?: string }).cssText ?? "")
+    .join("\n");
+
+  it("stay on one line, Discard on the left and Save on the right, with touch targets of 44 px", () => {
+    expect(css).toMatch(/\.card-actions\s*\{[^}]*flex-wrap: nowrap[^}]*justify-content: space-between/);
+    expect(css).toContain(`@media ${NARROW_QUERY}`);
+    expect(css).toMatch(new RegExp(`\\.card-actions ha-progress-button\\s*\\{[^}]*min-height: ${TOUCH_TARGET}px`));
+  });
+
+  it("let their messages wrap instead of widening the card", () => {
+    expect(css).toMatch(/\.messages\s*\{[^}]*overflow-wrap: anywhere/);
+  });
+
+  it("can be brought above the navigation bar of the system: the bottom of the page keeps the safe area", () => {
+    const panel = flatten(VThermDashboardPanel.styles)
+      .map((style) => (style as { cssText?: string }).cssText ?? "")
+      .join("\n");
+    expect(panel).toMatch(/main\s*\{[^}]*padding-bottom: max\(16px, var\(--safe-area-inset-bottom, env\(safe-area-inset-bottom, 0px\)\)\)/);
+    expect(panel).not.toContain(".savebar");
   });
 });
 

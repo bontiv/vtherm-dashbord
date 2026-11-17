@@ -48,6 +48,14 @@ The type of `ha-alert`: `error`, `warning`, `info` or `success`.
 
 ***
 
+### appearance
+
+> **appearance**: `string` \| `undefined`
+
+The appearance of `ha-button` and `ha-progress-button`, for example `plain` or `filled`.
+
+***
+
 ### ariaActiveDescendantElement
 
 > **ariaActiveDescendantElement**: `Element` \| `null`
@@ -2896,6 +2904,14 @@ The read-only **`parentNode`** property of the Node interface returns the parent
 
 ***
 
+### path
+
+> **path**: `string` \| `undefined`
+
+The path of the icon of `ha-svg-icon`.
+
+***
+
 ### popover
 
 > **popover**: `string` \| `null`
@@ -2964,11 +2980,27 @@ node is a ProcessingInstruction node.
 
 ***
 
+### progress
+
+> **progress**: `boolean`
+
+Whether `ha-progress-button` shows its indicator of progress.
+
+***
+
 ### required
 
 > **required**: `boolean`
 
 Whether a value is required.
+
+***
+
+### result
+
+> **result**: `"success"` \| `"error"` \| `undefined`
+
+The last result that `ha-progress-button` was told to show, by `actionSuccess()` or `actionError()`.
 
 ***
 
@@ -3313,6 +3345,30 @@ The **`textContent`** property of the Node interface represents the text content
 `HTMLElement.textContent`
 
 ## Methods
+
+### actionError()
+
+> **actionError**(): `void`
+
+Show the failure on `ha-progress-button`: red with an alert icon, in Home Assistant.
+
+#### Returns
+
+`void`
+
+***
+
+### actionSuccess()
+
+> **actionSuccess**(): `void`
+
+Show the success on `ha-progress-button`: green with a check mark, in Home Assistant.
+
+#### Returns
+
+`void`
+
+***
 
 ### addEventListener()
 

@@ -5,10 +5,12 @@ import type {
   ComponentHookName,
   Contribution,
   DisplayProps,
+  DraftControls,
   GeneralConfigProps,
   HookName,
   HookProps,
   Placement,
+  SaveResult,
   ThermostatConfigProps,
   ThermostatProps,
   UiPluginDefinition,
@@ -79,6 +81,14 @@ describe("properties of the components", () => {
     expectTypeOf<ThermostatConfigProps["proposeChanges"]>().toBeFunction();
   });
 
+  it("gives the state of the draft and its commands to the configuration hooks only", () => {
+    expectTypeOf<HookProps<"general_config">["draft"]>().toEqualTypeOf<DraftControls | undefined>();
+    expectTypeOf<HookProps<"thermostat_config">["draft"]>().toEqualTypeOf<DraftControls | undefined>();
+    expectTypeOf<HookProps<"thermostat_widget">>().not.toHaveProperty("draft");
+    expectTypeOf<DraftControls["save"]>().returns.toEqualTypeOf<Promise<SaveResult>>();
+    expectTypeOf<SaveResult>().toEqualTypeOf<"success" | "error" | "partial">();
+  });
+
   it("has no component for a top tab", () => {
     expectTypeOf<ComponentHookName>().toEqualTypeOf<Exclude<HookName, "top_tab">>();
   });
@@ -114,6 +124,16 @@ describe("contributions", () => {
       },
     };
     expect(Object.keys(definition.contributions)).toHaveLength(7);
+  });
+
+  it("lets the configuration contributions only declare who draws the save actions", () => {
+    const general: Contribution<"general_config"> = { id: "smartpi.general", title: "t", component: "smartpi-general", save_actions: "component" };
+    const thermostat: Contribution<"thermostat_config"> = { id: "smartpi.tab", title: "t", component: "smartpi-tab", save_actions: "dashboard" };
+    // @ts-expect-error a page of the Dashboard tab has no save actions
+    const page: Contribution<"global_page"> = { id: "smartpi.page", title: "t", component: "smartpi-page", save_actions: "component" };
+    // @ts-expect-error only component and dashboard are accepted
+    const wrong: Contribution<"thermostat_config"> = { id: "smartpi.tab", title: "t", component: "smartpi-tab", save_actions: "panel" };
+    expect([general, thermostat, page, wrong]).toHaveLength(4);
   });
 
   it("refuses a navigation contribution without title", () => {

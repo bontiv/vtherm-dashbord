@@ -21,7 +21,17 @@ export const HA_CONTROLS = [
   "ha-service-picker",
   "ha-data-table",
   "ha-md-list-item",
+  "ha-progress-button",
 ] as const;
+
+/**
+ * The components that the loader does not wait for: the page draws its fallback while they are missing, and they are not part of
+ * every version of Home Assistant. `ha-progress-button` is the save button of the configuration cards.
+ */
+const OPTIONAL_CONTROLS: ReadonlySet<HaControl> = new Set(["ha-progress-button"]);
+
+/** The components that the loader waits for. */
+const awaitedControls = (): readonly HaControl[] => HA_CONTROLS.filter((tag) => !OPTIONAL_CONTROLS.has(tag));
 
 /** The indicators of progress, from the most recent: a version of Home Assistant has one of them. */
 export const HA_SPINNERS = ["ha-spinner", "ha-circular-progress"] as const;
@@ -66,7 +76,7 @@ export function haControlsStatus(registry: ElementRegistry = customElements): Ha
   return { loaded: defined["ha-selector"], defined, spinner: HA_SPINNERS.find((tag) => defined[tag]) };
 }
 
-const isComplete = (status: HaControlsResult): boolean => HA_CONTROLS.every((tag) => status.defined[tag]) && status.spinner !== undefined;
+const isComplete = (status: HaControlsResult): boolean => awaitedControls().every((tag) => status.defined[tag]) && status.spinner !== undefined;
 
 const delay = (milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 
@@ -96,7 +106,7 @@ async function load(registry: ElementRegistry, timeout: number): Promise<HaContr
   if (isComplete(now) || !HOME_ASSISTANT_ELEMENTS.some((tag) => registry.get(tag) !== undefined)) {
     return now;
   }
-  const required = HA_CONTROLS.filter((tag) => !now.defined[tag]);
+  const required = awaitedControls().filter((tag) => !now.defined[tag]);
   const waitAll = Promise.all(required.map((tag) => registry.whenDefined(tag)));
   await Promise.race([waitAll, delay(timeout)]);
   if (!haControlsStatus(registry).loaded) {

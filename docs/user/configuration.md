@@ -9,12 +9,17 @@ those screens: a value that the flow of Versatile Thermostat refuses is refused 
 - **Configuration gear, group "Versatile Thermostat"**: the sections of the central configuration, which the thermostats can share.
 
 ## Change, save, discard
-A change is kept in a draft. The bar at the bottom of the page then says "Unsaved changes" and offers **Save** and **Discard**.
+A change is kept in a draft. As in the configuration pages of Home Assistant, the actions are at the foot of the card of each
+section: **Discard** on the left and **Save** on the right. They are off while the draft has no change. After a change, "Unsaved
+changes" shows above them.
 
-- **Save** writes the whole draft at once. If a field is refused, nothing is written, and the error shows under the field. The
-  temperatures of the presets are applied after the configuration. If one of them fails, the configuration is still saved and the
-  bar says so.
-- **Discard** goes back to the saved values.
+- **Save** writes the whole draft at once, the changes of every section. While it saves, the button shows its indicator; then it
+  turns green with a check mark for two seconds. If a field is refused, nothing is written, the button turns red with an alert icon,
+  and the error shows under the field; an error that concerns no field shows above the actions. The temperatures of the presets are
+  applied after the configuration. If one of them fails, the configuration is still saved, the button turns red and a warning above
+  the actions says so.
+- **Discard** goes back to the saved values, in every section.
+- On a phone, scroll to the foot of the card to reach the actions.
 - You can go from a section to another of the same thermostat: the draft stays. Leaving the thermostat, or the central
   configuration, asks you to confirm, and drops the draft. Closing the browser tab asks too.
 

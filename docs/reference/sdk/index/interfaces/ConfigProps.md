@@ -13,6 +13,15 @@ What a configuration component receives, and how it proposes changes. It never w
 
 ## Properties
 
+### draft?
+
+> `optional` **draft?**: [`DraftControls`](DraftControls.md)
+
+The state of the draft and its commands. A new object is given at each change of the draft. It is undefined when the configuration
+cannot be saved, for example when it is read-only: no save action is drawn then.
+
+***
+
 ### errors
 
 > **errors**: [`ConfigErrors`](../type-aliases/ConfigErrors.md)

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * The configuration in the panel, with the native plugins: the draft and its save bar, the confirmation when leaving, the read-only
+ * The configuration in the panel, with the native plugins: the draft and its save actions, the confirmation when leaving, the read-only
  * configurations, and the assistant of creation.
  */
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
@@ -54,7 +54,16 @@ const root = (panel: HTMLElement) => panel.shadowRoot as ShadowRoot;
 /** The element of a native tab, with the properties that the panel gives it. */
 type NativeTab = HTMLElement & { values: Record<string, unknown>; proposeChanges: (changes: Record<string, unknown>) => void };
 const nativeTab = (panel: HTMLElement, tag: string) => find<NativeTab>(root(panel), tag) as NativeTab;
-const saveBar = (panel: HTMLElement) => find(root(panel), ".savebar");
+/** The save actions at the foot of the card of the section that is shown, or null when there are none. */
+const actions = (panel: HTMLElement) => find<HTMLElement & { updateComplete: Promise<boolean> }>(root(panel), "vtherm-card-actions");
+/** The text of the save actions: their messages and the labels of their buttons. */
+const actionsText = (panel: HTMLElement) => actions(panel)?.shadowRoot?.textContent ?? "";
+const actionButton = (panel: HTMLElement, name: "save" | "discard") => find<HTMLButtonElement>(actions(panel)?.shadowRoot as ShadowRoot, `button.${name}`) as HTMLButtonElement;
+/** Wait until the save actions drew the last state of the draft. */
+const drawn = async (panel: HTMLElement) => {
+  await settle(panel as never);
+  await actions(panel)?.updateComplete;
+};
 const calls = (hass: { callWS: ReturnType<typeof vi.fn> }, type: string) => hass.callWS.mock.calls.map(([message]) => message as Record<string, unknown>).filter((message) => message["type"] === type);
 /** Open a link of the menu, by its text. */
 async function openMenu(panel: HTMLElement, text: string): Promise<void> {
@@ -68,14 +77,21 @@ async function openMenu(panel: HTMLElement, text: string): Promise<void> {
 }
 
 describe("the draft of a thermostat", () => {
-  it("shows the save bar after a change, and saves the change in the step of the flow", async () => {
+  it("shows the actions at the foot of the card of the section, off until a change, and saves the change in the step of the flow", async () => {
     const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
-    expect(saveBar(panel)).toBeNull();
+    await drawn(panel);
+    expect(find(root(panel), ".savebar")).toBeNull();
+    expect(actions(panel)?.getRootNode()).toBe(nativeTab(panel, "vtherm-native-main-thermostat").shadowRoot);
+    expect([actionButton(panel, "discard").disabled, actionButton(panel, "save").disabled]).toEqual([true, true]);
+    expect(actionsText(panel)).not.toContain("Unsaved changes");
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
-    await settle(panel);
-    expect(saveBar(panel)?.textContent).toContain("Unsaved changes");
-    find<HTMLButtonElement>(root(panel), ".savebar .save")?.click();
-    await vi.waitFor(() => expect(saveBar(panel)?.textContent).toContain("Saved."));
+    await drawn(panel);
+    expect(actionsText(panel)).toContain("Unsaved changes");
+    expect([actionButton(panel, "discard").disabled, actionButton(panel, "save").disabled]).toEqual([false, false]);
+    actionButton(panel, "save").click();
+    // Without the progress button of Home Assistant, the result is a text above the actions.
+    await vi.waitFor(() => expect(actionsText(panel)).toContain("Saved."));
+    expect(actionsText(panel)).not.toContain("Unsaved changes");
     expect(calls(hass, "vtherm_dashboard/save_config")).toEqual([{ type: "vtherm_dashboard/save_config", entry_id: "climate.salon", changes: { main: { name: "Living room" } }, presets: {} }]);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
   });
@@ -83,10 +99,11 @@ describe("the draft of a thermostat", () => {
   it("goes back to the saved values when the user discards the draft", async () => {
     const { panel, hass } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
-    await settle(panel);
-    find<HTMLButtonElement>(root(panel), ".savebar .discard")?.click();
-    await settle(panel);
-    expect(saveBar(panel)).toBeNull();
+    await drawn(panel);
+    actionButton(panel, "discard").click();
+    await drawn(panel);
+    expect(actionsText(panel)).not.toContain("Unsaved changes");
+    expect(actionButton(panel, "save").disabled).toBe(true);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Salon");
     expect(calls(hass, "vtherm_dashboard/save_config")).toEqual([]);
   });
@@ -98,7 +115,8 @@ describe("the draft of a thermostat", () => {
     await settle(panel);
     await openMenu(panel, "TPI parameters");
     expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/climate.salon/core_tpi.tab.main`);
-    expect(saveBar(panel)?.textContent).toContain("Unsaved changes");
+    await drawn(panel);
+    expect(actionsText(panel)).toContain("Unsaved changes");
     await openMenu(panel, "Main attributes");
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
     expect(confirm).not.toHaveBeenCalled();
@@ -147,8 +165,105 @@ describe("the draft of a thermostat", () => {
   });
 });
 
+describe("the save actions", () => {
+  const MAIN = `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main`;
+  /** A server that answers the saves with `answer`, or fails when it throws. */
+  const saving = (answer: () => unknown) => async (message: Record<string, unknown>) => (message["type"] === "vtherm_dashboard/save_config" ? answer() : undefined);
+
+  it("saves the changes of every section of the configuration, from any of them", async () => {
+    const { panel, hass } = await mount({ configs: salonAndChambre(), path: MAIN });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await openMenu(panel, "TPI parameters");
+    nativeTab(panel, "vtherm-native-tpi-thermostat").proposeChanges({ tpi_coef_int: 0.7 });
+    await openMenu(panel, "Main attributes");
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(calls(hass, "vtherm_dashboard/save_config")).toHaveLength(1));
+    expect(calls(hass, "vtherm_dashboard/save_config")[0]?.["changes"]).toEqual({ main: { name: "Living room" }, tpi: { tpi_coef_int: 0.7 } });
+  });
+
+  it("discards the changes of every section, without asking", async () => {
+    const confirm = stubConfirm(true);
+    const { panel } = await mount({ configs: salonAndChambre(), path: MAIN });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await openMenu(panel, "TPI parameters");
+    nativeTab(panel, "vtherm-native-tpi-thermostat").proposeChanges({ tpi_coef_int: 0.7 });
+    await drawn(panel);
+    actionButton(panel, "discard").click();
+    await drawn(panel);
+    expect(nativeTab(panel, "vtherm-native-tpi-thermostat").values["tpi_coef_int"]).toBeUndefined();
+    expect([actionButton(panel, "discard").disabled, actionButton(panel, "save").disabled]).toEqual([true, true]);
+    await openMenu(panel, "Main attributes");
+    expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Salon");
+    expect(confirm).not.toHaveBeenCalled();
+  });
+
+  it("keeps the draft and shows an error above the actions when Home Assistant does not answer", async () => {
+    const { panel } = await mount({
+      configs: salonAndChambre(),
+      path: MAIN,
+      handlers: [
+        saving(() => {
+          throw new Error("Connection lost");
+        }),
+      ],
+    });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(actionsText(panel)).toContain("The configuration could not be saved: Connection lost"));
+    expect(actionsText(panel)).toContain("Not saved.");
+    expect(actionsText(panel)).toContain("Unsaved changes");
+    expect(actionButton(panel, "save").disabled).toBe(false);
+    expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
+  });
+
+  it("shows a general error of a refused save above the actions, translated", async () => {
+    const refused = { ok: false, config_saved: false, entry_id: "climate.salon", errors: [{ tab: null, field: "base", code: "configuration_not_complete" }], preset_errors: [] };
+    const { panel } = await mount({ configs: salonAndChambre(), path: MAIN, handlers: [saving(() => refused)] });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(actionsText(panel)).toContain("The configuration is not complete"));
+    expect(actionsText(panel)).toContain("Unsaved changes");
+  });
+
+  it("tells that the configuration is saved but not every temperature, as a failure", async () => {
+    const partial = { ok: false, config_saved: true, entry_id: "climate.salon", errors: [], preset_errors: [{ tab: "presets", field: "eco", code: "invalid_value" }] };
+    const { panel } = await mount({ configs: salonAndChambre(), path: MAIN, handlers: [saving(() => partial)] });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(actionsText(panel)).toContain("The configuration is saved, but some temperatures could not be applied."));
+    expect(actionsText(panel)).toContain("Not saved.");
+  });
+
+  it("draws a card of actions under a configuration component of a plugin that does not draw them", async () => {
+    const definition: UiPluginDefinition = {
+      id: "smartpi",
+      translations: natives[0]!.definition.translations,
+      contributions: { thermostat_config: [{ id: "smartpi.tab.main", title: "title.main", component: "smartpi-config-tab" }] },
+    };
+    const { panel } = await mountPanel({ plugins: [...natives, { definition }], realThermostats: true, configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/smartpi.tab.main` });
+    await drawn(panel);
+    const card = find(root(panel), ".actions-card");
+    expect(card).not.toBeNull();
+    expect(card?.parentNode).toBe(root(panel).querySelector("main"));
+    expect(actionButton(panel, "save")).not.toBeNull();
+  });
+
+  it("draws no card of actions under a native section, nor under the overview of a thermostat", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: MAIN });
+    await drawn(panel);
+    expect(find(root(panel), ".actions-card")).toBeNull();
+    await openMenu(panel, "Overview");
+    expect(find(root(panel), ".actions-card")).toBeNull();
+    expect(actions(panel)).toBeNull();
+  });
+});
+
 describe("a configuration made by a newer Versatile Thermostat", () => {
-  it("is shown read-only, without save bar", async () => {
+  it("is shown read-only, without save actions", async () => {
     const configs = salonAndChambre();
     (configs["climate.salon"] as { read_only?: boolean }).read_only = true;
     const { panel } = await mount({ configs, path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
@@ -156,7 +271,7 @@ describe("a configuration made by a newer Versatile Thermostat", () => {
     expect(find(root(panel), "vtherm-contribution")?.hasAttribute("inert")).toBe(true);
     nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
     await settle(panel);
-    expect(saveBar(panel)).toBeNull();
+    expect(actions(panel)).toBeNull();
   });
 });
 

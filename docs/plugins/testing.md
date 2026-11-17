@@ -103,6 +103,11 @@ Assistant: `defineHaControlMocks()` of `@vtherm/dashboard-sdk/testing` defines s
 and its method `change(value)` acts as the user: it sends `value-changed` with the new value (`change` for `ha-switch`). Call
 `resetHaControls()` after each test, so that `ensureHaControls()` looks again at the components of the page.
 
+The simulated `ha-progress-button` of the save actions keeps `progress`, `disabled` and `appearance`, and `result` tells what it was
+asked to show: `success` after `actionSuccess()`, `error` after `actionError()`. Give the component a `draft` whose `save()` resolves to
+the result to test (`success`, `error` or `partial`), click the button, and read `result`
+(see [Save actions](plugin-development.md#save-actions) and its test, `docs/examples/typescript/save-actions.test.ts`).
+
 <!-- example: docs/examples/typescript/config-fields.test.ts -->
 ```typescript
 // @vitest-environment happy-dom
