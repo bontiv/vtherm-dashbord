@@ -49,7 +49,14 @@ async function render(contributionId: string, values: Record<string, unknown>, o
   return { element, proposals, root: element.shadowRoot as ShadowRoot };
 }
 
-const labels = (root: ShadowRoot) => findAll(root, "label").map((label) => label.getAttribute("for")?.replace("field-", ""));
+/** The keys of the fields, in the order of the page; the switch "Customize" counts as the option of inheritance that it writes. */
+const labels = (root: ShadowRoot) =>
+  findAll(root, "label").flatMap((label) => {
+    const key = (label.closest(".customize") as HTMLElement | null)?.dataset["key"] ?? label.getAttribute("for")?.replace("field-", "");
+    return key === undefined ? [] : [key];
+  });
+const customize = (root: ShadowRoot, key: string) => find<HTMLInputElement>(root, `#customize-${key}`);
+const chipValues = (root: ShadowRoot) => findAll(root, ".chip-value").map((value) => value.textContent?.trim());
 const input = (root: ShadowRoot, key: string) => find<HTMLInputElement>(root, `#field-${key}`);
 const change = (control: HTMLInputElement | HTMLSelectElement | null, value: string | boolean) => {
   if (control === null) {
@@ -67,10 +74,10 @@ const SWITCH = { thermostat_type: "thermostat_over_switch", name: "Salon", propo
 describe("the tab main", () => {
   it("shows the fields of a thermostat with their defaults", async () => {
     const { root } = await render("core.tab.main", { thermostat_type: "thermostat_over_switch" });
-    expect(labels(root)).toEqual(["name", "temperature_sensor_entity_id", "last_seen_temperature_sensor_entity_id", "cycle_min", "device_power", "power_unit", "use_main_central_config", "use_central_mode", "used_by_controls_central_boiler"]);
+    expect(labels(root)).toEqual(["name", "temperature_sensor_entity_id", "cycle_min", "device_power", "power_unit", "use_central_mode", "used_by_controls_central_boiler", "use_main_central_config", "last_seen_temperature_sensor_entity_id"]);
     expect(input(root, "cycle_min")?.value).toBe("5");
     expect(input(root, "device_power")?.value).toBe("1");
-    expect(input(root, "use_main_central_config")?.checked).toBe(true);
+    expect(customize(root, "use_main_central_config")?.checked).toBe(false);
     expect(input(root, "use_central_mode")?.checked).toBe(true);
     expect(input(root, "used_by_controls_central_boiler")?.checked).toBe(false);
   });
@@ -79,7 +86,7 @@ describe("the tab main", () => {
     const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: true });
     expect(input(root, "external_temperature_sensor_entity_id")).toBeNull();
     expect(root.textContent).toContain("sensor.outdoor");
-    expect(findAll(root, "dd").map((cell) => cell.textContent?.trim())).toEqual(["sensor.outdoor", "7", "35", "0.1"]);
+    expect(chipValues(root)).toEqual(["sensor.outdoor", "7", "35", "0.1"]);
   });
 
   it("shows its own outdoor sensor and temperatures when the thermostat does not use the central configuration", async () => {
@@ -98,10 +105,10 @@ describe("the tab main", () => {
     expect(labels(root)).toEqual(["external_temperature_sensor_entity_id", "temp_min", "temp_max", "step_temperature"]);
   });
 
-  it("disables the inheritance and forces it off when there is no central configuration, with an explanation", async () => {
+  it("disables the inheritance and forces it off, the switch Customize on, when there is no central configuration, with an explanation", async () => {
     const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: true }, { central: {} });
-    expect(input(root, "use_main_central_config")?.disabled).toBe(true);
-    expect(input(root, "use_main_central_config")?.checked).toBe(false);
+    expect(customize(root, "use_main_central_config")?.disabled).toBe(true);
+    expect(customize(root, "use_main_central_config")?.checked).toBe(true);
     expect(root.textContent).toContain("There is no central configuration");
     expect(labels(root)).toContain("external_temperature_sensor_entity_id");
   });
@@ -159,7 +166,7 @@ describe("the required fields that a creation misses", () => {
 describe("the tab type", () => {
   it("shows the fields of a thermostat over a switch, TPI by default, and the custom commands", async () => {
     const { root } = await render("core.tab.type", { thermostat_type: "thermostat_over_switch" });
-    expect(labels(root)).toEqual(["underlying_entity_ids", "heater_keep_alive", "proportional_function", "ac_mode", "inverse_switch_command", "vswitch_on_command", "vswitch_off_command"]);
+    expect(labels(root)).toEqual(["underlying_entity_ids", "proportional_function", "ac_mode", "inverse_switch_command", "heater_keep_alive", "vswitch_on_command", "vswitch_off_command"]);
     expect(find<HTMLSelectElement>(root, "#field-proportional_function")?.value).toBe("tpi");
   });
 
@@ -245,7 +252,7 @@ describe("the tab TPI and Auto TPI", () => {
   it("shows the inheritance and the central coefficients read-only", async () => {
     const { root } = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: true });
     expect(labels(root)).toEqual(["use_tpi_central_config"]);
-    expect(findAll(root, "dd").map((cell) => cell.textContent?.trim()).slice(0, 2)).toEqual(["0.6", "0.01"]);
+    expect(chipValues(root).slice(0, 2)).toEqual(["0.6", "0.01"]);
   });
 
   it("shows the coefficients with their defaults and limits without inheritance", async () => {
@@ -325,13 +332,35 @@ describe("the tab presets", () => {
 });
 
 describe("the tabs of the features", () => {
-  it("shows the automatic detection of a window without sensor, and hides it with a sensor", async () => {
-    const without = await render("core_window.tab.main", { ...SWITCH, use_window_feature: true, use_window_central_config: false });
+  it("shows the automatic detection of a window with the method drop of temperature, and hides it with a sensor", async () => {
+    const drop = { ...SWITCH, use_window_feature: true, use_window_central_config: false, window_auto_open_threshold: 3 };
+    const without = await render("core_window.tab.main", drop);
     expect(labels(without.root)).toEqual(expect.arrayContaining(["window_auto_open_threshold", "window_auto_close_threshold", "window_auto_max_duration"]));
+    expect(labels(without.root)).not.toContain("window_sensor_entity_id");
     expect([input(without.root, "window_delay")?.value, input(without.root, "window_off_delay")?.value, input(without.root, "window_auto_open_threshold")?.value, input(without.root, "window_auto_close_threshold")?.value, input(without.root, "window_auto_max_duration")?.value]).toEqual(["30", "30", "3", "0", "30"]);
     const withSensor = await render("core_window.tab.main", { ...SWITCH, use_window_feature: true, use_window_central_config: false, window_sensor_entity_id: "binary_sensor.window" });
     expect(labels(withSensor.root)).not.toContain("window_auto_open_threshold");
     expect(labels(withSensor.root)).toContain("window_action");
+  });
+
+  it("offers the method of detection of a window as radio buttons in a group named by its question, without the components of Home Assistant", async () => {
+    const { root, proposals } = await render("core_window.tab.main", { ...SWITCH, use_window_feature: true, use_window_central_config: false, window_sensor_entity_id: "sensor.indoor" });
+    expect(find(root, "fieldset.method legend")?.textContent).toBe("How to detect an open window?");
+    const radios = findAll<HTMLInputElement>(root, 'fieldset.method input[type="radio"]');
+    expect(radios.map((radio) => [radio.value, radio.checked])).toEqual([
+      ["sensor", true],
+      ["drop", false],
+    ]);
+    change(radios[1] as HTMLInputElement, true);
+    expect(proposals).toEqual([{ window_sensor_entity_id: null, window_auto_open_threshold: 3, window_auto_close_threshold: 0, window_auto_max_duration: 30 }]);
+  });
+
+  it("puts the advanced settings in a disclosure, open when one of them is refused", async () => {
+    const closed = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: false });
+    expect(find(closed.root, "details.advanced summary")?.textContent).toBe("Advanced settings (4)");
+    expect(find<HTMLDetailsElement>(closed.root, "details.advanced")?.open).toBe(false);
+    const refused = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: false }, { errors: { tpi_threshold_low: "out_of_range" } });
+    expect(find<HTMLDetailsElement>(refused.root, "details.advanced")?.open).toBe(true);
   });
 
   it("shows the motion sensor and the presets of the motion", async () => {
@@ -406,7 +435,7 @@ describe("the other native tabs", () => {
   it("shows the central values of the heating failure detection read-only when they are inherited", async () => {
     const { root } = await render("core_heating_failure.tab.main", { ...SWITCH, use_heating_failure_detection_feature: true, use_heating_failure_detection_central_config: true }, { central: { ...CENTRAL, heating_failure_threshold: 0.9 } });
     expect(labels(root)).toEqual(["use_heating_failure_detection_central_config"]);
-    expect(findAll(root, "dd")[0]?.textContent?.trim()).toBe("0.9");
+    expect(chipValues(root)[0]).toBe("0.9");
   });
 
   it("shows the texts in French", async () => {

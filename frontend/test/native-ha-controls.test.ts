@@ -73,21 +73,23 @@ describe("the fields of the native tabs", () => {
   });
 
   it("draws a boolean with the switch of Home Assistant, with its label and its help", async () => {
-    const { root, proposals } = await render("core.tab.main", { ...SWITCH, use_main_central_config: false });
-    const central = selector(root, "use_main_central_config");
-    expect(central.selector).toEqual({ boolean: {} });
-    expect(central.value).toBe(false);
-    expect(central.label).toContain("central");
-    central.change(true);
-    expect(proposals).toEqual([{ use_main_central_config: true }]);
+    const { root, proposals } = await render("core.tab.main", { ...SWITCH, use_central_mode: false });
+    const mode = selector(root, "use_central_mode");
+    expect(mode.selector).toEqual({ boolean: {} });
+    expect(mode.value).toBe(false);
+    expect(mode.label).toContain("central");
+    mode.change(true);
+    expect(proposals).toEqual([{ use_central_mode: true }]);
   });
 
-  it("disables and shows off every option that needs the central configuration when there is none", async () => {
+  it("disables and shows off every option that needs the central configuration when there is none, and turns the switch Customize on", async () => {
     const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: false }, { central: {} });
-    for (const key of ["use_main_central_config", "use_central_mode", "used_by_controls_central_boiler"]) {
+    for (const key of ["use_central_mode", "used_by_controls_central_boiler"]) {
       expect(selector(root, key).disabled, key).toBe(true);
       expect(selector(root, key).value, key).toBe(false);
     }
+    const customize = find<MockHaElement>(root, "ha-switch#customize-use_main_central_config") as MockHaElement;
+    expect([customize.disabled, customize.checked]).toEqual([true, true]);
     expect(selector(root, "cycle_min").disabled).toBeFalsy();
   });
 
@@ -235,10 +237,10 @@ describe("the groups, the entities and the presets", () => {
     const opened: unknown[] = [];
     window.addEventListener("hass-more-info", (event) => opened.push((event as CustomEvent).detail));
     const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: true }, { central: { ...CENTRAL, external_temperature_sensor_entity_id: "sensor.outdoor" } });
-    (find(root, "dd .entity-link") as HTMLElement).click();
+    (find(root, ".chip-value .entity-link") as HTMLElement).click();
     expect(opened).toEqual([{ entityId: "sensor.outdoor" }]);
     const unknown = await render("core.tab.main", { ...SWITCH, use_main_central_config: true }, { central: { ...CENTRAL, external_temperature_sensor_entity_id: "sensor.gone" } });
-    expect(find(unknown.root, "dd .entity-link")).toBeNull();
+    expect(find(unknown.root, ".chip-value .entity-link")).toBeNull();
   });
 
   it("shows the temperatures of the presets in compact cells of the table, not with the number selector, with their unit and limits", async () => {

@@ -10,7 +10,7 @@ import type { AnyTranslations, ConfigValues, Contribution, SectionStatus, Visibi
 import { defineNativeTab } from "./native-tab.ts";
 import { isFieldShown, missingRequired } from "./fields.ts";
 import { fieldsOf } from "./schemas.ts";
-import { CENTRAL_TYPE, TAB_DEFINITIONS, centralContributionId, isAvailable, thermostatContributionId } from "./tab-definitions.ts";
+import { CENTRAL_TYPE, TAB_DEFINITIONS, centralContributionId, isAvailable, thermostatContributionId, windowMethod, windowValues } from "./tab-definitions.ts";
 import type { ConfigKind, TabDefinition } from "./tab-definitions.ts";
 
 /** The first entry of the menu of a thermostat, which the native tabs follow. */
@@ -31,8 +31,8 @@ function previous(definition: TabDefinition, kind: "thermostat" | "central"): Ta
 }
 
 /**
- * The status of a native tab in the menu, as its page shows it: `incomplete` when required fields that the tab shows have no value,
- * `inherited` when the tab uses the central configuration, otherwise `complete`.
+ * The status of a native tab in the menu, as its page shows it: `incomplete` when required fields that the tab shows have no value, or
+ * when the window is detected with a sensor that is not chosen, `inherited` when the tab uses the central configuration, otherwise `complete`.
  *
  * @param definition - The tab.
  * @param kind - A thermostat or the central configuration.
@@ -48,7 +48,10 @@ export function nativeStatus(definition: TabDefinition, kind: ConfigKind): (cont
     const hasCentral = kind === "thermostat" && Object.keys(context.centralValues ?? {}).length > 0;
     const inherited = layout.inherit !== undefined && hasCentral && values[layout.inherit] !== false;
     const fields = [...layout.base, ...(inherited ? [] : [...(layout.specific ?? []), ...(layout.extra ?? [])])].flatMap((name) => fieldsOf(name)).filter((field) => isFieldShown(field, values));
-    const missing = missingRequired(fields, values).length;
+    // With the method "sensor", the window needs its sensor, which Versatile Thermostat does not require.
+    const windowSensorMissing =
+      definition.tab === "window" && kind === "thermostat" && windowMethod(windowValues(values, context.centralValues ?? {})) === "sensor" && !values["window_sensor_entity_id"];
+    const missing = missingRequired(fields, values).length + (windowSensorMissing ? 1 : 0);
     if (missing > 0) {
       return { kind: "incomplete", missing };
     }

@@ -42,7 +42,11 @@ The fields are those of Home Assistant, as in its own settings:
   does not list) is shown as it is, in a text field.
 - The services of the central boiler are an entity, a service and an optional attribute.
 - A delay is a number with its unit, minutes or seconds, as Versatile Thermostat stores it.
-- Long groups of settings, such as those of Auto TPI, are in a panel that opens; it is open when one of its fields is refused.
+- The fields of a section are tiles on a grid: on a wide screen, several fields share a line; on a phone, they are on one column. A
+  list of entities, a template and the commands take the whole width.
+- The settings that are rarely changed, such as the minimal delays and the thresholds of TPI, the settings of Auto TPI, the keep-alive
+  of a switch, the commands or the code of the lock, are in the closed panel **Advanced settings (N)** at the end of their section,
+  with their number. It opens by itself when one of them is refused, or is required and has no value.
 - An entity of the central configuration shown in a section opens its card of Home Assistant when you click it.
 
 When the dashboard is opened directly, its sections may show "Loading the controls of Home Assistant" for a moment. A version of
@@ -79,9 +83,12 @@ one are off and cannot be turned on, and the new thermostat has its own TPI and 
 Thermostat unless you change them in the sections "TPI parameters" and "Advanced parameters".
 
 ## Use the central configuration
-Most sections have a switch "Use the central configuration". While it is on, the section shows the values of the central
-configuration, read-only. Turn it off to give this thermostat its own values. The switch is off, and says so, while there is no
-central configuration.
+Most sections have a switch **Customize for this thermostat**. While it is off, the section uses the central configuration: it shows
+the central values as chips, `label: value`, with the names of the entities, and the link **Edit the central configuration**, which
+opens the same section of the general configuration (with unsaved changes, the dashboard asks first). When the central configuration
+has no value for the section, the section says that the defaults of Versatile Thermostat apply. Turn the switch on to give this
+thermostat its own values: it turns off the option "Use the central configuration" of Versatile Thermostat. While there is no
+central configuration, the switch is on and cannot be turned off, and says why.
 
 ## The sections, one by one
 The sections follow the menu of the config flow of Versatile Thermostat. A section appears only when it applies to the thermostat.
@@ -94,7 +101,7 @@ The sections follow the menu of the config flow of Versatile Thermostat. A secti
 | TPI parameters | the proportional function is TPI, or a valve regulates | The TPI coefficients, and Auto TPI with its learning type. |
 | Presets | switch, climate and valve thermostats | The temperature of each preset, in a table. They are `number` entities, saved after the configuration. See [The presets table](#the-presets-table). |
 | Central boiler | central configuration, when the feature is on | The services that start and stop the central boiler. |
-| Window | the window feature is on | A window sensor, or the automatic detection thresholds, not both. |
+| Window | the window feature is on | How to detect an open window, **Opening sensor** or **Temperature drop**, then the sensor or the thresholds of the detection, the delays and the action. See [The detection of a window](#the-detection-of-a-window). |
 | Motion | the motion feature is on | The motion sensor, the delays and the presets. |
 | Power | the power feature is on | The power sensors and the shedding. |
 | Presence | the presence feature is on | The presence sensor and the presets. |
@@ -107,6 +114,19 @@ The sections follow the menu of the config flow of Versatile Thermostat. A secti
 | Heating failure detection | the feature is on | The thresholds of the detection. |
 
 The identifiers of these sections, which a plugin can use to place its own tab, are in [Native plugins](../plugins/native-plugins.md).
+
+## The detection of a window
+The section Window asks first **How to detect an open window?**, with two buttons:
+
+- **Opening sensor**: the section asks for the sensor, a `binary_sensor` or an `input_boolean`. Until it is chosen, the section has the
+  status `1 missing`.
+- **Temperature drop**: the section shows the thresholds of the detection (opening, closing) and its maximum duration, with the
+  defaults of Versatile Thermostat.
+
+The choice comes from the values: the sensor when the thermostat has one, the drop of temperature when it has a threshold of
+detection without a sensor, otherwise the sensor. Choosing a method removes the values of the other one from the draft: the sensor
+when you choose the drop of temperature, the thresholds of this thermostat when you choose the sensor. The thresholds that come from
+the central configuration are not touched.
 
 ## The presets table
 The Presets section shows the temperatures as a table: one row for each preset (frost, eco, comfort, boost) and one column for each

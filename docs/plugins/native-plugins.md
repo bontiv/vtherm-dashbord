@@ -86,15 +86,26 @@ A tab whose feature does not exist for the type of the thermostat is not in the 
 switch, or the heating failure detection for a thermostat over a climate without valve regulation, as the form Features of
 Versatile Thermostat decides.
 
+### The layout of the tabs
+A native tab draws its fields on a grid that adds columns with the width (`repeat(auto-fill, minmax(min(240px, 100%), 1fr))`); a
+list, a template, a text of several lines and the blocks of commands take the whole width (`isWideField`). Its card uses the width of
+the page, up to 1240 px. The fields of `ADVANCED_FIELDS` (`tab-definitions.ts`) are in the panel **Advanced settings (N)**, closed,
+open when one of them is refused or required without a value; a field that the list does not know, added by a new version of
+Versatile Thermostat, stays out of the panel. The option of inheritance of a tab (`use_*_central_config`) is drawn as the switch
+**Customize for this thermostat**, which writes its opposite, and the central values as chips with a link to the same section of the
+general configuration. The tab of the window of a thermostat adds the choice of the method of detection (`windowMethod`), and shows
+only the fields of the method that is chosen.
+
 ### The status of the tabs
-Each native tab gives its status to the menu: the number of the required fields that it shows without a value, `Central` when it
-uses the central configuration, otherwise a check mark. The dashboard adds `Off` and `Error`. See
+Each native tab gives its status to the menu: the number of the required fields that it shows without a value (and the sensor of a
+window detected with a sensor), `Central` when it uses the central configuration, otherwise a check mark. The dashboard adds `Off` and `Error`. See
 [Status of a configuration section](hooks-and-placement.md#status-of-a-configuration-section).
 
 ### The controls
 The native tabs draw their fields with the components of Home Assistant: one `ha-selector` per field, whose selector comes from the
 contract of the SDK (`definitionOf` turns a field of the flow into a `FieldDefinition`, then `selectorOf` gives the selector), in a
-`ha-card`, with `ha-alert` for the errors, `ha-expansion-panel` for the long groups and `ha-button` for the actions. The commands of
+`ha-card`, with `ha-alert` for the errors, `ha-expansion-panel` for the advanced settings, `ha-switch` for the switch Customize and
+`ha-button` for the actions. The method of detection of a window is a `ha-selector` of type `select` in the mode `box`. The commands of
 a thermostat on switch and the services of the central boiler use `ha-service-picker`. The units of the delays and the classes of
 devices of the sensors are written by hand in `shared/vtherm-config-schemas.json` (`unit`, `device_classes`); the drift test keeps
 them. When a component is not defined after `ensureHaControls()`, the tab draws plain HTML controls, the fallback, and writes one

@@ -49,6 +49,9 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       fr: "Coupe ou réduit le chauffage pendant qu'une fenêtre est ouverte : avec un capteur d'ouverture, ou en détectant la baisse rapide de la température.",
       de: "Schaltet die Heizung aus oder senkt sie ab, solange ein Fenster offen ist: mit einem Fenstersensor oder durch Erkennen des schnellen Temperaturabfalls.",
     },
+    "window_method.question": { en: "How to detect an open window?", fr: "Comment détecter une fenêtre ouverte ?", de: "Wie wird ein offenes Fenster erkannt?" },
+    "window_method.sensor": { en: "Opening sensor", fr: "Capteur d'ouverture", de: "Öffnungssensor" },
+    "window_method.drop": { en: "Temperature drop", fr: "Chute de température", de: "Temperaturabfall" },
   },
   core_motion: {
     "feature_intro.use_motion_feature": {

@@ -207,6 +207,18 @@ export function isFieldShown(field: FieldSpec, values: Readonly<Record<string, u
   return field.key !== "humidity_sensor_entity_id" || values["use_humidity_feature"] === true;
 }
 
+/** The fields that hold the commands of the underlyings or of the central boiler: blocks of several controls. */
+const COMMAND_BLOCKS = new Set(["vswitch_on_command", "vswitch_off_command", "central_boiler_activation_service", "central_boiler_deactivation_service"]);
+
+/**
+ * Whether a field takes the whole width of the grid of its section: a list, a template, a text of several lines or a block of commands.
+ *
+ * @param field - The field.
+ */
+export function isWideField(field: FieldSpec): boolean {
+  return field.multiple === true || field.multiline === true || field.kind === "template" || COMMAND_BLOCKS.has(field.key);
+}
+
 export function missingRequired(fields: readonly FieldSpec[], values: Readonly<Record<string, unknown>>): FieldSpec[] {
   return fields.filter((field) => {
     if (!field.required || (field.default !== null && field.default !== undefined && field.default !== "")) {

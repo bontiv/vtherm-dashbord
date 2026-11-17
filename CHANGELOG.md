@@ -23,6 +23,15 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   detection) stay in the menu, in retreat, with an explanation of the feature and a switch that turns it on in the draft.
 
 ### Changed
+- The fields of a native section are tiles on a grid that uses the width of the screen, on one column on a phone. The settings that
+  are rarely changed are in a closed panel **Advanced settings (N)** at the end of their section, which opens by itself when one of
+  them is refused or missing.
+- The option "Use the central configuration" of a section is the switch **Customize for this thermostat**. The central values that a
+  section uses are chips with the names of their entities, and a link opens the same section of the general configuration; without
+  any central value, the section says that the defaults of Versatile Thermostat apply.
+- The section Window asks how to detect an open window, with an opening sensor or by the drop of the temperature, and shows only the
+  fields of that method. Choosing a method removes the values of the other one from the draft. Without a sensor, the method "Opening
+  sensor" counts the sensor as missing.
 - The Thermostats tab shows a tile for each thermostat, live: the temperature of the room and the setpoint, the action (heating,
   cooling, idle, off) with a dot of its color, the preset, and "Unavailable" when its climate entity is. The tiles keep the grouping by
   area, and the tile **New thermostat** at the end replaces the button **Create a thermostat**.

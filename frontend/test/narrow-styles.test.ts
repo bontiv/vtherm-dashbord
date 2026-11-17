@@ -56,6 +56,17 @@ describe("the styles of the narrow screen", () => {
   });
 });
 
+describe("the fields of a native section on a phone", () => {
+  it("are on one column without horizontal overflow: a field is never wider than the grid", () => {
+    const css = flatten(NativeTabElement.styles)
+      .map((style) => (style as { cssText?: string }).cssText ?? "")
+      .join("\n");
+    expect(css).toMatch(/\.fields\s*\{[^}]*minmax\(min\(240px, 100%\), 1fr\)/);
+    expect(css).toMatch(/\.field\s*\{[^}]*min-width: 0/);
+    expect(css).toMatch(/\.chip\s*\{[^}]*overflow-wrap: anywhere/);
+  });
+});
+
 describe("the status of the sections in the drawer of a phone", () => {
   it("stays on one line at the right, while the title wraps instead of widening the menu", () => {
     const css = flatten(VThermSideMenu.styles)

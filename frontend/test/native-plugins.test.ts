@@ -214,6 +214,15 @@ describe("the status of the native tabs", () => {
   it("does not inherit without a central configuration, as the page of the tab", () => {
     expect(status("core_advanced.tab.main", { thermostat_type: "thermostat_over_switch" })).not.toEqual({ kind: "inherited" });
   });
+
+  it("counts the sensor of a window detected with a sensor, and not the sensor of a window detected by a drop of temperature", () => {
+    const window = { thermostat_type: "thermostat_over_switch", use_window_feature: true, use_window_central_config: false };
+    expect(status("core_window.tab.main", window)).toEqual({ kind: "incomplete", missing: 1 });
+    expect(status("core_window.tab.main", { ...window, window_sensor_entity_id: "binary_sensor.window" })).toEqual({ kind: "complete" });
+    expect(status("core_window.tab.main", { ...window, window_auto_open_threshold: 3 })).toEqual({ kind: "complete" });
+    const central = { thermostat_type: "thermostat_central_config", window_auto_open_threshold: 3 };
+    expect(status("core_window.tab.main", { ...window, use_window_central_config: true }, central)).toEqual({ kind: "inherited" });
+  });
 });
 
 describe("the translations of the native plugins", () => {

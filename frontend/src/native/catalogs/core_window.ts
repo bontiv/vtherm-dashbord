@@ -33,6 +33,9 @@ export const en = {
   "field.window_sensor_entity_id": "Window sensor entity id",
   "help.window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
   "feature_intro.use_window_feature": "Turns the heating off, or lowers it, while a window is open: with a window sensor, or by detecting the fast drop of the temperature.",
+  "window_method.question": "How to detect an open window?",
+  "window_method.sensor": "Opening sensor",
+  "window_method.drop": "Temperature drop",
 } as const;
 
 /** The French catalog. */
@@ -61,6 +64,9 @@ export const fr = {
   "field.window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
   "help.window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
   "feature_intro.use_window_feature": "Coupe ou réduit le chauffage pendant qu'une fenêtre est ouverte : avec un capteur d'ouverture, ou en détectant la baisse rapide de la température.",
+  "window_method.question": "Comment détecter une fenêtre ouverte ?",
+  "window_method.sensor": "Capteur d'ouverture",
+  "window_method.drop": "Chute de température",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -89,4 +95,7 @@ export const de = {
   "field.window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
   "help.window_sensor_entity_id": "Leer lassen, wenn kein Fenstersensor verhanden ist und/oder die automatische Erkennung genutzt werden soll",
   "feature_intro.use_window_feature": "Schaltet die Heizung aus oder senkt sie ab, solange ein Fenster offen ist: mit einem Fenstersensor oder durch Erkennen des schnellen Temperaturabfalls.",
+  "window_method.question": "Wie wird ein offenes Fenster erkannt?",
+  "window_method.sensor": "Öffnungssensor",
+  "window_method.drop": "Temperaturabfall",
 } satisfies CompleteCatalog<typeof en>;

@@ -136,6 +136,26 @@ describe("the draft of a thermostat", () => {
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
   });
 
+  it("asks before following the link to the central configuration with changes, and stays when the user refuses", async () => {
+    const confirm = stubConfirm(false);
+    const central = { thermostat_type: "thermostat_central_config", external_temperature_sensor_entity_id: "sensor.outdoor", temp_min: 7, temp_max: 35, step_temperature: 0.1 };
+    const configs: FakeConfigs = {
+      "climate.salon": { name: "Salon", type: "over_switch", values: { ...switchValues("Salon"), use_main_central_config: true } },
+      central: { name: "Central", type: "central", values: central },
+    };
+    const { panel } = await mount({ configs, path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });
+    const tab = nativeTab(panel, "vtherm-native-main-thermostat");
+    tab.proposeChanges({ name: "Living room" });
+    await drawn(panel);
+    const link = await vi.waitFor(() => find<HTMLAnchorElement>(tab.shadowRoot as ShadowRoot, "a.central-link") as HTMLAnchorElement);
+    expect(link.getAttribute("href")).toBe(`/vtherm/${CONFIGURATION}/core.general.main`);
+    link.click();
+    await settle(panel);
+    expect(confirm).toHaveBeenCalledWith("You have unsaved changes. Leave and lose them?");
+    expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}/climate.salon/core.tab.main`);
+    expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBe("Living room");
+  });
+
   it("drops the draft when the user leaves after confirming, and keeps the section open on the other thermostat", async () => {
     stubConfirm(true);
     const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main` });

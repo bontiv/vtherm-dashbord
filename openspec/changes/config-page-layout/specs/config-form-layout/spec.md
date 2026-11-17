@@ -11,7 +11,7 @@ Les champs d'une section native SHALL être disposés sur une grille qui ajoute 
 
 #### Scenario: Écran large
 - **WHEN** l'onglet principal d'un thermostat est affiché sur un écran de 1440 px de large
-- **THEN** le nom, le capteur de température et le capteur de dernière vue sont côte à côte sur une même ligne
+- **THEN** le nom, le capteur de température et la durée de cycle sont côte à côte sur une même ligne
 
 #### Scenario: Champ de liste
 - **WHEN** l'onglet type d'un thermostat sur interrupteur est affiché sur un écran large

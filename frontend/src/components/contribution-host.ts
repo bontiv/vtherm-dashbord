@@ -44,9 +44,10 @@ export class VThermContributionHost extends LitElement {
         padding: 16px;
         color: var(--error-color);
       }
+      /* As wide as the card of a native section below it. */
       .feature {
         display: block;
-        max-width: 760px;
+        max-width: 1240px;
         margin: 16px 16px 0;
       }
       .feature-content {

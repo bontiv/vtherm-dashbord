@@ -7,13 +7,13 @@ import type { PresetData, ThermostatList } from "../config/api.ts";
 import { PRESET_PREFIX } from "../config/draft.ts";
 import { translateErrorCode } from "../i18n.ts";
 import { shell, t } from "../shell-translations.ts";
-import { autoTpiDefaults, definitionOf, entityChoices, formatInput, isFieldShown, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
-import type { FieldSpec } from "./schemas.ts";
+import { autoTpiDefaults, defaultOf, definitionOf, entityChoices, formatInput, isFieldShown, isWideField, missingRequired, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
+import type { FieldSpec, SchemaName } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
 import { buildPresetGrid, parseTemperature, presetOrderWarnings } from "./preset-table.ts";
 import type { PresetCell, Situation } from "./preset-table.ts";
-import { CENTRAL_REQUIRED_OPTIONS, centralContributionId } from "./tab-definitions.ts";
-import type { ConfigKind, TabDefinition, TabLayout } from "./tab-definitions.ts";
+import { CENTRAL_REQUIRED_OPTIONS, WINDOW_METHOD_KEYS, centralContributionId, isAdvanced, windowMethod, windowValues } from "./tab-definitions.ts";
+import type { ConfigKind, TabDefinition, TabLayout, WindowMethod } from "./tab-definitions.ts";
 import { commandsByUnderlying, formatBoilerService, formatCommand, needsCommands, parseBoilerService, parseCommand, storedCommands } from "./commands.ts";
 import { renderCardActions } from "../components/card-actions.ts";
 import type { CardDraft } from "../components/card-actions.ts";
@@ -30,6 +30,12 @@ const COMMAND_FIELDS = new Set(["vswitch_on_command", "vswitch_off_command"]);
 
 /** The services of the central boiler: an entity, a service and an attribute. */
 const BOILER_SERVICE_FIELDS = new Set(["central_boiler_activation_service", "central_boiler_deactivation_service"]);
+
+/** The form that holds the thresholds of the detection of a window by a drop of the temperature, with their defaults. */
+const WINDOW_DROP_SCHEMA = "STEP_CENTRAL_WINDOW_DATA_SCHEMA";
+
+/** Whether a value is set: not empty. */
+const isSet = (value: unknown): boolean => value !== undefined && value !== null && value !== "" && !(Array.isArray(value) && value.length === 0);
 
 /** The value of the event `value-changed` of a component of Home Assistant. */
 type ValueChanged = CustomEvent<{ value: unknown }>;
@@ -54,6 +60,7 @@ export class NativeTabElement extends LitElement {
     centralPresetData: { state: true },
     presetInvalid: { state: true },
     suggestion: { state: true },
+    picked: { state: true },
   };
 
   static override styles = [
@@ -64,16 +71,17 @@ export class NativeTabElement extends LitElement {
         padding: 16px;
         color: var(--primary-text-color);
       }
+      /* The card uses the width of the page, up to a width that stays readable. */
       ha-card {
         display: block;
-        max-width: 760px;
+        max-width: 1240px;
       }
       .card-content {
         padding: 0 16px 16px;
       }
       /* fallback: the card of the tab when ha-card is not defined. */
       .card {
-        max-width: 760px;
+        max-width: 1240px;
         padding: 16px;
         background-color: var(--card-background-color);
         border: 1px solid var(--divider-color);
@@ -98,17 +106,100 @@ export class NativeTabElement extends LitElement {
       .description {
         margin: 0 0 16px;
       }
+      /* The fields of a section are tiles: the grid adds columns with the width, and a list, a template or a block of commands takes
+         the whole width. */
+      .fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+        gap: 12px 16px;
+        align-items: start;
+        margin: 12px 0;
+      }
       .field {
         display: grid;
         gap: 4px;
-        margin: 12px 0;
+        min-width: 0;
+      }
+      .wide {
+        grid-column: 1 / -1;
+      }
+      .customize {
+        display: grid;
+        gap: 4px;
+        margin: 16px 0 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--divider-color);
+      }
+      .switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-weight: 500;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 12px;
+        padding: 0;
+        list-style: none;
+      }
+      .chip {
+        max-width: 100%;
+        padding: 4px 12px;
+        overflow-wrap: anywhere;
+        color: var(--primary-text-color);
+        background-color: var(--secondary-background-color);
+        border-radius: 16px;
+      }
+      .chip-label {
+        color: var(--secondary-text-color);
+      }
+      .method {
+        margin: 0 0 12px;
+      }
+      /* fallback: the choice of the method of detection, when ha-selector is not defined. */
+      fieldset.method {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        padding: 0;
+        border: 0;
+      }
+      fieldset.method legend {
+        margin-bottom: 8px;
+        padding: 0;
+        font-weight: 500;
       }
       ha-selector,
       ha-service-picker {
         display: block;
       }
-      ha-expansion-panel {
+      ha-expansion-panel,
+      details.advanced {
         margin: 12px 0;
+      }
+      .advanced .fields {
+        margin: 12px 0 4px;
+      }
+      /* fallback: the panel of the advanced settings, when ha-expansion-panel is not defined. */
+      details.advanced summary {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      details.advanced summary::-webkit-details-marker {
+        display: none;
+      }
+      details.advanced summary::before {
+        content: "▸";
+        margin-inline-end: 8px;
+      }
+      details.advanced[open] summary::before {
+        content: "▾";
       }
       .commands .row {
         display: grid;
@@ -139,7 +230,7 @@ export class NativeTabElement extends LitElement {
       }
       /* fallback: the controls and the messages of the fallback, when the components of Home Assistant are not defined. */
       .field.boolean {
-        grid-template-columns: auto 1fr;
+        grid-template-columns: auto minmax(0, 1fr);
         align-items: start;
         column-gap: 8px;
       }
@@ -198,19 +289,6 @@ export class NativeTabElement extends LitElement {
         padding: 8px 12px;
         border: 1px solid currentColor;
         border-radius: 4px;
-      }
-      dl {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 4px 16px;
-        margin: 0;
-      }
-      dt {
-        color: var(--secondary-text-color);
-      }
-      dd {
-        margin: 0;
-        text-align: right;
       }
       button.fallback {
         padding: 4px 8px;
@@ -347,6 +425,8 @@ export class NativeTabElement extends LitElement {
   declare suggestion: string | null | undefined;
   /** The cells of the table of the presets whose typed text is refused, by preset: the text stays in the cell, out of the draft. */
   declare presetInvalid: Readonly<Record<string, { readonly text: string; readonly message: string }>>;
+  /** The method of detection of a window that the user picked on the page, until the draft is saved or discarded. */
+  declare picked: WindowMethod | undefined;
 
   private loadedFor = "";
 
@@ -366,6 +446,7 @@ export class NativeTabElement extends LitElement {
     this.centralPresetData = undefined;
     this.suggestion = undefined;
     this.presetInvalid = {};
+    this.picked = undefined;
   }
 
   private get statics(): typeof NativeTabElement {
@@ -438,6 +519,9 @@ export class NativeTabElement extends LitElement {
     // A draft that is no longer dirty was saved or discarded: the temperatures are read again, as the cells mark the changes by comparing them
     // with the temperatures that were read.
     const settled = (changed.get("draft") as CardDraft | undefined)?.dirty === true && this.draft?.dirty !== true;
+    if (settled || changed.has("thermostatId")) {
+      this.picked = undefined;
+    }
     if (layout.presets === true && (this.loadedFor !== key || settled)) {
       this.loadedFor = key;
       this.presetInvalid = {};
@@ -501,22 +585,24 @@ export class NativeTabElement extends LitElement {
     return key in this.statics.translations.english ? this.text(key) : option;
   }
 
-  /** The name of an entity, as Home Assistant shows it, and its identifier when it has none. */
-  private entityName(entityId: string): string {
+  /** The name of an entity, as Home Assistant shows it, and its identifier when it has none. A short name has no identifier. */
+  private entityName(entityId: string, short = false): string {
     const name = (this.hass?.states[entityId]?.attributes["friendly_name"] as string | undefined) ?? "";
-    return name === "" ? entityId : `${name} (${entityId})`;
+    return name === "" ? entityId : short ? name : `${name} (${entityId})`;
   }
 
   /** An entity shown outside a picker: a click opens its card in Home Assistant. */
-  private renderEntity(entityId: string): TemplateResult | string {
+  private renderEntity(entityId: string, short = false): TemplateResult | string {
     if (this.hass?.states[entityId] === undefined) {
       return entityId;
     }
     // fallback: a link button rather than ha-button, which would be too heavy inside a line of text.
-    return html`<button class="entity-link" @click=${(event: Event) => showMoreInfo(event.currentTarget as EventTarget, entityId, this.hass?.states)}>${this.entityName(entityId)}</button>`;
+    return html`<button class="entity-link" title=${entityId} @click=${(event: Event) => showMoreInfo(event.currentTarget as EventTarget, entityId, this.hass?.states)}>
+      ${this.entityName(entityId, short)}
+    </button>`;
   }
 
-  /** Show a value of the central configuration, read-only. */
+  /** Show a value of the central configuration, read-only, with the names of its entities. */
   private readOnlyValue(field: FieldSpec, value: unknown): TemplateResult | string {
     if (value === undefined || value === null || value === "") {
       return t("config.none");
@@ -529,7 +615,7 @@ export class NativeTabElement extends LitElement {
     }
     if (field.kind === "entity") {
       const entities = Array.isArray(value) ? value.map(String) : [String(value)];
-      return html`${entities.map((entity, index) => html`${index === 0 ? "" : ", "}${this.renderEntity(entity)}`)}`;
+      return html`${entities.map((entity, index) => html`${index === 0 ? "" : ", "}${this.renderEntity(entity, true)}`)}`;
     }
     return Array.isArray(value) ? value.join(", ") : String(value);
   }
@@ -567,6 +653,11 @@ export class NativeTabElement extends LitElement {
     return ha ? this.renderSelector(field, layout) : this.renderFallbackField(field, layout);
   }
 
+  /** The classes of the tile of a field: `wide` for a field that takes the whole width of the grid. */
+  private fieldClass(field: FieldSpec, extra: string): string {
+    return ["field", isWideField(field) ? "wide" : "", extra].filter(Boolean).join(" ");
+  }
+
   /** Whether a creation still misses this field: it is required and empty. */
   private isMissing(field: FieldSpec): boolean {
     return this.missing.includes(field.key);
@@ -586,7 +677,7 @@ export class NativeTabElement extends LitElement {
     const extra = field.kind === "select" && typeof value === "string" && value !== "" && !(field.options ?? []).includes(value) ? [value] : [];
     const selector = selectorOf(definitionOf(field, (option) => this.optionLabel(field, option), extra));
     const missing = this.isMissing(field);
-    return html`<div class=${missing ? "field missing" : "field"} data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, missing ? "missing" : "")} data-key=${field.key}>
       <ha-selector
         aria-invalid=${missing ? "true" : "false"}
         aria-describedby=${missing ? `required-${field.key}` : ""}
@@ -673,7 +764,7 @@ export class NativeTabElement extends LitElement {
         ${control}
       </div>`;
     });
-    return html`<div class="field commands" data-key=${field.key}>
+    return html`<div class="field commands wide" data-key=${field.key}>
       ${ha ? html`<div class="label"><strong>${this.label(field)}</strong></div>` : html`<label for=${id(0)}>${this.label(field)}</label>`} ${this.help(field)}
       ${underlyings.length === 0 && commands.length === 0 ? html`<div class="note">${t("config.command.no_underlying")}</div>` : rows}
       ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
@@ -706,7 +797,7 @@ export class NativeTabElement extends LitElement {
                   const next = command === "" ? { service: "", attribute: "" } : (parseCommand(command) ?? { service: command, attribute: "" });
                   store(formatBoilerService({ entity: parsed.entity, ...next }));
                 })}`;
-    return html`<div class="field boiler-service" data-key=${field.key}>
+    return html`<div class="field boiler-service wide" data-key=${field.key}>
       ${parsed === undefined ? undefined : html`<div class="label"><strong>${this.label(field)}</strong></div>`} ${this.help(field)} ${controls}
       ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
     </div>`;
@@ -724,7 +815,7 @@ export class NativeTabElement extends LitElement {
     const errorLine = error === undefined ? undefined : html`<div class="error" id="error-${field.key}" role="alert">${error}</div>`;
     // fallback: the controls below replace ha-selector when it is not defined (an old version of Home Assistant, or out of it).
     if (field.kind === "boolean") {
-      return html`<div class="field boolean">
+      return html`<div class="field boolean" data-key=${field.key}>
         <input
           type="checkbox"
           id=${id}
@@ -771,17 +862,132 @@ export class NativeTabElement extends LitElement {
         />
         ${listId === undefined ? undefined : html`<datalist id=${listId}>${entityChoices(field, Object.keys(this.hass?.states ?? {})).map((entity) => html`<option value=${entity}></option>`)}</datalist>`}`;
     }
-    return html`<div class="field">
+    return html`<div class=${this.fieldClass(field, "")} data-key=${field.key}>
       <label for=${id} class=${missing ? "missing" : ""}>${this.label(field)}</label>
       ${control} ${missing ? this.renderRequiredNote(field) : undefined} ${this.help(field)} ${this.renderSuggestion(field)} ${errorLine}
     </div>`;
   }
 
+  /** The address of the same section in the general configuration. */
+  private centralLink(): string {
+    return buildPath({ tab: CORE_TOP_TABS.configuration, entry: centralContributionId(this.statics.definition), rest: [] });
+  }
+
+  /**
+   * The values that the section takes from the central configuration: a chip "label: value" for each one, the entities by their name,
+   * then a link to the same section of the general configuration. Without any central value, the defaults of Versatile Thermostat apply.
+   */
   private renderInherited(fields: readonly FieldSpec[]): TemplateResult {
-    return html`<h3>${t("config.central_values")}</h3>
-      <dl>
-        ${fields.map((field) => html`<dt>${this.label(field)}</dt><dd>${this.readOnlyValue(field, this.centralValues[field.key])}</dd>`)}
-      </dl>`;
+    const link = this.centralLink();
+    const empty = fields.every((field) => !isSet(this.centralValues[field.key]));
+    return html`<div class="inherited">
+      <h3 id="central-values">${t("config.central_values")}</h3>
+      ${empty
+        ? html`<p class="note central-defaults">${t("config.central_defaults")}</p>`
+        : html`<ul class="chips" aria-labelledby="central-values">
+            ${fields.map(
+              (field) =>
+                html`<li class="chip" data-key=${field.key}>
+                  <span class="chip-label">${t("config.chip_label", { label: this.label(field) })}</span>
+                  <span class="chip-value">${this.readOnlyValue(field, this.centralValues[field.key])}</span>
+                </li>`,
+            )}
+          </ul>`}
+      <a class="central-link touch-target" href=${link} @click=${(event: MouseEvent) => followLink(this, event, link)}>${t("config.edit_central")}</a>
+    </div>`;
+  }
+
+  /**
+   * The option of inheritance, drawn as the switch "Customize for this thermostat": on when the section has its own values, so it writes
+   * the opposite of the option of Versatile Thermostat. Without a central configuration, it is on and disabled, with an explanation.
+   */
+  private renderCustomize(key: string, ha: boolean): TemplateResult {
+    const disabled = !this.hasCentral;
+    const on = disabled || this.values[key] === false;
+    const label = t("config.customize");
+    const error = this.fieldError(key);
+    const toggle = (event: Event) => this.propose({ [key]: !(event.target as HTMLInputElement).checked });
+    const control =
+      ha && isDefined("ha-switch")
+        ? html`<ha-switch id="customize-${key}" .checked=${on} .disabled=${disabled} aria-label=${label} @change=${toggle}></ha-switch>`
+        : // fallback: a checkbox, when ha-switch is not defined.
+          html`<input type="checkbox" id="customize-${key}" .checked=${on} ?disabled=${disabled} @change=${toggle} />`;
+    return html`<div class="customize" data-key=${key}>
+      <label class="switch touch-target"><span>${label}</span>${control}</label>
+      ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined}
+      ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
+    </div>`;
+  }
+
+  /** The method of detection of a window that the page shows, for the window of a thermostat; undefined elsewhere. */
+  private shownWindowMethod(): WindowMethod | undefined {
+    if (this.statics.definition.tab !== "window" || this.statics.kind !== "thermostat") {
+      return undefined;
+    }
+    return windowMethod(windowValues(this.values, this.centralValues), this.picked);
+  }
+
+  /**
+   * The user picked a method of detection of a window. The sensor goes away with the drop of the temperature, which gets its thresholds;
+   * the own thresholds go away with the sensor. The values that come from the central configuration are not touched.
+   */
+  private pickWindowMethod(value: unknown): void {
+    if (value !== "sensor" && value !== "drop") {
+      return;
+    }
+    this.picked = value;
+    const inherited = this.inherits(this.layout());
+    const changes: Record<string, unknown> = {};
+    if (value === "drop") {
+      if (isSet(this.values["window_sensor_entity_id"])) {
+        changes["window_sensor_entity_id"] = null;
+      }
+      for (const field of inherited ? [] : fieldsOf(WINDOW_DROP_SCHEMA).filter((candidate) => WINDOW_METHOD_KEYS.drop.includes(candidate.key))) {
+        if (!isSet(this.values[field.key])) {
+          changes[field.key] = defaultOf(field, this.unit);
+        }
+      }
+    } else if (!inherited) {
+      for (const key of WINDOW_METHOD_KEYS.drop.filter((candidate) => isSet(this.values[candidate]))) {
+        changes[key] = null;
+      }
+    }
+    if (Object.keys(changes).length > 0) {
+      this.propose(changes);
+    }
+  }
+
+  /** The choice of the method of detection of a window: a group of buttons, one of which is chosen. */
+  private renderWindowMethod(method: WindowMethod, ha: boolean): TemplateResult {
+    const question = this.text("window_method.question");
+    const methods: readonly WindowMethod[] = ["sensor", "drop"];
+    if (ha) {
+      const selector = { select: { mode: "box", options: methods.map((value) => ({ value, label: this.text(`window_method.${value}`) })) } };
+      return html`<div class="method wide" role="radiogroup" aria-label=${question}>
+        <ha-selector
+          .hass=${this.hass}
+          .selector=${selector}
+          .value=${method}
+          .label=${question}
+          .required=${true}
+          @value-changed=${(event: ValueChanged) => {
+            event.stopPropagation();
+            this.pickWindowMethod(event.detail.value);
+          }}
+        ></ha-selector>
+      </div>`;
+    }
+    // fallback: radio buttons in a group, when ha-selector is not defined.
+    return html`<fieldset class="method wide" role="radiogroup">
+      <legend>${question}</legend>
+      ${methods.map(
+        (value) =>
+          html`<label class="touch-target"
+            ><input type="radio" name="window-method" value=${value} .checked=${value === method} @change=${() => this.pickWindowMethod(value)} />
+            ${this.text(`window_method.${value}`)}</label
+          >`,
+      )}
+    </fieldset>`;
   }
 
   /** The label of a row of the table: the name of its preset in the catalog, or the name that Versatile Thermostat gave when the catalog has none. */
@@ -902,14 +1108,27 @@ export class NativeTabElement extends LitElement {
     }
   }
 
-  /** The fields of a long group: in a panel of Home Assistant that opens, open when one of its fields is refused. */
-  private renderGroup(fields: readonly FieldSpec[], layout: TabLayout, ha: boolean): TemplateResult | TemplateResult[] {
-    const drawn = fields.map((field) => this.renderField(field, layout, ha)).filter((item): item is TemplateResult => item !== undefined);
-    if (!ha || fields.length === 0 || !isDefined("ha-expansion-panel")) {
-      return drawn;
+  /** Fields in the grid of the section. */
+  private renderFields(fields: readonly FieldSpec[], layout: TabLayout, ha: boolean): TemplateResult | undefined {
+    return fields.length === 0 ? undefined : html`<div class="fields">${fields.map((field) => this.renderField(field, layout, ha))}</div>`;
+  }
+
+  /**
+   * The advanced settings of the section, in a panel that is closed, with their number. It opens by itself when one of them is refused,
+   * or required without a value.
+   */
+  private renderAdvanced(fields: readonly FieldSpec[], layout: TabLayout, ha: boolean): TemplateResult | undefined {
+    if (fields.length === 0) {
+      return undefined;
     }
-    const refused = fields.some((field) => this.errors[field.key] !== undefined);
-    return html`<ha-expansion-panel outlined .header=${t("config.more_settings")} .expanded=${refused}>${drawn}</ha-expansion-panel>`;
+    const open = fields.some((field) => this.errors[field.key] !== undefined || this.isMissing(field)) || missingRequired(fields, this.values).length > 0;
+    const header = t("config.advanced_settings", { count: fields.length });
+    const content = this.renderFields(fields, layout, ha);
+    if (ha && isDefined("ha-expansion-panel")) {
+      return html`<ha-expansion-panel class="advanced" outlined .header=${header} .expanded=${open}>${content}</ha-expansion-panel>`;
+    }
+    // fallback: a disclosure of HTML, when ha-expansion-panel is not defined.
+    return html`<details class="advanced" ?open=${open}><summary class="touch-target">${header}</summary>${content}</details>`;
   }
 
   protected override render(): TemplateResult {
@@ -921,17 +1140,29 @@ export class NativeTabElement extends LitElement {
     const { definition } = this.statics;
     const layout = this.layout();
     const inherited = this.inherits(layout);
-    const base = layout.base.flatMap((name) => fieldsOf(name));
-    const specific = (layout.specific ?? []).flatMap((name) => fieldsOf(name));
-    const extra = inherited ? [] : (layout.extra ?? []).flatMap((name) => fieldsOf(name));
+    // The window of a thermostat shows the fields of the method of detection that is chosen.
+    const windowMethodShown = this.shownWindowMethod();
+    const hidden = windowMethodShown === undefined ? [] : WINDOW_METHOD_KEYS[windowMethodShown === "sensor" ? "drop" : "sensor"];
+    const shown = (names: readonly SchemaName[] | undefined): FieldSpec[] =>
+      (names ?? []).flatMap((name) => fieldsOf(name)).filter((field) => isFieldShown(field, this.values) && !hidden.includes(field.key) && field.key !== layout.inherit);
+    const base = shown(layout.base);
+    const specific = shown(layout.specific);
+    const extra = inherited ? [] : shown(layout.extra);
+    const own = [...base, ...(inherited ? [] : specific), ...extra];
+    const isCurrent = (field: FieldSpec): boolean => !isAdvanced(field);
     const descriptionKey = `description.${definition.tab}`;
     const baseError = this.fieldError("base");
     const method = this.values["auto_tpi_calculation_method"];
     const title = this.text(`title.${definition.tab}`);
+    // The fields of the section come first, then the option of inheritance and what it gives, then the advanced settings of the section.
     const content = html`${descriptionKey in this.statics.translations.english ? html`<p class="description">${this.text(descriptionKey)}</p>` : undefined}
-    ${baseError === undefined ? undefined : renderAlert("error", baseError, "base-error")} ${base.map((field) => this.renderField(field, layout, ha))}
-    ${specific.length === 0 ? undefined : inherited ? this.renderInherited(specific) : specific.map((field) => this.renderField(field, layout, ha))}
-    ${this.renderGroup(extra, layout, ha)}
+    ${baseError === undefined ? undefined : renderAlert("error", baseError, "base-error")}
+    ${windowMethodShown === undefined ? undefined : this.renderWindowMethod(windowMethodShown, ha)}
+    ${layout.inherit === undefined
+      ? this.renderFields(own.filter(isCurrent), layout, ha)
+      : html`${this.renderFields(base.filter(isCurrent), layout, ha)} ${this.renderCustomize(layout.inherit, ha)}
+        ${inherited ? (specific.length === 0 ? undefined : this.renderInherited(specific)) : this.renderFields([...specific, ...extra].filter(isCurrent), layout, ha)}`}
+    ${this.renderAdvanced(own.filter(isAdvanced), layout, ha)}
     ${extra.some((field) => field.key === "auto_tpi_learning_type") && typeof method === "string"
       ? html`<p class="note">${t("config.calculation_method", { method: t(method === "ema" ? "config.method.ema" : "config.method.average") })}</p>`
       : undefined}

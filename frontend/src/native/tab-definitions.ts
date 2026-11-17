@@ -102,6 +102,94 @@ export const CENTRAL_REQUIRED_OPTIONS: ReadonlySet<string> = new Set([
   "used_by_controls_central_boiler",
 ]);
 
+/**
+ * The fields that a section shows in its panel "Advanced settings", closed: the settings that are rarely changed. The other fields are
+ * shown first, and so is a field that this list does not know yet, added by a new version of Versatile Thermostat.
+ */
+export const ADVANCED_FIELDS: ReadonlySet<string> = new Set([
+  // Main and type.
+  "last_seen_temperature_sensor_entity_id",
+  "step_temperature",
+  "heater_keep_alive",
+  "vswitch_on_command",
+  "vswitch_off_command",
+  "auto_fan_mode",
+  "auto_regulation_use_device_temp",
+  // TPI and Auto TPI.
+  "minimal_activation_delay",
+  "minimal_deactivation_delay",
+  "tpi_threshold_low",
+  "tpi_threshold_high",
+  "auto_tpi_learning_type",
+  "auto_tpi_aggressiveness",
+  "heater_heating_time",
+  "heater_cooling_time",
+  "auto_tpi_heating_rate",
+  "auto_tpi_continuous_kext",
+  "auto_tpi_enable_advanced_settings",
+  "auto_tpi_avg_initial_weight",
+  "auto_tpi_ema_alpha",
+  "auto_tpi_ema_decay_rate",
+  "auto_tpi_continuous_kext_alpha",
+  // Synchronization of the temperature.
+  "sync_with_calibration",
+  // Central boiler.
+  "keep_alive_boiler_delay_sec",
+  // Advanced.
+  "safety_min_on_percent",
+  "repair_incorrect_state",
+  // Heating failure detection.
+  "temperature_change_tolerance",
+  "failure_detection_enable_template",
+  // Lock.
+  "lock_code",
+  "auto_relock_sec",
+]);
+
+/** Whether a field is in the panel "Advanced settings" of its section. */
+export const isAdvanced = (field: FieldSpec): boolean => ADVANCED_FIELDS.has(field.key);
+
+/** How a thermostat detects an open window: with a sensor of opening, or with a drop of the temperature. */
+export type WindowMethod = "sensor" | "drop";
+
+/** The values of each method of detection of an open window. */
+export const WINDOW_METHOD_KEYS: Readonly<Record<WindowMethod, readonly string[]>> = {
+  sensor: ["window_sensor_entity_id"],
+  drop: ["window_auto_open_threshold", "window_auto_close_threshold", "window_auto_max_duration"],
+};
+
+const isSet = (value: unknown): boolean => value !== undefined && value !== null && value !== "";
+
+/**
+ * The method of detection of an open window of a thermostat: the one that the user picked, otherwise the one that its values give.
+ * A sensor gives the sensor; a threshold of detection without a sensor gives the drop of temperature; nothing gives the sensor.
+ *
+ * @param values - The values of the thermostat, with the central values of the window when it uses them.
+ * @param picked - The method that the user picked on the page, if any.
+ */
+export function windowMethod(values: Values, picked?: WindowMethod): WindowMethod {
+  if (picked !== undefined) {
+    return picked;
+  }
+  if (isSet(values["window_sensor_entity_id"])) {
+    return "sensor";
+  }
+  return ["window_auto_open_threshold", "window_auto_close_threshold"].some((key) => isSet(values[key])) ? "drop" : "sensor";
+}
+
+/**
+ * The values that decide the method of detection of a window: the values of the thermostat, over the central values of the
+ * detection when the thermostat uses the central configuration of the window.
+ */
+export function windowValues(values: Values, centralValues: Values): Values {
+  const inherited = Object.keys(centralValues).length > 0 && values["use_window_central_config"] !== false;
+  if (!inherited) {
+    return values;
+  }
+  const central = Object.fromEntries(WINDOW_METHOD_KEYS.drop.map((key) => [key, centralValues[key]]));
+  return { ...values, ...central };
+}
+
 const isOn = (values: Values, key: string): boolean => values[key] === true;
 const fixed = (layout: TabLayout) => (): TabLayout => layout;
 
