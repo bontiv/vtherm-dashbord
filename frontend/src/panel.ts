@@ -202,6 +202,10 @@ export class VThermDashboardPanel extends LitElement {
     .readonly,
     .missing {
       margin: 16px 16px 0;
+    }
+    /* fallback: ha-alert draws its own background and bar, so only the div of the fallback needs a border. */
+    div.readonly,
+    div.missing {
       padding: 8px 12px;
       border: 1px solid var(--warning-color);
       border-radius: 4px;
