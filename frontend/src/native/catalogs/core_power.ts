@@ -26,6 +26,12 @@ export const en = {
   "field.use_power_central_config": "Use central power configuration",
   "help.use_power_central_config": "Check to use the central power configuration. Uncheck to use a specific power configuration for this VTherm",
   "feature_intro.use_power_feature": "Sheds the heating when the power of the home would go above its limit, so that the main switch does not trip.",
+  "hint.use_power_central_config": "Uses the temperature of shedding of the central configuration.",
+  "hint.power_temp": "Target applied to a thermostat while its heating is shed.",
+  "hint.power_sensor_entity_id": "Sensor of the power that the whole home draws right now.",
+  "hint.max_power_sensor_entity_id": "Sensor or helper that gives the highest power that the home may draw.",
+  "info.max_power_sensor_entity_id": "When the power drawn plus the power of a heater would go over this value, the heater is shed. Set it below the limit of your contract, to keep a margin for the other devices and for the delay of the readings. A helper lets an automation change the limit, for example while a car charges.",
+  "hint.power_unit": "Unit of the power sensors of the home; Auto reads it from each sensor.",
 } as const;
 
 /** The French catalog. */
@@ -47,6 +53,12 @@ export const fr = {
   "field.use_power_central_config": "Utiliser la configuration centrale de la puissance",
   "help.use_power_central_config": "Cochez pour utiliser la configuration centrale de la puissance. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la puissance",
   "feature_intro.use_power_feature": "Déleste le chauffage quand la puissance du logement dépasserait sa limite, pour éviter que le disjoncteur ne saute.",
+  "hint.use_power_central_config": "Utilise la température de délestage de la configuration centrale.",
+  "hint.power_temp": "Consigne appliquée à un thermostat pendant que son chauffage est délesté.",
+  "hint.power_sensor_entity_id": "Capteur de la puissance que consomme tout le logement en ce moment.",
+  "hint.max_power_sensor_entity_id": "Capteur ou entrée qui donne la puissance maximale que le logement peut consommer.",
+  "info.max_power_sensor_entity_id": "Quand la puissance consommée plus celle d'un radiateur dépasserait cette valeur, le radiateur est délesté. Réglez-la sous la limite de votre abonnement, pour garder une marge pour les autres appareils et pour le retard des mesures. Une entrée permet à une automatisation de changer la limite, par exemple pendant la recharge d'une voiture.",
+  "hint.power_unit": "Unité des capteurs de puissance du logement ; Auto la lit sur chaque capteur.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -68,4 +80,10 @@ export const de = {
   "field.use_power_central_config": "Zentrales Powermanagement verwenden",
   "help.use_power_central_config": "Aktivieren, zur Verwendung des zentralen Powermanagements. Deaktivieren, um eine spezifische Leistungskonfiguration für dieses VTherm zu verwenden.",
   "feature_intro.use_power_feature": "Wirft die Heizung ab, wenn die Leistung des Hauses ihre Grenze überschreiten würde, damit die Hauptsicherung nicht auslöst.",
+  "hint.use_power_central_config": "Verwendet die Abwurftemperatur der zentralen Konfiguration.",
+  "hint.power_temp": "Solltemperatur, die ein Thermostat erhält, solange seine Heizung abgeworfen ist.",
+  "hint.power_sensor_entity_id": "Sensor der Leistung, die das ganze Haus gerade bezieht.",
+  "hint.max_power_sensor_entity_id": "Sensor oder Helfer, der die höchste Leistung angibt, die das Haus beziehen darf.",
+  "info.max_power_sensor_entity_id": "Würden die bezogene Leistung plus die Leistung eines Heizgeräts diesen Wert überschreiten, wird das Gerät abgeworfen. Setzen Sie ihn unter die Grenze Ihres Vertrags, um Reserve für andere Geräte und für die Verzögerung der Messungen zu lassen. Mit einem Helfer kann eine Automatisierung die Grenze ändern, z. B. während ein Auto lädt.",
+  "hint.power_unit": "Einheit der Leistungssensoren des Hauses; Auto liest sie aus jedem Sensor.",
 } satisfies CompleteCatalog<typeof en>;

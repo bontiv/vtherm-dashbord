@@ -103,6 +103,13 @@ status that the menu shows, or `undefined`. A function that raises, or returns a
 [Status of a configuration section](hooks-and-placement.md#status-of-a-configuration-section) and its test,
 `docs/examples/typescript/section-status.test.ts`.
 
+## The help of a field
+`defineFieldHelpMock()` of `@vtherm/dashboard-sdk/testing` defines a simulated help of a field (`FIELD_HELP_ELEMENT`) in the page of
+the test, so that a section can be tested without the dashboard. Read the element as a `MockFieldHelpElement`: it keeps the `label`,
+`hint`, `info`, `diagram`, `values` and `highlight` that the section gave it, and shows its hint as text. An element that is already
+defined is left as it is. See [Help of a field](plugin-development.md#help-of-a-field) and its test,
+`docs/examples/typescript/field-help.test.ts`.
+
 ## The components of Home Assistant
 A component that draws `ha-selector`, `ha-switch`, `ha-button` or another component of Home Assistant is tested without Home
 Assistant: `defineHaControlMocks()` of `@vtherm/dashboard-sdk/testing` defines simulated components in the page of the test (it needs

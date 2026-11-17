@@ -417,7 +417,8 @@ describe("the other native tabs", () => {
     expect(labels(off.root)).toEqual(["use_humidity_feature"]);
     const on = await render("core_humidity.tab.main", { ...SWITCH, temperature_sensor_entity_id: "sensor.indoor", use_humidity_feature: true });
     await vi.waitFor(() => expect(on.root.textContent).toContain("sensor.salon_humidity"));
-    find<HTMLButtonElement>(on.root, "button")?.click();
+    // The button of the suggestion, not the button (i) of the help of the field.
+    find<HTMLButtonElement>(on.root, ".note button")?.click();
     expect(on.proposals).toEqual([{ humidity_sensor_entity_id: "sensor.salon_humidity" }]);
   });
 
@@ -442,7 +443,8 @@ describe("the other native tabs", () => {
     const tpi = (await import("../src/native/plugins/core_tpi.ts")).translations;
     await tpi.setLanguage("fr");
     const { root } = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: false });
-    expect(root.textContent).toContain("Coefficient");
+    // The hint of the dashboard, in French, replaces the help of Versatile Thermostat under the field.
+    expect(root.textContent).toContain("Puissance donnée pour chaque degré");
     await tpi.setLanguage("en");
   });
 });

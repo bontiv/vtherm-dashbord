@@ -129,6 +129,14 @@ export default {
 - At run time, `translations.warnings` lists the keys that were not found (`missing_key`), the keys that were shown in English although the language of the user has a catalog (`fallback`), the parameters that were not given and the
   catalogs that did not load.
 
+## Texts of the help of the fields
+The native plugins add to the keys of their fields (`field.<key>`, `help.<key>`) a hint `hint.<key>` and an explanation
+`info.<key>`, in English, French and German; the generator of the catalogs (`npm run catalogs:generate`) takes them from
+`scripts/native-texts.ts`. The help of a field shows the hint under the control, or the help of Versatile Thermostat without it, and
+the explanation in its panel, or the help of Versatile Thermostat when it is another text than the hint. A plugin gives its own texts
+to the help of a field (see [Help of a field](plugin-development.md#help-of-a-field)). The texts of the diagrams (`diagram.<id>.*`)
+are those of the dashboard: a plugin that shows a diagram of the library does not translate them.
+
 ## Texts of the server
 
 The server never sends text for the user, only stable error codes such as `unknown_entity`. Your plugin translates them with

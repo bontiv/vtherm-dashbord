@@ -48,6 +48,11 @@ The fields are those of Home Assistant, as in its own settings:
   of a switch, the commands or the code of the lock, are in the closed panel **Advanced settings (N)** at the end of their section,
   with their number. It opens by itself when one of them is refused, or is required and has no value.
 - An entity of the central configuration shown in a section opens its card of Home Assistant when you click it.
+- Under each field, a short hint says what it changes. A field with a button (i) at its right has more: the button opens, under the
+  field, an explanation and often a diagram of the setting, drawn with the values that you are typing, the central ones when the
+  section uses the central configuration. The panel stays open while you change the field; the button or Escape closes it. The diagram
+  highlights the setting of the field that you are in. The fields that share a diagram, such as the openings of a valve, the
+  coefficients of TPI or the detection of a window by a drop of temperature, show it next to them, without opening any help.
 
 When the dashboard is opened directly, its sections may show "Loading the controls of Home Assistant" for a moment. A version of
 Home Assistant without these controls (they were checked on Home Assistant 2026.10) shows plain fields instead, with the same values.

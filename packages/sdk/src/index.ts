@@ -53,4 +53,6 @@ export type {
 } from "./fields.js";
 export { HA_CONTROLS, HA_SPINNERS, ensureHaControls, haControlsStatus } from "./ha-controls.js";
 export { isSectionStatus, sectionStatusOf } from "./status.js";
+export { DIAGRAM_IDS, FIELD_HELP_ELEMENT, isDiagramId } from "./field-help.js";
+export type { DiagramId, FieldHelpProps } from "./field-help.js";
 export type { ElementRegistry, HaControl, HaControlsOptions, HaControlsResult } from "./ha-controls.js";

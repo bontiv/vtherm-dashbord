@@ -25,6 +25,16 @@ export const en = {
   "field.use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
   "help.use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
   "feature_intro.use_heating_failure_detection_feature": "Warns when the temperature does not rise while the thermostat heats, or rises while it does not, as a broken heater would.",
+  "hint.use_heating_failure_detection_central_config": "Uses the detection settings of the central configuration.",
+  "hint.heating_failure_threshold": "Power above which the room must warm up; 0.9 is 90 %.",
+  "info.heating_failure_threshold": "When the heater runs at least at this power, given between 0 and 1, the temperature must rise. If it has not risen by the tolerance after the detection delay, a heating failure is reported, as with a heater that is off or broken. 0.9, the default, only checks the cycles at 90 % or more.",
+  "hint.cooling_failure_threshold": "Power at or under which the room must not warm up; 0 is 0 %.",
+  "info.cooling_failure_threshold": "When the heater runs at this power or less, given between 0 and 1, the temperature should not rise. If it rises by more than the tolerance during the detection delay, a failure is reported, as with a relay stuck on. 0, the default, only checks while the heater is fully off. Another heat source, such as the sun or a stove, can also trigger it: the detection template can pause the check then.",
+  "hint.heating_failure_detection_delay": "Minutes to wait before checking that the temperature follows the heating.",
+  "info.heating_failure_detection_delay": "The check starts when the power crosses one of the two thresholds; after this delay, the temperature is compared with its value at the start. A heating with a lot of inertia, such as underfloor heating, needs a longer delay than the default 15 minutes.",
+  "hint.temperature_change_tolerance": "Smallest change of temperature that counts, in °, to ignore the noise of the sensor.",
+  "info.temperature_change_tolerance": "Over the detection delay, a change smaller than this value is ignored: a rise below it counts as no rise while the heater runs, and a rise above it reveals a failure while the heater is off. 0.5°, the default, filters out the small swings of most sensors; raise it for a sensor that jumps a lot.",
+  "hint.failure_detection_enable_template": "Optional template that must be true for the detection to run, for example while a stove is off.",
 } as const;
 
 /** The French catalog. */
@@ -45,6 +55,16 @@ export const fr = {
   "field.use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
   "help.use_heating_failure_detection_central_config": "Cochez pour utiliser la configuration centrale de détection de panne. Décochez pour utiliser des paramètres spécifiques à ce VTherm",
   "feature_intro.use_heating_failure_detection_feature": "Prévient quand la température ne monte pas alors que le thermostat chauffe, ou monte alors qu'il ne chauffe pas, comme le ferait un radiateur en panne.",
+  "hint.use_heating_failure_detection_central_config": "Utilise les réglages de détection de la configuration centrale.",
+  "hint.heating_failure_threshold": "Puissance au-dessus de laquelle la pièce doit se réchauffer ; 0,9 vaut 90 %.",
+  "info.heating_failure_threshold": "Quand le radiateur chauffe au moins à cette puissance, donnée entre 0 et 1, la température doit monter. Si elle n'a pas monté de la tolérance après le délai de détection, une panne de chauffage est signalée, comme avec un radiateur éteint ou en panne. 0,9, la valeur par défaut, ne vérifie que les cycles à 90 % ou plus.",
+  "hint.cooling_failure_threshold": "Puissance à ou sous laquelle la pièce ne doit pas se réchauffer ; 0 vaut 0 %.",
+  "info.cooling_failure_threshold": "Quand le radiateur chauffe à cette puissance ou moins, donnée entre 0 et 1, la température ne devrait pas monter. Si elle monte de plus que la tolérance pendant le délai de détection, une panne est signalée, comme avec un relais resté collé. 0, la valeur par défaut, ne vérifie que lorsque le radiateur est complètement éteint. Une autre source de chaleur, comme le soleil ou un poêle, peut aussi la déclencher : le modèle d'activation peut alors suspendre la vérification.",
+  "hint.heating_failure_detection_delay": "Minutes d'attente avant de vérifier que la température suit le chauffage.",
+  "info.heating_failure_detection_delay": "La vérification commence quand la puissance franchit l'un des deux seuils ; après ce délai, la température est comparée à sa valeur du début. Un chauffage à forte inertie, comme un plancher chauffant, demande un délai plus long que les 15 minutes par défaut.",
+  "hint.temperature_change_tolerance": "Plus petit changement de température pris en compte, en °, pour ignorer le bruit du capteur.",
+  "info.temperature_change_tolerance": "Sur le délai de détection, un changement plus petit que cette valeur est ignoré : une montée inférieure compte comme une absence de montée quand le radiateur chauffe, et une montée supérieure révèle une panne quand il est éteint. 0,5°, la valeur par défaut, filtre les petites variations de la plupart des capteurs ; augmentez-la pour un capteur qui saute beaucoup.",
+  "hint.failure_detection_enable_template": "Modèle facultatif qui doit être vrai pour que la détection fonctionne, par exemple quand un poêle est éteint.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -65,4 +85,14 @@ export const de = {
   "field.use_heating_failure_detection_central_config": "Zentrale Konfiguration der Fehlererkennung verwenden",
   "help.use_heating_failure_detection_central_config": "Bei aktivierter Option wird zentrale Konfiguration für die Fehlererkennung verwendet. Deaktivieren, um spezifische Einstellungen für diesen VTherm zu verwenden.",
   "feature_intro.use_heating_failure_detection_feature": "Warnt, wenn die Temperatur nicht steigt, obwohl das Thermostat heizt, oder steigt, obwohl es nicht heizt, wie bei einem defekten Heizkörper.",
+  "hint.use_heating_failure_detection_central_config": "Verwendet die Erkennungseinstellungen der zentralen Konfiguration.",
+  "hint.heating_failure_threshold": "Leistung, ab der sich der Raum erwärmen muss; 0,9 sind 90 %.",
+  "info.heating_failure_threshold": "Heizt das Gerät mindestens mit dieser Leistung, angegeben zwischen 0 und 1, muss die Temperatur steigen. Ist sie nach der Erkennungsverzögerung nicht um die Toleranz gestiegen, wird ein Heizungsausfall gemeldet, wie bei einem ausgeschalteten oder defekten Heizkörper. 0,9, der Standardwert, prüft nur Zyklen mit 90 % oder mehr.",
+  "hint.cooling_failure_threshold": "Leistung, bei oder unter der sich der Raum nicht erwärmen darf; 0 sind 0 %.",
+  "info.cooling_failure_threshold": "Heizt das Gerät mit dieser Leistung oder weniger, angegeben zwischen 0 und 1, sollte die Temperatur nicht steigen. Steigt sie während der Erkennungsverzögerung um mehr als die Toleranz, wird ein Ausfall gemeldet, wie bei einem klemmenden Relais. 0, der Standardwert, prüft nur, wenn das Gerät ganz aus ist. Auch eine andere Wärmequelle wie die Sonne oder ein Ofen kann ihn auslösen: Das Aktivierungs-Template kann die Prüfung dann aussetzen.",
+  "hint.heating_failure_detection_delay": "Minuten Wartezeit, bevor geprüft wird, ob die Temperatur der Heizung folgt.",
+  "info.heating_failure_detection_delay": "Die Prüfung beginnt, wenn die Leistung eine der beiden Schwellen überschreitet; nach dieser Verzögerung wird die Temperatur mit ihrem Wert zu Beginn verglichen. Eine träge Heizung wie eine Fußbodenheizung braucht eine längere Verzögerung als die standardmäßigen 15 Minuten.",
+  "hint.temperature_change_tolerance": "Kleinste Temperaturänderung, die zählt, in °, um das Rauschen des Sensors zu ignorieren.",
+  "info.temperature_change_tolerance": "Über die Erkennungsverzögerung wird eine Änderung unter diesem Wert ignoriert: Ein kleinerer Anstieg gilt als kein Anstieg, wenn das Gerät heizt, und ein größerer verrät einen Ausfall, wenn es aus ist. 0,5°, der Standardwert, filtert die kleinen Schwankungen der meisten Sensoren; erhöhen Sie ihn für einen stark springenden Sensor.",
+  "hint.failure_detection_enable_template": "Optionales Template, das wahr sein muss, damit die Erkennung läuft, z. B. solange ein Ofen aus ist.",
 } satisfies CompleteCatalog<typeof en>;

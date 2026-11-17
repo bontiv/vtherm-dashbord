@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { UiPluginValidationError, defineTranslations, registerUiPlugin, selectorOf } from "../src/index.ts";
 import type { UiPluginDefinition } from "../src/index.ts";
-import { assertCompleteTranslations, createFakeHass, createFakeHost, defineHaControlMocks, findTranslationProblems } from "../src/testing.ts";
+import { assertCompleteTranslations, createFakeHass, createFakeHost, defineFieldHelpMock, defineHaControlMocks, findTranslationProblems } from "../src/testing.ts";
+import type { MockFieldHelpElement } from "../src/testing.ts";
+import { FIELD_HELP_ELEMENT } from "../src/index.ts";
+import type { FieldHelpProps } from "../src/index.ts";
 import type { MockHaElement } from "../src/testing.ts";
 
 const translations = defineTranslations({ title: "Title" });
@@ -270,5 +273,33 @@ describe("the simulated components of Home Assistant", () => {
     toggle.addEventListener("change", () => (changes += 1));
     toggle.change(true);
     expect([toggle.checked, changes]).toEqual([true, 1]);
+  });
+});
+
+describe("the help of a field", () => {
+  /** A tab of a plugin that gives the help of its field to the element of the dashboard. */
+  class HelpedTab extends HTMLElement {
+    values: Record<string, unknown> = {};
+    connectedCallback(): void {
+      const help = document.createElement(FIELD_HELP_ELEMENT) as HTMLElement & FieldHelpProps;
+      Object.assign(help, { label: "Cycle", hint: "How long a cycle lasts.", info: "A longer cycle switches less often.", diagram: "tpi_cycle", values: this.values, highlight: "cycle_min" });
+      this.append(help);
+    }
+  }
+  if (customElements.get("helped-tab") === undefined) {
+    customElements.define("helped-tab", HelpedTab);
+  }
+
+  it("lets a test read the hint, the explanation and the diagram that a tab mounted in the fake host gives to the help of a field", async () => {
+    defineFieldHelpMock();
+    const host = createFakeHost();
+    host.registerPlugin(core);
+    host.registerPlugin(plugin("helped", { thermostat_config: [{ id: "helped.tab.main", title: "title", component: "helped-tab" }] }));
+    const entry = host.resolved("thermostat_config").find((candidate) => candidate.id === "helped.tab.main");
+    const tab = (await host.render<"thermostat_config">(entry as never, { thermostatId: "climate.salon", values: { cycle_min: 7 }, centralValues: {}, errors: {}, proposeChanges: () => undefined })) as HelpedTab;
+    const help = tab.querySelector(FIELD_HELP_ELEMENT) as MockFieldHelpElement;
+    expect([help.label, help.hint, help.info, help.diagram, help.highlight]).toEqual(["Cycle", "How long a cycle lasts.", "A longer cycle switches less often.", "tpi_cycle", "cycle_min"]);
+    expect(help.values).toEqual({ cycle_min: 7 });
+    expect(help.textContent).toBe("How long a cycle lasts.");
   });
 });

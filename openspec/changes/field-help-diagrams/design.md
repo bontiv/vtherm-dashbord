@@ -29,7 +29,8 @@ Le dashboard définit l'élément personnalisé `vtherm-field-help` (Lit), au m�
 - Alternative écartée : ajouter `hint`/`info`/`diagram` à `FieldBase`. Les textes sont des clés de traduction, pas des propriétés du champ ; et le SDK ne dessine pas les champs, donc la donnée ne servirait qu'au dashboard.
 
 ### 2. L'indication reste dans le `helper` de `ha-selector` ; le (i) est un bouton à côté
-`ha-selector` garde son `helper` (indication courte), pour conserver le rendu, l'espacement et l'accessibilité natifs. Le composant d'aide ajoute, dans le coin supérieur droit de la zone du champ, un `ha-icon-button` (`mdi:information-outline`) et, sous le champ, le panneau. Le libellé de `ha-selector` est interne au composant : y insérer l'icône demanderait de toucher à son DOM.
+`ha-selector` garde son `helper` (indication courte), pour conserver le rendu, l'espacement et l'accessibilité natifs. Le composant d'aide ajoute, à droite du contrôle dans la tuile du champ, un bouton (i) et, sous le champ, le panneau. Le libellé de `ha-selector` est interne au composant : y insérer l'icône demanderait de toucher à son DOM. Le bouton est un `<button>` du dashboard qui porte `ha-svg-icon` (`mdiInformationOutline`) et l'apparence d'un bouton d'icône par les variables du thème : `ha-icon-button` encapsule son vrai bouton dans deux shadow DOM et ne transmet ni `aria-expanded` ni `aria-controls`, que la spec exige.
+- Alternative écartée : `ha-icon-button`. L'état ouvert ou fermé ne serait pas annoncé, et le retoucher à travers ses shadow DOM serait fragile à chaque version de Home Assistant.
 - Alternative écartée : infobulle au survol (choix amont). Inutilisable au toucher et peu fiable avec un lecteur d'écran ; la spec `dashboard-panel` exige des cibles tactiles.
 - Alternative écartée : `ha-dialog`. Trop lourd pour un texte de quelques lignes, et masque le champ que l'on est en train de régler.
 
@@ -51,7 +52,7 @@ Une table `GROUP_DIAGRAMS` désigne les groupes de champs qui partagent un sché
 - Alternative écartée : deux colonnes avec un schéma `position: sticky` à partir de 1024 px de conteneur (décision d'origine). Elle sortait le groupe de la grille, et la carte n'atteint 1024 px que sur un écran large sans volet.
 
 ### 5. Textes : nouvelles clés dans `scripts/native-texts.ts`
-Ajout des clés `hint.<clé>`, `info.<clé>` et `diagram.*` dans `PLUGIN_TEXTS` pour chaque plugin natif concerné, puis `npm run catalogs:generate`. Les clés de schémas partagées par plusieurs plugins (par exemple `valve_curve` dans `core` et `core_valve_regulation`) sont placées dans `COMMON_TEXTS` ou dupliquées par plugin, selon ce que permet le générateur. La règle de repli est implémentée une seule fois, dans le composant d'aide de `native-tab.ts` :
+Ajout des clés `hint.<clé>` et `info.<clé>` dans `PLUGIN_TEXTS` pour chaque plugin natif concerné, puis `npm run catalogs:generate`. Les textes des schémas (`diagram.*`) sont dans un catalogue du dashboard (`frontend/src/components/diagrams/texts.ts`), qui suit la langue de l'utilisateur comme les textes du shell : le composant d'aide est offert aux plugins tiers, dont les catalogues n'ont pas ces clés. La règle de repli est implémentée une seule fois, dans le composant d'aide de `native-tab.ts` :
 - `helper` = `hint` ?? `help` ;
 - panneau = `info` ?? (`help` si `hint` existe et diffère de `help`) ;
 - bouton (i) seulement si panneau ou schéma.

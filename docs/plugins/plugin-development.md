@@ -298,6 +298,63 @@ export class MyPluginFields extends HTMLElement implements Partial<Props> {
 ```
 <!-- /example -->
 
+### Help of a field
+The dashboard gives the help of the native fields to the plugins: the element `FIELD_HELP_ELEMENT` (`vtherm-field-help`) draws a
+button (i) that opens a panel under the field, with a diagram, then an explanation. The SDK gives only its contract (`FieldHelpProps`,
+`DiagramId`, `DIAGRAM_IDS`); the dashboard defines the element once it has loaded, so a plugin creates it like any element.
+
+- `label`: the translated name of the field, which names the button for the screen readers ("Help: Cycle").
+- `hint`: a short hint, one sentence. Put it rather in the `helper` of the `ha-selector`, as the native tabs do; give it to the
+  element only when the field has no `helper`.
+- `info`: the explanation of the panel.
+- `diagram`: a diagram of the library of the dashboard, by its identifier, drawn with `values` (the values of the settings that it
+  illustrates, by key of Versatile Thermostat) and `highlight` (the setting to highlight, for example the field that has the focus).
+  The library has `tpi_cycle`, `tpi_formula`, `min_on_off`, `tpi_thresholds`, `valve_curve`, `send_threshold`, `window_delay`,
+  `window_slope`, `motion`, `safety`, `override`, `failure`, `correction` and `stagger`; an identifier that is not in `DiagramId` does
+  not compile. The texts of the diagrams are those of the dashboard, in the language of the user.
+- Your own diagram: put an element with `slot="diagram"` (an `<svg>`, for example) in the element of the help; it replaces the diagram
+  of the library. Color it with the variables of the theme of Home Assistant.
+
+The button appears only when there is an explanation or a diagram. Its panel stays open while the user changes the field, and closes
+with Escape.
+
+<!-- example: docs/examples/typescript/field-help.ts -->
+```typescript
+import { FIELD_HELP_ELEMENT, selectorOf } from "@vtherm/dashboard-sdk";
+import type { FieldDefinition, FieldHelpProps, HookProps } from "@vtherm/dashboard-sdk";
+
+type Props = HookProps<"thermostat_config">;
+
+/** The field of the section: the length of the cycle of the plugin, in minutes. */
+export const CYCLE: FieldDefinition = { type: "integer", key: "my_plugin_cycle", min: 1, max: 60, unit: "min" };
+
+/** A section with one field, its hint under the control, and its help: an explanation and a diagram of the library of the dashboard. */
+export class MyPluginCycle extends HTMLElement implements Partial<Props> {
+  hass?: Props["hass"];
+  values: Props["values"] = {};
+  proposeChanges: Props["proposeChanges"] = () => undefined;
+
+  connectedCallback(): void {
+    const selector = document.createElement("ha-selector") as HTMLElement & Record<string, unknown>;
+    // The hint is the helper of the control, as in the native tabs.
+    Object.assign(selector, { hass: this.hass, selector: selectorOf(CYCLE), value: this.values[CYCLE.key], label: "Cycle", helper: "How long one cycle of heating lasts." });
+    selector.addEventListener("value-changed", (event) => this.proposeChanges({ [CYCLE.key]: (event as CustomEvent<{ value: unknown }>).detail.value }));
+    // The element of the dashboard draws the button (i) and the panel. The diagram reads `cycle_min`, the key of Versatile Thermostat.
+    const help = document.createElement(FIELD_HELP_ELEMENT) as HTMLElement & FieldHelpProps;
+    const props: FieldHelpProps = {
+      label: "Cycle",
+      info: "A longer cycle switches the heater less often, a shorter one follows the room more closely.",
+      diagram: "tpi_cycle",
+      values: { cycle_min: this.values[CYCLE.key] },
+      highlight: "cycle_min",
+    };
+    Object.assign(help, props);
+    this.replaceChildren(selector, help);
+  }
+}
+```
+<!-- /example -->
+
 ### Save actions
 The draft of a configuration is shared by all its sections, and the dashboard saves it. Each section shows the actions at the foot of
 its card, as the configuration pages of Home Assistant do: **Discard** on the left, a plain `ha-button` with the restore icon, and

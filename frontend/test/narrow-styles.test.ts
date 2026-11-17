@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ComplementsCatalogPage, ComplementsInstalledPage } from "../src/complements/complements-page.ts";
 import { VThermBreadcrumb } from "../src/components/breadcrumb.ts";
 import { VThermCardActions } from "../src/components/card-actions.ts";
+import { VThermFieldHelp } from "../src/components/field-help.ts";
 import { NARROW_QUERY as SHARED_QUERY, TOUCH_TARGET, narrowStyles } from "../src/components/narrow-styles.ts";
 import { VThermPluginStatus } from "../src/components/plugin-status.ts";
 import { VThermSideMenu } from "../src/components/side-menu.ts";
@@ -40,6 +41,7 @@ describe("the styles of the narrow screen", () => {
       VThermSideMenu,
       VThermBreadcrumb,
       VThermCardActions,
+      VThermFieldHelp,
       VThermThermostatList,
       VThermWidgets,
       VThermPluginStatus,
@@ -53,6 +55,17 @@ describe("the styles of the narrow screen", () => {
       .filter(([, component]) => !flatten((component as unknown as { styles?: CSSResultGroup }).styles).includes(narrowStyles))
       .map(([name]) => name);
     expect(without).toEqual([]);
+  });
+});
+
+describe("the help of a field on a phone", () => {
+  it("has a button of 44 px on a touch screen, and a panel that is never wider than the field", () => {
+    const css = flatten(VThermFieldHelp.styles)
+      .map((style) => (style as { cssText?: string }).cssText ?? "")
+      .join("\n");
+    expect(css).toMatch(new RegExp(String.raw`@media \(pointer: coarse\)\s*\{\s*\.toggle\s*\{[^}]*width: ${TOUCH_TARGET}px;[^}]*height: ${TOUCH_TARGET}px`));
+    expect(css).toMatch(/\.panel\s*\{[^}]*min-width: 0/);
+    expect(css).toMatch(/\.info\s*\{[^}]*white-space: pre-line/);
   });
 });
 

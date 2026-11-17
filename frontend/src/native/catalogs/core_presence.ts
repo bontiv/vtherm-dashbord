@@ -16,6 +16,8 @@ export const en = {
   "help.presence_sensor_entity_id": "Presence sensor entity id",
   "field.use_presence_central_config": "Use central presence temperature configuration. Deselect to use specific temperature entities",
   "feature_intro.use_presence_feature": "Uses the away temperatures of the presets while nobody is at home.",
+  "hint.use_presence_central_config": "Uses the away temperatures of the central configuration.",
+  "hint.presence_sensor_entity_id": "Sensor or person that is on, or home, while someone is at home.",
 } as const;
 
 /** The French catalog. */
@@ -27,6 +29,8 @@ export const fr = {
   "help.presence_sensor_entity_id": "Id d'entité du capteur de présence",
   "field.use_presence_central_config": "Utiliser la configuration centrale des températures en cas d'absence. Décochez pour avoir des entités de température dédiées",
   "feature_intro.use_presence_feature": "Utilise les températures d'absence des pré-réglages quand personne n'est à la maison.",
+  "hint.use_presence_central_config": "Utilise les températures d'absence de la configuration centrale.",
+  "hint.presence_sensor_entity_id": "Capteur ou personne qui est actif, ou présent, quand quelqu'un est à la maison.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -38,4 +42,6 @@ export const de = {
   "help.presence_sensor_entity_id": "Entity-ID vom Anwesenheitssensor",
   "field.use_presence_central_config": "Verwendung der zentralen Temperaturkonfiguration bei Abwesenheit. Abwählen, um spezifische Temperaturen zu verwenden.",
   "feature_intro.use_presence_feature": "Verwendet die Abwesenheitstemperaturen der Voreinstellungen, wenn niemand zu Hause ist.",
+  "hint.use_presence_central_config": "Verwendet die Abwesenheitstemperaturen der zentralen Konfiguration.",
+  "hint.presence_sensor_entity_id": "Sensor oder Person, der aktiv oder zu Hause ist, wenn jemand daheim ist.",
 } satisfies CompleteCatalog<typeof en>;

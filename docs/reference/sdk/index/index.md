@@ -27,6 +27,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [EntityField](interfaces/EntityField.md)
 - [EntityListField](interfaces/EntityListField.md)
 - [FieldBase](interfaces/FieldBase.md)
+- [FieldHelpProps](interfaces/FieldHelpProps.md)
 - [GeneralConfigContribution](interfaces/GeneralConfigContribution.md)
 - [GeneralConfigProps](interfaces/GeneralConfigProps.md)
 - [GeneralConfigVisibilityContext](interfaces/GeneralConfigVisibilityContext.md)
@@ -86,6 +87,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [ConfigValues](type-aliases/ConfigValues.md)
 - [Contribution](type-aliases/Contribution.md)
 - [Contributions](type-aliases/Contributions.md)
+- [DiagramId](type-aliases/DiagramId.md)
 - [DurationField](type-aliases/DurationField.md)
 - [ElementRegistry](type-aliases/ElementRegistry.md)
 - [FieldDefinition](type-aliases/FieldDefinition.md)
@@ -114,6 +116,8 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 ## Variables
 
 - [CORE\_TOP\_TABS](variables/CORE_TOP_TABS.md)
+- [DIAGRAM\_IDS](variables/DIAGRAM_IDS.md)
+- [FIELD\_HELP\_ELEMENT](variables/FIELD_HELP_ELEMENT.md)
 - [HA\_CONTROLS](variables/HA_CONTROLS.md)
 - [HA\_SPINNERS](variables/HA_SPINNERS.md)
 - [HOOK\_NAMES](variables/HOOK_NAMES.md)
@@ -127,6 +131,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [getDashboardVersion](functions/getDashboardVersion.md)
 - [groupMenu](functions/groupMenu.md)
 - [haControlsStatus](functions/haControlsStatus.md)
+- [isDiagramId](functions/isDiagramId.md)
 - [isSectionStatus](functions/isSectionStatus.md)
 - [languageChain](functions/languageChain.md)
 - [normalizeLanguage](functions/normalizeLanguage.md)

@@ -14,6 +14,8 @@ import { unwrapCatalog } from "./translations.js";
 import type { AnyTranslations, Catalog } from "./translations.js";
 import type { UiPluginRegistry } from "./registry.js";
 import { sectionStatusOf } from "./status.js";
+import { FIELD_HELP_ELEMENT } from "./field-help.js";
+import type { FieldHelpProps } from "./field-help.js";
 import type { ComponentHookName, Hass, HookName, HookProps, SectionStatus, UiPluginDefinition, VisibilityContext } from "./types.js";
 import { assertValidDefinition } from "./validation.js";
 
@@ -399,6 +401,53 @@ export function defineHaControlMocks(): void {
       customElements.define(tag, class extends Mock {});
     }
   }
+}
+
+/** A simulated help of a field: the properties that a component gave to `FIELD_HELP_ELEMENT`, to read in a test. */
+export interface MockFieldHelpElement extends HTMLElement {
+  /** The name of the field. */
+  label: FieldHelpProps["label"];
+  /** The short hint. */
+  hint: FieldHelpProps["hint"];
+  /** The detailed explanation. */
+  info: FieldHelpProps["info"];
+  /** The diagram of the library. */
+  diagram: FieldHelpProps["diagram"];
+  /** The values that the diagram illustrates. */
+  values: FieldHelpProps["values"];
+  /** The setting that the diagram highlights. */
+  highlight: FieldHelpProps["highlight"];
+}
+
+/**
+ * Define a simulated help of a field (`FIELD_HELP_ELEMENT`) in the page of a test, so that a plugin can check the help of its fields
+ * without the dashboard: read the element as a `MockFieldHelpElement`. It shows its hint as text, and nothing else. An element that is
+ * already defined, such as the one of the dashboard, is left as it is. The test needs a DOM (`happy-dom` or `jsdom`).
+ */
+export function defineFieldHelpMock(): void {
+  if (customElements.get(FIELD_HELP_ELEMENT) !== undefined) {
+    return;
+  }
+  customElements.define(
+    FIELD_HELP_ELEMENT,
+    class extends HTMLElement {
+      label = "";
+      info: string | undefined = undefined;
+      diagram: FieldHelpProps["diagram"] = undefined;
+      values: FieldHelpProps["values"] = undefined;
+      highlight: string | undefined = undefined;
+      #hint: string | undefined = undefined;
+
+      get hint(): string | undefined {
+        return this.#hint;
+      }
+
+      set hint(value: string | undefined) {
+        this.#hint = value;
+        this.textContent = value ?? "";
+      }
+    },
+  );
 }
 
 /** Forget the shared load of `ensureHaControls`, so that a test can start a new one, for example after `defineHaControlMocks`. */

@@ -16,6 +16,8 @@ export const en = {
   "help.humidity_sensor_entity_id": "Leave empty to automatically use the detected sensor.",
   "field.use_humidity_feature": "Use humidity sensor",
   "help.use_humidity_feature": "Disable this option to use the underlying climate humidity only.",
+  "hint.use_humidity_feature": "Shows the humidity of a sensor on the thermostat; it does not change the heating.",
+  "hint.humidity_sensor_entity_id": "Sensor of the humidity; leave empty to use the one of the device of the room sensor.",
 } as const;
 
 /** The French catalog. */
@@ -27,6 +29,8 @@ export const fr = {
   "help.humidity_sensor_entity_id": "Laissez vide pour utiliser automatiquement le capteur détecté.",
   "field.use_humidity_feature": "Utiliser un capteur d'humidité",
   "help.use_humidity_feature": "Désactivez cette option pour utiliser uniquement l'humidité du climate sous-jacent.",
+  "hint.use_humidity_feature": "Affiche l'humidité d'un capteur sur le thermostat ; elle ne change pas le chauffage.",
+  "hint.humidity_sensor_entity_id": "Capteur d'humidité ; laissez vide pour utiliser celui de l'appareil du capteur de la pièce.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -38,4 +42,6 @@ export const de = {
   "help.humidity_sensor_entity_id": "Leer lassen, um den erkannten Sensor automatisch zu verwenden.",
   "field.use_humidity_feature": "Luftfeuchtigkeitssensor verwenden",
   "help.use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugeordneten Klimaanlage zu verwenden.",
+  "hint.use_humidity_feature": "Zeigt die Feuchtigkeit eines Sensors am Thermostat an; sie ändert das Heizen nicht.",
+  "hint.humidity_sensor_entity_id": "Feuchtigkeitssensor; leer lassen, um den des Geräts des Raumsensors zu verwenden.",
 } satisfies CompleteCatalog<typeof en>;

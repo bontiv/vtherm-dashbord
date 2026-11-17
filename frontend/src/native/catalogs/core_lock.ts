@@ -19,6 +19,11 @@ export const en = {
   "field.lock_users": "Lock will prevent commands from Users",
   "field.use_lock_central_config": "Use central lock configuration",
   "help.use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm",
+  "hint.use_lock_central_config": "Uses the lock settings of the central configuration.",
+  "hint.lock_code": "Optional four-digit code asked to lock or unlock the thermostat.",
+  "hint.lock_users": "While locked, the changes made from the Home Assistant interface are refused.",
+  "hint.lock_automations": "While locked, the changes made by automations, scripts and schedulers are refused.",
+  "hint.auto_relock_sec": "Locks the thermostat again this many seconds after an unlock; 0 never locks it again.",
 } as const;
 
 /** The French catalog. */
@@ -33,6 +38,11 @@ export const fr = {
   "field.lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
   "field.use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
   "help.use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
+  "hint.use_lock_central_config": "Utilise les réglages de verrouillage de la configuration centrale.",
+  "hint.lock_code": "Code facultatif à quatre chiffres demandé pour verrouiller ou déverrouiller le thermostat.",
+  "hint.lock_users": "Une fois verrouillé, les changements faits depuis l'interface de Home Assistant sont refusés.",
+  "hint.lock_automations": "Une fois verrouillé, les changements faits par les automatisations, scripts et planificateurs sont refusés.",
+  "hint.auto_relock_sec": "Reverrouille le thermostat ce nombre de secondes après un déverrouillage ; 0 ne le reverrouille jamais.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -47,4 +57,9 @@ export const de = {
   "field.lock_users": "Sperre verhindert Benutzerbefehle",
   "field.use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
   "help.use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
+  "hint.use_lock_central_config": "Verwendet die Sperreinstellungen der zentralen Konfiguration.",
+  "hint.lock_code": "Optionaler vierstelliger Code, der zum Sperren oder Entsperren des Thermostats verlangt wird.",
+  "hint.lock_users": "Im gesperrten Zustand werden Änderungen über die Oberfläche von Home Assistant abgelehnt.",
+  "hint.lock_automations": "Im gesperrten Zustand werden Änderungen durch Automatisierungen, Skripte und Zeitpläne abgelehnt.",
+  "hint.auto_relock_sec": "Sperrt das Thermostat so viele Sekunden nach dem Entsperren wieder; 0 nie.",
 } satisfies CompleteCatalog<typeof en>;

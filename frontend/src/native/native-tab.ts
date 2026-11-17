@@ -1,7 +1,8 @@
 import { CORE_TOP_TABS, selectorOf } from "@vtherm/dashboard-sdk";
-import type { AnyTranslations, ConfigErrors, ConfigValues, Hass } from "@vtherm/dashboard-sdk";
+import type { AnyTranslations, ConfigErrors, ConfigValues, DiagramId, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 
 import type { PresetData, ThermostatList } from "../config/api.ts";
 import { PRESET_PREFIX } from "../config/draft.ts";
@@ -19,6 +20,9 @@ import { renderCardActions } from "../components/card-actions.ts";
 import type { CardDraft } from "../components/card-actions.ts";
 import { haState, isDefined, renderAlert, renderProgress, showMoreInfo } from "../components/ha.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
+import { diagramStyles, renderDiagram } from "../components/diagrams/index.ts";
+import { diagramFormat } from "../components/field-help.ts";
+import { diagramOfField, groupOfField, GROUP_DIAGRAMS } from "./field-diagrams.ts";
 import { followLink } from "../components/events.ts";
 import { buildPath } from "../router.ts";
 
@@ -61,10 +65,12 @@ export class NativeTabElement extends LitElement {
     presetInvalid: { state: true },
     suggestion: { state: true },
     picked: { state: true },
+    focused: { state: true },
   };
 
   static override styles = [
     narrowStyles,
+    diagramStyles,
     css`
       :host {
         display: block;
@@ -122,6 +128,33 @@ export class NativeTabElement extends LitElement {
       }
       .wide {
         grid-column: 1 / -1;
+      }
+      /* A field with a help: the button (i) at the right of its control, the panel and the other lines under it, on the whole width. */
+      .field.has-help {
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: 4px;
+      }
+      .field.has-help:not(.boolean) > :not(:first-child) {
+        grid-column: 1 / -1;
+      }
+      .field.boolean.has-help {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+      }
+      /* The diagram of a group of fields: a tile of the grid, on two columns when the grid has three. */
+      .section-body {
+        container-type: inline-size;
+      }
+      .diagram-tile {
+        min-width: 0;
+      }
+      /* A diagram scales with its width: beyond this width, its labels would be larger than the text of the page. */
+      .diagram-tile .diagram {
+        max-width: 440px;
+      }
+      @container (min-width: 752px) {
+        .diagram-tile {
+          grid-column: span 2;
+        }
       }
       .customize {
         display: grid;
@@ -427,6 +460,12 @@ export class NativeTabElement extends LitElement {
   declare presetInvalid: Readonly<Record<string, { readonly text: string; readonly message: string }>>;
   /** The method of detection of a window that the user picked on the page, until the draft is saved or discarded. */
   declare picked: WindowMethod | undefined;
+  /** The key of the field that has the focus, which the diagrams highlight. */
+  declare focused: string | undefined;
+  /** The values that the diagrams of the section show: the own values, and the central ones of a section that inherits. */
+  private effective: ConfigValues = {};
+  /** The fields of a group whose diagram is a tile of the grid: their own help does not repeat it. */
+  private tiled: ReadonlySet<string> = new Set();
 
   private loadedFor = "";
 
@@ -447,6 +486,7 @@ export class NativeTabElement extends LitElement {
     this.suggestion = undefined;
     this.presetInvalid = {};
     this.picked = undefined;
+    this.focused = undefined;
   }
 
   private get statics(): typeof NativeTabElement {
@@ -570,10 +610,75 @@ export class NativeTabElement extends LitElement {
     return this.text(`field.${field.key}`);
   }
 
-  private helpText(field: FieldSpec): string | undefined {
-    const key = `help.${field.key}`;
+  /** A text of the catalog for a field, such as `hint.cycle_min`, if the catalog has it. */
+  private fieldText(prefix: "hint" | "info" | "help", field: FieldSpec): string | undefined {
+    const key = `${prefix}.${field.key}`;
     return key in this.statics.translations.english ? this.text(key) : undefined;
   }
+
+  /** The text under the control: the hint of the dashboard, otherwise the help of Versatile Thermostat. */
+  private helpText(field: FieldSpec): string | undefined {
+    return this.fieldText("hint", field) ?? this.fieldText("help", field);
+  }
+
+  /** The explanation of the panel of help: the one of the dashboard, otherwise the help of Versatile Thermostat when the hint is another text. */
+  private infoText(field: FieldSpec): string | undefined {
+    const info = this.fieldText("info", field);
+    if (info !== undefined) {
+      return info;
+    }
+    const hint = this.fieldText("hint", field);
+    const help = this.fieldText("help", field);
+    return hint !== undefined && help !== undefined && help !== hint ? help : undefined;
+  }
+
+  /** The diagram in the panel of help of a field: none when the diagram of its group is a tile of the grid. */
+  private fieldDiagram(field: FieldSpec): DiagramId | undefined {
+    return this.tiled.has(field.key) ? undefined : diagramOfField(field.key, this.values);
+  }
+
+  /** Whether a field has a help with a button (i): an explanation or a diagram. */
+  private hasHelp(field: FieldSpec): boolean {
+    return this.infoText(field) !== undefined || this.fieldDiagram(field) !== undefined;
+  }
+
+  /** The setting that a diagram highlights: the field that has the focus when the diagram shows it, otherwise the field of the help. */
+  private highlightFor(diagram: DiagramId, key: string | undefined): string | undefined {
+    return this.focused !== undefined && diagramOfField(this.focused, this.values) === diagram ? this.focused : key;
+  }
+
+  /** The help of a field: its button (i) and its panel, in the grid of the field. */
+  private renderFieldHelp(field: FieldSpec): TemplateResult | undefined {
+    if (!this.hasHelp(field)) {
+      return undefined;
+    }
+    const diagram = this.fieldDiagram(field);
+    return html`<vtherm-field-help
+      in-field
+      .label=${this.label(field)}
+      .info=${this.infoText(field)}
+      .diagram=${diagram}
+      .values=${this.effective}
+      .highlight=${diagram === undefined ? undefined : this.highlightFor(diagram, field.key)}
+    ></vtherm-field-help>`;
+  }
+
+  /** The diagram of a group of fields, as a tile of the grid of the section. */
+  private renderDiagramTile(diagram: DiagramId): TemplateResult {
+    const focus = this.highlightFor(diagram, undefined);
+    return html`<div class="diagram-tile" data-diagram=${diagram}>
+      ${renderDiagram(diagram, { values: this.effective, ...(focus === undefined ? {} : { focus }), format: diagramFormat })}
+    </div>`;
+  }
+
+  /** Remember the field that has the focus, so that the diagrams highlight its setting. */
+  private readonly onFocusIn = (event: FocusEvent): void => {
+    const field = event.composedPath().find((target): target is HTMLElement => target instanceof HTMLElement && target.classList.contains("field"));
+    const key = field?.dataset["key"];
+    if (key !== this.focused) {
+      this.focused = key;
+    }
+  };
 
   private help(field: FieldSpec): TemplateResult | undefined {
     const text = this.helpText(field);
@@ -655,7 +760,7 @@ export class NativeTabElement extends LitElement {
 
   /** The classes of the tile of a field: `wide` for a field that takes the whole width of the grid. */
   private fieldClass(field: FieldSpec, extra: string): string {
-    return ["field", isWideField(field) ? "wide" : "", extra].filter(Boolean).join(" ");
+    return ["field", isWideField(field) ? "wide" : "", this.hasHelp(field) ? "has-help" : "", extra].filter(Boolean).join(" ");
   }
 
   /** Whether a creation still misses this field: it is required and empty. */
@@ -692,7 +797,7 @@ export class NativeTabElement extends LitElement {
       ></ha-selector>
       ${missing ? this.renderRequiredNote(field) : undefined}
       ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${this.renderSuggestion(field)}
-      ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
+      ${error === undefined ? undefined : renderAlert("error", error, "field-error")} ${this.renderFieldHelp(field)}
     </div>`;
   }
 
@@ -764,10 +869,10 @@ export class NativeTabElement extends LitElement {
         ${control}
       </div>`;
     });
-    return html`<div class="field commands wide" data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, "commands")} data-key=${field.key}>
       ${ha ? html`<div class="label"><strong>${this.label(field)}</strong></div>` : html`<label for=${id(0)}>${this.label(field)}</label>`} ${this.help(field)}
       ${underlyings.length === 0 && commands.length === 0 ? html`<div class="note">${t("config.command.no_underlying")}</div>` : rows}
-      ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
+      ${error === undefined ? undefined : renderAlert("error", error, "field-error")} ${this.renderFieldHelp(field)}
     </div>`;
   }
 
@@ -797,9 +902,9 @@ export class NativeTabElement extends LitElement {
                   const next = command === "" ? { service: "", attribute: "" } : (parseCommand(command) ?? { service: command, attribute: "" });
                   store(formatBoilerService({ entity: parsed.entity, ...next }));
                 })}`;
-    return html`<div class="field boiler-service wide" data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, "boiler-service")} data-key=${field.key}>
       ${parsed === undefined ? undefined : html`<div class="label"><strong>${this.label(field)}</strong></div>`} ${this.help(field)} ${controls}
-      ${error === undefined ? undefined : renderAlert("error", error, "field-error")}
+      ${error === undefined ? undefined : renderAlert("error", error, "field-error")} ${this.renderFieldHelp(field)}
     </div>`;
   }
 
@@ -815,7 +920,7 @@ export class NativeTabElement extends LitElement {
     const errorLine = error === undefined ? undefined : html`<div class="error" id="error-${field.key}" role="alert">${error}</div>`;
     // fallback: the controls below replace ha-selector when it is not defined (an old version of Home Assistant, or out of it).
     if (field.kind === "boolean") {
-      return html`<div class="field boolean" data-key=${field.key}>
+      return html`<div class=${this.fieldClass(field, "boolean")} data-key=${field.key}>
         <input
           type="checkbox"
           id=${id}
@@ -826,7 +931,7 @@ export class NativeTabElement extends LitElement {
           @change=${(event: Event) => this.onFieldChange(field, (event.target as HTMLInputElement).checked)}
         />
         <label class=${missing ? "touch-target missing" : "touch-target"} for=${id}>${this.label(field)}</label>
-        ${this.help(field)} ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${errorLine}
+        ${this.help(field)} ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${errorLine} ${this.renderFieldHelp(field)}
       </div>`;
     }
     let control: TemplateResult;
@@ -865,6 +970,7 @@ export class NativeTabElement extends LitElement {
     return html`<div class=${this.fieldClass(field, "")} data-key=${field.key}>
       <label for=${id} class=${missing ? "missing" : ""}>${this.label(field)}</label>
       ${control} ${missing ? this.renderRequiredNote(field) : undefined} ${this.help(field)} ${this.renderSuggestion(field)} ${errorLine}
+      ${this.renderFieldHelp(field)}
     </div>`;
   }
 
@@ -1108,9 +1214,29 @@ export class NativeTabElement extends LitElement {
     }
   }
 
-  /** Fields in the grid of the section. */
-  private renderFields(fields: readonly FieldSpec[], layout: TabLayout, ha: boolean): TemplateResult | undefined {
-    return fields.length === 0 ? undefined : html`<div class="fields">${fields.map((field) => this.renderField(field, layout, ha))}</div>`;
+  /**
+   * Fields in the grid of the section, each one by its key, so that an open help stays with its field. With `tiles`, the diagram of a group
+   * of fields follows the last field of the group.
+   */
+  private renderFields(fields: readonly FieldSpec[], layout: TabLayout, ha: boolean, tiles = false): TemplateResult | undefined {
+    if (fields.length === 0) {
+      return undefined;
+    }
+    const items: { readonly key: string; readonly draw: () => TemplateResult | undefined }[] = [];
+    fields.forEach((field, index) => {
+      items.push({ key: field.key, draw: () => this.renderField(field, layout, ha) });
+      const group = tiles ? groupOfField(field.key) : undefined;
+      if (group !== undefined && !fields.slice(index + 1).some((next) => group.keys.includes(next.key))) {
+        items.push({ key: `diagram:${group.diagram}`, draw: () => this.renderDiagramTile(group.diagram) });
+      }
+    });
+    return html`<div class="fields" @focusin=${this.onFocusIn}>${repeat(items, (item) => item.key, (item) => item.draw())}</div>`;
+  }
+
+  /** The diagrams of the groups of a section that inherits, after its central values. */
+  private renderInheritedTiles(fields: readonly FieldSpec[]): TemplateResult | undefined {
+    const groups = GROUP_DIAGRAMS.filter((group) => fields.some((field) => group.keys.includes(field.key)));
+    return groups.length === 0 ? undefined : html`<div class="fields">${groups.map((group) => this.renderDiagramTile(group.diagram))}</div>`;
   }
 
   /**
@@ -1150,6 +1276,9 @@ export class NativeTabElement extends LitElement {
     const extra = inherited ? [] : shown(layout.extra);
     const own = [...base, ...(inherited ? [] : specific), ...extra];
     const isCurrent = (field: FieldSpec): boolean => !isAdvanced(field);
+    // The diagrams show the values of the section: the central ones of the settings that it inherits.
+    this.effective = inherited ? { ...this.values, ...Object.fromEntries(specific.map((field) => [field.key, this.centralValues[field.key]])) } : this.values;
+    this.tiled = new Set(own.filter((field) => isCurrent(field) && groupOfField(field.key) !== undefined).map((field) => field.key));
     const descriptionKey = `description.${definition.tab}`;
     const baseError = this.fieldError("base");
     const method = this.values["auto_tpi_calculation_method"];
@@ -1159,9 +1288,13 @@ export class NativeTabElement extends LitElement {
     ${baseError === undefined ? undefined : renderAlert("error", baseError, "base-error")}
     ${windowMethodShown === undefined ? undefined : this.renderWindowMethod(windowMethodShown, ha)}
     ${layout.inherit === undefined
-      ? this.renderFields(own.filter(isCurrent), layout, ha)
-      : html`${this.renderFields(base.filter(isCurrent), layout, ha)} ${this.renderCustomize(layout.inherit, ha)}
-        ${inherited ? (specific.length === 0 ? undefined : this.renderInherited(specific)) : this.renderFields([...specific, ...extra].filter(isCurrent), layout, ha)}`}
+      ? this.renderFields(own.filter(isCurrent), layout, ha, true)
+      : html`${this.renderFields(base.filter(isCurrent), layout, ha, true)} ${this.renderCustomize(layout.inherit, ha)}
+        ${inherited
+          ? specific.length === 0
+            ? undefined
+            : html`${this.renderInherited(specific)} ${this.renderInheritedTiles(specific)}`
+          : this.renderFields([...specific, ...extra].filter(isCurrent), layout, ha, true)}`}
     ${this.renderAdvanced(own.filter(isAdvanced), layout, ha)}
     ${extra.some((field) => field.key === "auto_tpi_learning_type") && typeof method === "string"
       ? html`<p class="note">${t("config.calculation_method", { method: t(method === "ema" ? "config.method.ema" : "config.method.average") })}</p>`
@@ -1169,10 +1302,10 @@ export class NativeTabElement extends LitElement {
     ${layout.presets === true ? this.renderPresets(layout) : undefined}`;
     const actions = renderCardActions(this.draft, this.language);
     if (ha && isDefined("ha-card")) {
-      return html`<ha-card .header=${title}><div class="card-content">${content}</div>${actions}</ha-card>`;
+      return html`<ha-card .header=${title}><div class="card-content section-body">${content}</div>${actions}</ha-card>`;
     }
     // fallback: a plain card, when ha-card is not defined.
-    return html`<div class="card"><h2>${title}</h2>${content}${actions}</div>`;
+    return html`<div class="card"><h2>${title}</h2><div class="section-body">${content}</div>${actions}</div>`;
   }
 }
 

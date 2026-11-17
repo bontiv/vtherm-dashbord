@@ -28,6 +28,7 @@ export const en = {
   "preset.frost_ac_temp": "Frost ac",
   "preset.frost_away_temp": "Frost away",
   "preset.frost_temp": "Frost",
+  "hint.use_presets_central_config": "Uses the preset temperatures of the central configuration.",
 } as const;
 
 /** The French catalog. */
@@ -51,6 +52,7 @@ export const fr = {
   "preset.frost_ac_temp": "Hors gel clim",
   "preset.frost_away_temp": "Hors gel abs",
   "preset.frost_temp": "Hors gel",
+  "hint.use_presets_central_config": "Utilise les températures des pré-réglages de la configuration centrale.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -74,4 +76,5 @@ export const de = {
   "preset.frost_ac_temp": "Frostschutz Klima",
   "preset.frost_away_temp": "Frostschutz Abwesend",
   "preset.frost_temp": "Frostschutz",
+  "hint.use_presets_central_config": "Verwendet die Temperaturen der Voreinstellungen der zentralen Konfiguration.",
 } satisfies CompleteCatalog<typeof en>;

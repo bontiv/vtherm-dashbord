@@ -20,12 +20,12 @@ Chaque contrôle SHALL avoir un libellé, un texte d'aide et un message d'erreur
 ## ADDED Requirements
 
 ### Requirement: Bouton d'aide d'un champ
-Le bouton (i) qui ouvre l'aide détaillée d'un champ SHALL être un bouton d'icône de Home Assistant, avec un libellé accessible traduit qui nomme le champ, et SHALL respecter la cible tactile minimale des contrôles sur écran étroit.
+Le bouton (i) qui ouvre l'aide détaillée d'un champ SHALL porter l'icône de Home Assistant et l'apparence d'un bouton d'icône du thème, avec un libellé accessible traduit qui nomme le champ, et SHALL respecter la cible tactile minimale sur écran étroit. Il SHALL être un bouton du dashboard, par exception à la règle du composant Home Assistant en priorité, parce que `ha-icon-button` ne transmet pas l'état du panneau.
 
 #### Scenario: Libellé accessible
 - **WHEN** un lecteur d'écran atteint le bouton (i) du champ « Durée de cycle »
 - **THEN** il annonce un libellé du type « Aide : Durée de cycle » et l'état ouvert ou fermé du panneau
 
 #### Scenario: Repli
-- **WHEN** le bouton d'icône de Home Assistant est indisponible
-- **THEN** le bouton se replie sur un bouton HTML équivalent, avec le même libellé et le même comportement
+- **WHEN** l'icône de Home Assistant est indisponible
+- **THEN** le bouton affiche le caractère « i », avec le même libellé et le même comportement

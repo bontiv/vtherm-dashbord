@@ -13,6 +13,8 @@ import type { ConfigKind } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
 import "./components/contribution-host.ts";
+import "./components/field-help.ts";
+import { diagramTexts } from "./components/diagrams/texts.ts";
 import { renderCardActions } from "./components/card-actions.ts";
 import type { FeatureControl } from "./components/contribution-host.ts";
 import type { CardDraft } from "./components/card-actions.ts";
@@ -316,7 +318,7 @@ export class VThermDashboardPanel extends LitElement {
     this.saveNotice = undefined;
     this.configRevision = 0;
     this.language = createLanguageController(
-      () => [shell, ...(this.loaded?.registry.translations() ?? [])],
+      () => [shell, diagramTexts, ...(this.loaded?.registry.translations() ?? [])],
       () => {
         this.languageVersion += 1;
         // Once the pages are shown, a new object makes the components of the plugins draw their texts again.

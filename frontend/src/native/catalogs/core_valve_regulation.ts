@@ -27,6 +27,17 @@ export const en = {
   "field.proportional_function": "Algorithm",
   "help.proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
   "option.proportional_function.tpi": "TPI",
+  "hint.opening_degree_entity_ids": "Entity that sets the opening of each valve: one per device, in the same order.",
+  "hint.closing_degree_entity_ids": "Optional entity that sets the closing of each valve: one per device, or none.",
+  "hint.proportional_function": "Algorithm that computes the power; others can be added as plugins.",
+  "hint.opening_threshold_degree": "Requested opening under which the valve stays closed, in %.",
+  "info.opening_threshold_degree": "When the opening requested by the algorithm is under this threshold, the valve is closed, as far as the maximum closing allows. From the threshold up, it opens at the minimum opening, then rises in a straight line to the maximum opening at a request of 100 %. 0, the default, opens the valve as soon as heat is needed. The thermostat counts as heating, also for the central boiler, only above this threshold.",
+  "hint.min_opening_degrees": "Opening as soon as the valve opens, in %: one value per valve, separated by commas.",
+  "info.min_opening_degrees": "Many valves let no water through over their first percents. When heat is needed, the valve opens at least to this value, then further as the request grows. Give one value per valve, in the order of the devices, for example 15 or 20, 25, 30; the default is 0. Each value must be lower than the maximum opening of its valve.",
+  "hint.max_opening_degrees": "Largest opening sent to the valve, in %: one value per valve, separated by commas.",
+  "info.max_opening_degrees": "The valve never opens beyond this value, even at full request, which limits the flow of hot water. Give one value per valve, in the order of the devices, for example 80 or 80, 85, 90; the default is 100, the full opening. Each value must be higher than the minimum opening of its valve.",
+  "hint.max_closing_degree": "How far the valve may close, in %: 100 closes it fully, 90 always leaves 10 % open.",
+  "info.max_closing_degree": "When no heat is needed, the valve closes down to this value, and the opening sent never goes below 100 minus this value. 100, the default, closes the valve completely. A lower value keeps some water flowing, to protect the pump or to avoid the noise of a full closing.",
 } as const;
 
 /** The French catalog. */
@@ -49,6 +60,17 @@ export const fr = {
   "field.proportional_function": "Algorithme",
   "help.proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
   "option.proportional_function.tpi": "TPI",
+  "hint.opening_degree_entity_ids": "Entité qui règle l'ouverture de chaque vanne : une par appareil, dans le même ordre.",
+  "hint.closing_degree_entity_ids": "Entité facultative qui règle la fermeture de chaque vanne : une par appareil, ou aucune.",
+  "hint.proportional_function": "Algorithme qui calcule la puissance ; d'autres peuvent être ajoutés par des plugins.",
+  "hint.opening_threshold_degree": "Ouverture demandée en dessous de laquelle la vanne reste fermée, en %.",
+  "info.opening_threshold_degree": "Quand l'ouverture demandée par l'algorithme est sous ce seuil, la vanne est fermée, autant que la fermeture maximale le permet. À partir du seuil, elle s'ouvre à l'ouverture minimale, puis monte en ligne droite jusqu'à l'ouverture maximale pour une demande de 100 %. 0, la valeur par défaut, ouvre la vanne dès qu'il faut chauffer. Le thermostat n'est considéré comme en chauffe, y compris pour la chaudière centrale, qu'au-dessus de ce seuil.",
+  "hint.min_opening_degrees": "Ouverture dès que la vanne s'ouvre, en % : une valeur par vanne, séparées par des virgules.",
+  "info.min_opening_degrees": "Beaucoup de vannes ne laissent passer aucune eau sur leurs premiers pourcents. Quand il faut chauffer, la vanne s'ouvre au moins à cette valeur, puis davantage quand la demande augmente. Indiquez une valeur par vanne, dans l'ordre des appareils, par exemple 15 ou 20, 25, 30 ; la valeur par défaut est 0. Chaque valeur doit être inférieure à l'ouverture maximale de sa vanne.",
+  "hint.max_opening_degrees": "Plus grande ouverture envoyée à la vanne, en % : une valeur par vanne, séparées par des virgules.",
+  "info.max_opening_degrees": "La vanne ne s'ouvre jamais au-delà de cette valeur, même à pleine demande, ce qui limite le débit d'eau chaude. Indiquez une valeur par vanne, dans l'ordre des appareils, par exemple 80 ou 80, 85, 90 ; la valeur par défaut est 100, l'ouverture complète. Chaque valeur doit être supérieure à l'ouverture minimale de sa vanne.",
+  "hint.max_closing_degree": "Jusqu'où la vanne peut se fermer, en % : 100 la ferme complètement, 90 laisse toujours 10 % ouverts.",
+  "info.max_closing_degree": "Quand il ne faut pas chauffer, la vanne se ferme jusqu'à cette valeur, et l'ouverture envoyée ne descend jamais sous 100 moins cette valeur. 100, la valeur par défaut, ferme complètement la vanne. Une valeur plus basse laisse toujours circuler un peu d'eau, pour protéger le circulateur ou éviter le bruit d'une fermeture complète.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -71,4 +93,15 @@ export const de = {
   "field.proportional_function": "Algorithmus",
   "help.proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
   "option.proportional_function.tpi": "TPI",
+  "hint.opening_degree_entity_ids": "Entität, die die Öffnung jedes Ventils einstellt: eine pro Gerät, in derselben Reihenfolge.",
+  "hint.closing_degree_entity_ids": "Optionale Entität, die das Schließen jedes Ventils einstellt: eine pro Gerät oder keine.",
+  "hint.proportional_function": "Algorithmus, der die Leistung berechnet; weitere lassen sich als Plugins hinzufügen.",
+  "hint.opening_threshold_degree": "Angeforderte Öffnung, unter der das Ventil geschlossen bleibt, in %.",
+  "info.opening_threshold_degree": "Liegt die vom Algorithmus angeforderte Öffnung unter dieser Schwelle, wird das Ventil geschlossen, so weit es das maximale Schließen erlaubt. Ab der Schwelle öffnet es mit der minimalen Öffnung und steigt dann geradlinig bis zur maximalen Öffnung bei einer Anforderung von 100 %. 0, der Standardwert, öffnet das Ventil, sobald Wärme gebraucht wird. Das Thermostat gilt erst oberhalb dieser Schwelle als heizend, auch für den zentralen Heizkessel.",
+  "hint.min_opening_degrees": "Öffnung, sobald das Ventil öffnet, in %: ein Wert pro Ventil, durch Kommas getrennt.",
+  "info.min_opening_degrees": "Viele Ventile lassen in ihren ersten Prozent kein Wasser durch. Wird Wärme gebraucht, öffnet das Ventil mindestens auf diesen Wert und dann weiter, wenn die Anforderung steigt. Geben Sie einen Wert pro Ventil an, in der Reihenfolge der Geräte, z. B. 15 oder 20, 25, 30; der Standardwert ist 0. Jeder Wert muss kleiner sein als die maximale Öffnung seines Ventils.",
+  "hint.max_opening_degrees": "Größte an das Ventil gesendete Öffnung, in %: ein Wert pro Ventil, durch Kommas getrennt.",
+  "info.max_opening_degrees": "Das Ventil öffnet nie über diesen Wert hinaus, auch nicht bei voller Anforderung, was den Durchfluss von Heizwasser begrenzt. Geben Sie einen Wert pro Ventil an, in der Reihenfolge der Geräte, z. B. 80 oder 80, 85, 90; der Standardwert ist 100, die volle Öffnung. Jeder Wert muss größer sein als die minimale Öffnung seines Ventils.",
+  "hint.max_closing_degree": "Wie weit das Ventil schließen darf, in %: 100 schließt es ganz, 90 lässt immer 10 % offen.",
+  "info.max_closing_degree": "Wird keine Wärme gebraucht, schließt das Ventil bis zu diesem Wert, und die gesendete Öffnung fällt nie unter 100 minus diesen Wert. 100, der Standardwert, schließt das Ventil vollständig. Ein niedrigerer Wert lässt immer etwas Wasser fließen, um die Pumpe zu schützen oder das Geräusch eines vollständigen Schließens zu vermeiden.",
 } satisfies CompleteCatalog<typeof en>;

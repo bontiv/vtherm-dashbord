@@ -24,6 +24,16 @@ export const en = {
   "help.safety_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
   "field.use_advanced_central_config": "Use central advanced configuration",
   "help.use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm",
+  "hint.use_advanced_central_config": "Uses the safety and the other advanced settings of the central configuration.",
+  "hint.safety_delay_min": "Minutes without a temperature reading before the thermostat goes into safety mode.",
+  "info.safety_delay_min": "If the room sensor or the outdoor sensor has not reported for this time, while the heater runs at least at the minimum power for safety, the thermostat goes into safety mode and heats at the power for safety until a reading comes back. Set it above the usual interval of your sensors: 60 minutes, the default, suits most of them. A thermostat over a climate never goes into safety mode.",
+  "hint.safety_min_on_percent": "Safety mode starts only if the heater was running at least at this power; 0.5 is 50 %.",
+  "info.safety_min_on_percent": "When the readings stop, a heater that was barely running is no risk, so it keeps its regulation. Safety mode starts only if the power computed was at least this value, given between 0 and 1: 0.5, the default, means 50 %. With 0, safety mode always starts when the readings stop.",
+  "hint.safety_default_on_percent": "Power used in safety mode; 0.1 is 10 %, and 0 turns the heater off.",
+  "info.safety_default_on_percent": "In safety mode the thermostat no longer knows the room temperature, so it heats at this fixed power until a reading comes back. Give it between 0 and 1: 0.1, the default, heats 10 % of each cycle, which keeps the room from getting too cold without overheating it.",
+  "hint.repair_incorrect_state": "Sends the command again when a device is not in the state that the thermostat asked for.",
+  "hint.manual_override_duration_min": "After a manual change of the target, minutes before going back to the preset; 0 never.",
+  "info.manual_override_duration_min": "When you change the target by hand, the thermostat keeps it for this time, then goes back to the preset that it had before. For example, with 60, raising the temperature for a film lasts one hour. 0, the default, keeps the manual target until the next change.",
 } as const;
 
 /** The French catalog. */
@@ -43,6 +53,16 @@ export const fr = {
   "help.safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
   "field.use_advanced_central_config": "Utiliser la configuration centrale avancée",
   "help.use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée",
+  "hint.use_advanced_central_config": "Utilise la sécurité et les autres réglages avancés de la configuration centrale.",
+  "hint.safety_delay_min": "Minutes sans mesure de température avant que le thermostat passe en mode sécurité.",
+  "info.safety_delay_min": "Si le capteur de la pièce ou le capteur extérieur n'a rien envoyé depuis ce temps, alors que le radiateur chauffe au moins à la puissance minimale de sécurité, le thermostat passe en mode sécurité et chauffe à la puissance de sécurité jusqu'au retour d'une mesure. Réglez-le au-dessus de l'intervalle habituel de vos capteurs : 60 minutes, la valeur par défaut, convient à la plupart. Un thermostat sur climate ne passe jamais en mode sécurité.",
+  "hint.safety_min_on_percent": "Le mode sécurité ne démarre que si le radiateur chauffait au moins à cette puissance ; 0,5 vaut 50 %.",
+  "info.safety_min_on_percent": "Quand les mesures s'arrêtent, un radiateur qui chauffait à peine ne présente pas de risque : il garde sa régulation. Le mode sécurité ne démarre que si la puissance calculée valait au moins cette valeur, donnée entre 0 et 1 : 0,5, la valeur par défaut, vaut 50 %. Avec 0, le mode sécurité démarre toujours quand les mesures s'arrêtent.",
+  "hint.safety_default_on_percent": "Puissance utilisée en mode sécurité ; 0,1 vaut 10 %, et 0 éteint le radiateur.",
+  "info.safety_default_on_percent": "En mode sécurité, le thermostat ne connaît plus la température de la pièce : il chauffe donc à cette puissance fixe jusqu'au retour d'une mesure. Indiquez-la entre 0 et 1 : 0,1, la valeur par défaut, chauffe 10 % de chaque cycle, ce qui évite que la pièce refroidisse trop sans la surchauffer.",
+  "hint.repair_incorrect_state": "Renvoie la commande quand un appareil n'est pas dans l'état demandé par le thermostat.",
+  "hint.manual_override_duration_min": "Après un changement manuel de la consigne, minutes avant de revenir au pré-réglage ; 0 jamais.",
+  "info.manual_override_duration_min": "Quand vous changez la consigne à la main, le thermostat la garde pendant ce temps, puis revient au pré-réglage qu'il avait avant. Par exemple, avec 60, monter la température pour un film dure une heure. 0, la valeur par défaut, garde la consigne manuelle jusqu'au prochain changement.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -62,4 +82,14 @@ export const de = {
   "help.safety_min_on_percent": "Mindestprozentsatz für die Heizleistung, unterhalb dessen die Sicherheitsvoreinstellung niemals aktiviert wird.",
   "field.use_advanced_central_config": "Erweiterte zentrale Konfiguration verwenden",
   "help.use_advanced_central_config": "Wenn aktiviert wird die zentrale erweiterte Konfiguration verwendet. Deaktivieren und Attribute eingeben um eine spezifische erweiterte Konfiguration zu verwenden.",
+  "hint.use_advanced_central_config": "Verwendet die Sicherheit und die übrigen erweiterten Einstellungen der zentralen Konfiguration.",
+  "hint.safety_delay_min": "Minuten ohne Temperaturmessung, bevor das Thermostat in den Sicherheitsmodus wechselt.",
+  "info.safety_delay_min": "Hat sich der Raum- oder der Außensensor so lange nicht gemeldet, während das Gerät mindestens mit der Mindestleistung für die Sicherheit heizt, wechselt das Thermostat in den Sicherheitsmodus und heizt mit der Sicherheitsleistung, bis wieder ein Messwert kommt. Setzen Sie ihn über das übliche Intervall Ihrer Sensoren: 60 Minuten, der Standardwert, passen für die meisten. Ein Thermostat über ein Climate wechselt nie in den Sicherheitsmodus.",
+  "hint.safety_min_on_percent": "Der Sicherheitsmodus startet nur, wenn das Gerät mindestens mit dieser Leistung lief; 0,5 sind 50 %.",
+  "info.safety_min_on_percent": "Bleiben die Messwerte aus, ist ein Gerät, das kaum heizte, kein Risiko: Es behält seine Regelung. Der Sicherheitsmodus startet nur, wenn die berechnete Leistung mindestens diesen Wert hatte, angegeben zwischen 0 und 1: 0,5, der Standardwert, sind 50 %. Mit 0 startet der Sicherheitsmodus immer, wenn die Messwerte ausbleiben.",
+  "hint.safety_default_on_percent": "Leistung im Sicherheitsmodus; 0,1 sind 10 %, und 0 schaltet das Gerät aus.",
+  "info.safety_default_on_percent": "Im Sicherheitsmodus kennt das Thermostat die Raumtemperatur nicht mehr und heizt daher mit dieser festen Leistung, bis wieder ein Messwert kommt. Geben Sie sie zwischen 0 und 1 an: 0,1, der Standardwert, heizt 10 % jedes Zyklus, sodass der Raum nicht zu sehr auskühlt, ohne ihn zu überhitzen.",
+  "hint.repair_incorrect_state": "Sendet den Befehl erneut, wenn ein Gerät nicht im vom Thermostat verlangten Zustand ist.",
+  "hint.manual_override_duration_min": "Nach einer manuellen Änderung des Sollwerts Minuten bis zur Rückkehr zur Voreinstellung; 0 nie.",
+  "info.manual_override_duration_min": "Ändern Sie die Solltemperatur von Hand, behält das Thermostat sie diese Zeit und kehrt dann zur vorherigen Voreinstellung zurück. Mit 60 hält z. B. ein Erhöhen der Temperatur für einen Film eine Stunde. 0, der Standardwert, behält die manuelle Solltemperatur bis zur nächsten Änderung.",
 } satisfies CompleteCatalog<typeof en>;

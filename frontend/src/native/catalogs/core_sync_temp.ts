@@ -16,6 +16,10 @@ export const en = {
   "help.sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities.",
   "field.sync_with_calibration": "Apply offset calibration",
   "help.sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+  "hint.sync_with_calibration": "Corrects the device through its calibration offset instead of copying the room temperature.",
+  "info.sync_with_calibration": "Checked, the thermostat computes the gap between the room and the sensor of the device and writes it into the calibration offset of the device: 19° in the room and 21° on the device give −2°. Unchecked, it copies the room temperature into the entity of the device that takes an outside temperature. The entities given below must match this choice.",
+  "hint.sync_entity_ids": "One entity per device: its calibration offset, or its input for an outside temperature.",
+  "info.sync_entity_ids": "Give them in the order of the devices. With calibration, choose the offset entity, often named local_temperature_calibration; without, the number entity that takes the outside temperature, such as external_temperature_input.",
 } as const;
 
 /** The French catalog. */
@@ -27,6 +31,10 @@ export const fr = {
   "help.sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`.",
   "field.sync_with_calibration": "Application d'un calibrage",
   "help.sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
+  "hint.sync_with_calibration": "Corrige l'appareil par son décalage de calibration au lieu de copier la température de la pièce.",
+  "info.sync_with_calibration": "Coché, le thermostat calcule l'écart entre la pièce et le capteur de l'appareil et l'écrit dans le décalage de calibration de l'appareil : 19° dans la pièce et 21° sur l'appareil donnent −2°. Décoché, il copie la température de la pièce dans l'entité de l'appareil qui reçoit une température externe. Les entités indiquées ci-dessous doivent correspondre à ce choix.",
+  "hint.sync_entity_ids": "Une entité par appareil : son décalage de calibration, ou son entrée de température externe.",
+  "info.sync_entity_ids": "Indiquez-les dans l'ordre des appareils. Avec la calibration, choisissez l'entité du décalage, souvent nommée local_temperature_calibration ; sans, l'entité number qui reçoit la température externe, comme external_temperature_input.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -38,4 +46,8 @@ export const de = {
   "help.sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`.",
   "field.sync_with_calibration": "Offset-Kalibrierung anwenden",
   "help.sync_with_calibration": "Aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewenden. Deaktiviert, wird die Temperatur direkt aus den ausgewählten Entities kopiert.",
+  "hint.sync_with_calibration": "Korrigiert das Gerät über seinen Kalibrierungsversatz, statt die Raumtemperatur zu kopieren.",
+  "info.sync_with_calibration": "Aktiviert, berechnet das Thermostat die Abweichung zwischen Raum und Gerätesensor und schreibt sie in den Kalibrierungsversatz des Geräts: 19° im Raum und 21° am Gerät ergeben −2°. Deaktiviert, kopiert es die Raumtemperatur in die Entität des Geräts, die eine externe Temperatur entgegennimmt. Die unten angegebenen Entitäten müssen zu dieser Wahl passen.",
+  "hint.sync_entity_ids": "Eine Entität pro Gerät: ihr Kalibrierungsversatz oder ihr Eingang für eine externe Temperatur.",
+  "info.sync_entity_ids": "Geben Sie sie in der Reihenfolge der Geräte an. Mit Kalibrierung wählen Sie die Versatz-Entität, oft local_temperature_calibration genannt; ohne die Number-Entität, die die externe Temperatur entgegennimmt, etwa external_temperature_input.",
 } satisfies CompleteCatalog<typeof en>;

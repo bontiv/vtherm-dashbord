@@ -21,6 +21,11 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   the first other section in error.
 - The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, heating failure
   detection) stay in the menu, in retreat, with an explanation of the feature and a switch that turns it on in the draft.
+- Help of the fields: each native field has a hint in plain language under its control, and a button (i) that opens, under the field,
+  an explanation and a diagram of the setting, in English, French and German. The diagrams (cycle and formula of TPI, minimal delays,
+  thresholds, curve of a valve, regulation, window, motion, safety, manual override, heating failure, spread of the switches) are drawn
+  with the values of the draft and highlight the setting of the field that has the focus; the fields that share a diagram show it next
+  to them.
 
 ### Changed
 - The fields of a native section are tiles on a grid that uses the width of the screen, on one column on a phone. The settings that
@@ -56,6 +61,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   `feature_intro.<feature>` of the catalog of the plugin with a switch drawn by the dashboard. `sectionStatusOf` and `isSectionStatus`
   read a status, and the fake host gives `host.status(entry, context)`. A message of `draft.messages` can carry an `action`. The change is
   compatible: a contribution without them shows only `Error` after a refused save.
+- The help of a field is offered to the plugins: create the element `FIELD_HELP_ELEMENT` (`vtherm-field-help`) next to a field and
+  give it `label`, `info`, and a diagram of the library (`diagram`, typed by `DiagramId`, with `values` and `highlight`) or your own SVG
+  in its slot `diagram`. `defineFieldHelpMock()` of `@vtherm/dashboard-sdk/testing` simulates it in a test. The change is compatible.
 
 ## [0.1.0-beta2]
 The second beta.

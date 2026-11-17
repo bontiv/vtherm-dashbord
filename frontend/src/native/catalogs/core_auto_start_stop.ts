@@ -18,6 +18,8 @@ export const en = {
   "option.auto_start_stop.auto_start_stop_medium": "Medium detection",
   "option.auto_start_stop.auto_start_stop_fast": "Fast detection",
   "feature_intro.use_auto_start_stop_feature": "Turns the device off when the room is warm enough and on again when it needs heat, to save energy.",
+  "hint.auto_start_stop_level": "How quickly the device is stopped when not needed and started again; slower means fewer stops.",
+  "info.auto_start_stop_level": "The thermostat stops the device when the room has been warm enough for some time, and starts it again when the temperature is about to fall under the target. Very slow allows about 60 minutes between a stop and a restart, slow about 30, medium 15 and fast 7. None turns the function off.",
 } as const;
 
 /** The French catalog. */
@@ -31,6 +33,8 @@ export const fr = {
   "option.auto_start_stop.auto_start_stop_medium": "Medium",
   "option.auto_start_stop.auto_start_stop_fast": "Rapide",
   "feature_intro.use_auto_start_stop_feature": "Éteint l'appareil quand la pièce est assez chaude et le rallume quand elle a besoin de chaleur, pour économiser de l'énergie.",
+  "hint.auto_start_stop_level": "Rapidité de l'arrêt de l'appareil quand il n'est pas utile et de son redémarrage ; plus lent veut dire moins d'arrêts.",
+  "info.auto_start_stop_level": "Le thermostat arrête l'appareil quand la pièce est assez chaude depuis un moment, et le redémarre quand la température va passer sous la consigne. Très lent laisse environ 60 minutes entre un arrêt et un redémarrage, lent environ 30, moyen 15 et rapide 7. Aucun désactive la fonction.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -44,4 +48,6 @@ export const de = {
   "option.auto_start_stop.auto_start_stop_medium": "Mittel",
   "option.auto_start_stop.auto_start_stop_fast": "Schnell",
   "feature_intro.use_auto_start_stop_feature": "Schaltet das Gerät aus, wenn der Raum warm genug ist, und wieder ein, wenn er Wärme braucht, um Energie zu sparen.",
+  "hint.auto_start_stop_level": "Wie schnell das Gerät gestoppt wird, wenn es nicht gebraucht wird, und wieder startet; langsamer heißt seltener.",
+  "info.auto_start_stop_level": "Das Thermostat stoppt das Gerät, wenn der Raum eine Weile warm genug war, und startet es wieder, wenn die Temperatur gleich unter den Sollwert fällt. Sehr langsam lässt etwa 60 Minuten zwischen Stopp und Neustart, langsam etwa 30, mittel 15 und schnell 7. Keine schaltet die Funktion ab.",
 } satisfies CompleteCatalog<typeof en>;

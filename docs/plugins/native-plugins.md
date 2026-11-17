@@ -96,6 +96,23 @@ Versatile Thermostat, stays out of the panel. The option of inheritance of a tab
 general configuration. The tab of the window of a thermostat adds the choice of the method of detection (`windowMethod`), and shows
 only the fields of the method that is chosen.
 
+### The help of the fields
+Each field of a native tab has up to three levels of help, from the catalog of its plugin:
+
+- `hint.<key>`: a hint of one sentence, given to the `helper` of its `ha-selector`. Without it, the help of Versatile Thermostat
+  (`help.<key>`) is shown.
+- `info.<key>`: the explanation of the panel of help. Without it, the panel shows the help of Versatile Thermostat when it is another
+  text than the hint.
+- a diagram of the library of the dashboard, which `FIELD_DIAGRAMS` (`field-diagrams.ts`) gives by key: `cycle_min` → `tpi_cycle`, the
+  coefficients of TPI → `tpi_formula`, the openings of a valve → `valve_curve`, and so on. `stagger` illustrates only the switches of a
+  thermostat over switch.
+
+The button (i) of a field appears when it has an explanation or a diagram. The diagrams are drawn with the values of the draft, the
+central ones for a section that inherits, and highlight the setting of the field that has the focus. `GROUP_DIAGRAMS` names the
+groups of fields that share a diagram (the openings of a valve, the coefficients of TPI, the detection of a window): their diagram is
+a tile of the grid after the last field of the group, on two columns when the grid has three, and after the chips of a section that
+inherits. The fields of a group do not repeat it in their own panel, except a field of the group that is in the advanced settings.
+
 ### The status of the tabs
 Each native tab gives its status to the menu: the number of the required fields that it shows without a value (and the sensor of a
 window detected with a sensor), `Central` when it uses the central configuration, otherwise a check mark. The dashboard adds `Off` and `Error`. See
@@ -105,7 +122,8 @@ window detected with a sensor), `Central` when it uses the central configuration
 The native tabs draw their fields with the components of Home Assistant: one `ha-selector` per field, whose selector comes from the
 contract of the SDK (`definitionOf` turns a field of the flow into a `FieldDefinition`, then `selectorOf` gives the selector), in a
 `ha-card`, with `ha-alert` for the errors, `ha-expansion-panel` for the advanced settings, `ha-switch` for the switch Customize and
-`ha-button` for the actions. The method of detection of a window is a `ha-selector` of type `select` in the mode `box`. The commands of
+`ha-button` for the actions. The button (i) of the help of a field is a button of the dashboard with the icon `ha-svg-icon`, not
+`ha-icon-button`, which gives neither the state of the panel nor the panel that it controls to the button inside it. The method of detection of a window is a `ha-selector` of type `select` in the mode `box`. The commands of
 a thermostat on switch and the services of the central boiler use `ha-service-picker`. The units of the delays and the classes of
 devices of the sensors are written by hand in `shared/vtherm-config-schemas.json` (`unit`, `device_classes`); the drift test keeps
 them. When a component is not defined after `ensureHaControls()`, the tab draws plain HTML controls, the fallback, and writes one

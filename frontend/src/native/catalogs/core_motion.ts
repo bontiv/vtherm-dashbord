@@ -29,6 +29,14 @@ export const en = {
   "field.use_motion_central_config": "Use central motion configuration",
   "help.use_motion_central_config": "Check to use the central motion configuration. Uncheck to use a specific motion configuration for this VTherm",
   "feature_intro.use_motion_feature": "Changes the preset when someone moves in the room: comfort while there is activity, eco after a while without it.",
+  "hint.use_motion_central_config": "Uses the motion settings of the central configuration.",
+  "hint.motion_sensor_entity_id": "Sensor that is on while a movement is detected in the room.",
+  "hint.motion_delay": "Seconds of movement needed before switching to the motion preset.",
+  "info.motion_delay": "A movement must still be detected after this delay for the thermostat to switch to the motion preset, so that walking quickly through the room changes nothing. It may be longer than the delay of your sensor. Motion detection only applies while the thermostat is on the Activity preset.",
+  "hint.motion_off_delay": "Seconds without movement before going back to the no motion preset.",
+  "info.motion_off_delay": "Once nobody moves, the thermostat waits this time before switching to the no motion preset; a movement during this time keeps the motion preset. 300 seconds, 5 minutes, is the default.",
+  "hint.motion_preset": "Preset whose temperature applies while someone moves in the room.",
+  "hint.no_motion_preset": "Preset whose temperature applies when nobody has moved for a while.",
 } as const;
 
 /** The French catalog. */
@@ -53,6 +61,14 @@ export const fr = {
   "field.use_motion_central_config": "Utiliser la condfiguration centrale du mouvement",
   "help.use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement",
   "feature_intro.use_motion_feature": "Change de pré-réglage selon les mouvements dans la pièce : confort tant qu'il y a de l'activité, éco après un moment sans.",
+  "hint.use_motion_central_config": "Utilise les réglages de mouvement de la configuration centrale.",
+  "hint.motion_sensor_entity_id": "Capteur qui est actif tant qu'un mouvement est détecté dans la pièce.",
+  "hint.motion_delay": "Secondes de mouvement nécessaires avant de passer au pré-réglage de mouvement.",
+  "info.motion_delay": "Un mouvement doit encore être détecté après ce délai pour que le thermostat passe au pré-réglage de mouvement, pour qu'un passage rapide dans la pièce ne change rien. Il peut être plus long que le délai de votre capteur. La détection de mouvement ne s'applique que lorsque le thermostat est sur le pré-réglage Activité.",
+  "hint.motion_off_delay": "Secondes sans mouvement avant de revenir au pré-réglage sans mouvement.",
+  "info.motion_off_delay": "Quand plus personne ne bouge, le thermostat attend ce temps avant de passer au pré-réglage sans mouvement ; un mouvement pendant ce temps garde le pré-réglage de mouvement. 300 secondes, soit 5 minutes, est la valeur par défaut.",
+  "hint.motion_preset": "Pré-réglage dont la température s'applique tant que quelqu'un bouge dans la pièce.",
+  "hint.no_motion_preset": "Pré-réglage dont la température s'applique quand personne n'a bougé depuis un moment.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -77,4 +93,12 @@ export const de = {
   "field.use_motion_central_config": "Zentrale Bewegungskonfiguration verwenden",
   "help.use_motion_central_config": "Aktivieren Sie diese Option, zur Verwendung der zentralen Bewegungskonfiguration. Nicht ankreuzen, um eine spezifische Bewegungskonfiguration für dieses VTherm zu verwenden.",
   "feature_intro.use_motion_feature": "Wechselt die Voreinstellung je nach Bewegung im Raum: Komfort bei Aktivität, Eco nach einer Weile ohne.",
+  "hint.use_motion_central_config": "Verwendet die Bewegungseinstellungen der zentralen Konfiguration.",
+  "hint.motion_sensor_entity_id": "Sensor, der aktiv ist, solange im Raum eine Bewegung erkannt wird.",
+  "hint.motion_delay": "Sekunden Bewegung, bevor zur Voreinstellung bei Bewegung gewechselt wird.",
+  "info.motion_delay": "Nach dieser Verzögerung muss noch eine Bewegung erkannt werden, damit das Thermostat zur Voreinstellung bei Bewegung wechselt, sodass ein kurzes Durchqueren des Raums nichts ändert. Sie darf länger sein als die Verzögerung Ihres Sensors. Die Bewegungserkennung gilt nur, wenn das Thermostat auf der Voreinstellung Aktivität steht.",
+  "hint.motion_off_delay": "Sekunden ohne Bewegung, bevor zur Voreinstellung ohne Bewegung gewechselt wird.",
+  "info.motion_off_delay": "Bewegt sich niemand mehr, wartet das Thermostat diese Zeit, bevor es zur Voreinstellung ohne Bewegung wechselt; eine Bewegung in dieser Zeit behält die Voreinstellung bei Bewegung bei. 300 Sekunden, also 5 Minuten, sind der Standardwert.",
+  "hint.motion_preset": "Voreinstellung, deren Temperatur gilt, solange sich jemand im Raum bewegt.",
+  "hint.no_motion_preset": "Voreinstellung, deren Temperatur gilt, wenn sich eine Weile niemand bewegt hat.",
 } satisfies CompleteCatalog<typeof en>;

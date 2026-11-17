@@ -21,6 +21,13 @@ export const en = {
   "field.keep_alive_boiler_delay_sec": "Keep-alive delay (seconds)",
   "help.keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive.",
   "feature_intro.use_central_boiler_feature": "Starts the central boiler when a thermostat needs heat and stops it when none does.",
+  "hint.central_boiler_activation_delay_sec": "Wait before starting the boiler, in seconds, for example to let the valves open.",
+  "info.central_boiler_activation_delay_sec": "When heat is needed, the boiler starts only after this delay; 0, the default, starts it at once. Some valves of underfloor heating take several minutes to open: a delay keeps the pump from running against closed valves.",
+  "hint.central_boiler_activation_service": "Action that starts the boiler, written entity/action, with an optional attribute.",
+  "info.central_boiler_activation_service": "Write entity/action[/attribute:value], for example switch.boiler_pump/switch.turn_on or climate.boiler/climate.set_hvac_mode/hvac_mode:heat. The value may be a Home Assistant template, rendered each time the command is sent.",
+  "hint.central_boiler_deactivation_service": "Action that stops the boiler, written like the action that starts it.",
+  "info.central_boiler_deactivation_service": "Write entity/action[/attribute:value], for example switch.boiler_pump/switch.turn_off or climate.boiler/climate.set_hvac_mode/hvac_mode:off. It is sent when no thermostat needs heat any more.",
+  "hint.keep_alive_boiler_delay_sec": "Sends the boiler command again at this interval, in seconds; 0 never resends it.",
 } as const;
 
 /** The French catalog. */
@@ -37,6 +44,13 @@ export const fr = {
   "field.keep_alive_boiler_delay_sec": "Délai du maintien actif (en secondes)",
   "help.keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver.",
   "feature_intro.use_central_boiler_feature": "Démarre la chaudière centrale quand un thermostat a besoin de chauffer et l'arrête quand aucun n'en a besoin.",
+  "hint.central_boiler_activation_delay_sec": "Attente avant de démarrer la chaudière, en secondes, par exemple pour laisser les vannes s'ouvrir.",
+  "info.central_boiler_activation_delay_sec": "Quand il faut chauffer, la chaudière ne démarre qu'après ce délai ; 0, la valeur par défaut, la démarre aussitôt. Certaines vannes de plancher chauffant mettent plusieurs minutes à s'ouvrir : un délai évite de faire tourner le circulateur contre des vannes fermées.",
+  "hint.central_boiler_activation_service": "Action qui démarre la chaudière, écrite entité/action, avec un attribut facultatif.",
+  "info.central_boiler_activation_service": "Écrivez entité/action[/attribut:valeur], par exemple switch.pompe_chaudiere/switch.turn_on ou climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat. La valeur peut être un modèle Home Assistant, calculé à chaque envoi de la commande.",
+  "hint.central_boiler_deactivation_service": "Action qui arrête la chaudière, écrite comme l'action qui la démarre.",
+  "info.central_boiler_deactivation_service": "Écrivez entité/action[/attribut:valeur], par exemple switch.pompe_chaudiere/switch.turn_off ou climate.chaudiere/climate.set_hvac_mode/hvac_mode:off. Elle est envoyée quand plus aucun thermostat n'a besoin de chauffer.",
+  "hint.keep_alive_boiler_delay_sec": "Renvoie la commande de la chaudière à cet intervalle, en secondes ; 0 ne la renvoie jamais.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
@@ -53,4 +67,11 @@ export const de = {
   "field.keep_alive_boiler_delay_sec": "Verzögerung für Keep-Alive (Sekunden)",
   "help.keep_alive_boiler_delay_sec": "Verzögerung in Sekunden zum Weiterleiten des Kesselbefehls, wenn Keep-Alive aktiviert ist. Setzen Sie auf 0, um Keep-Alive zu deaktivieren.",
   "feature_intro.use_central_boiler_feature": "Startet den zentralen Heizkessel, wenn ein Thermostat Wärme braucht, und stoppt ihn, wenn keiner sie braucht.",
+  "hint.central_boiler_activation_delay_sec": "Wartezeit vor dem Start des Heizkessels, in Sekunden, z. B. damit die Ventile öffnen.",
+  "info.central_boiler_activation_delay_sec": "Wird Wärme gebraucht, startet der Heizkessel erst nach dieser Verzögerung; 0, der Standardwert, startet ihn sofort. Manche Ventile einer Fußbodenheizung brauchen mehrere Minuten zum Öffnen: Eine Verzögerung verhindert, dass die Pumpe gegen geschlossene Ventile läuft.",
+  "hint.central_boiler_activation_service": "Aktion, die den Heizkessel startet, geschrieben als Entität/Aktion, mit optionalem Attribut.",
+  "info.central_boiler_activation_service": "Schreiben Sie Entität/Aktion[/Attribut:Wert], z. B. switch.kesselpumpe/switch.turn_on oder climate.heizkessel/climate.set_hvac_mode/hvac_mode:heat. Der Wert kann ein Home-Assistant-Template sein, das bei jedem Senden des Befehls berechnet wird.",
+  "hint.central_boiler_deactivation_service": "Aktion, die den Heizkessel stoppt, geschrieben wie die Aktion zum Starten.",
+  "info.central_boiler_deactivation_service": "Schreiben Sie Entität/Aktion[/Attribut:Wert], z. B. switch.kesselpumpe/switch.turn_off oder climate.heizkessel/climate.set_hvac_mode/hvac_mode:off. Sie wird gesendet, wenn kein Thermostat mehr Wärme braucht.",
+  "hint.keep_alive_boiler_delay_sec": "Sendet den Befehl an den Heizkessel in diesem Abstand erneut, in Sekunden; 0 nie.",
 } satisfies CompleteCatalog<typeof en>;

@@ -1,9 +1,11 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { HOOK_NAMES, defineTranslations } from "../src/index.ts";
+import { DIAGRAM_IDS, FIELD_HELP_ELEMENT, HOOK_NAMES, defineTranslations, isDiagramId } from "../src/index.ts";
 import type {
   ComponentHookName,
   Contribution,
+  DiagramId,
+  FieldHelpProps,
   DisplayProps,
   DraftControls,
   GeneralConfigProps,
@@ -191,5 +193,21 @@ describe("contributions", () => {
       visible: (context) => context.thermostatType === "over_switch",
     };
     expect(contribution).toBeDefined();
+  });
+});
+
+describe("the help of a field", () => {
+  it("names the element of the dashboard and the fourteen diagrams of its library", () => {
+    expect(FIELD_HELP_ELEMENT).toBe("vtherm-field-help");
+    expect(DIAGRAM_IDS).toHaveLength(14);
+    expect([isDiagramId("valve_curve"), isDiagramId("valve"), isDiagramId(3)]).toEqual([true, false, false]);
+  });
+
+  it("types the identifier of a diagram, so that an unknown one does not compile", () => {
+    const props: FieldHelpProps = { label: "Cycle", diagram: "tpi_cycle", values: { cycle_min: 5 }, highlight: "cycle_min" };
+    // @ts-expect-error an identifier that is not in the library
+    const unknown: FieldHelpProps = { label: "Cycle", diagram: "valve" };
+    expectTypeOf<DiagramId>().toEqualTypeOf<(typeof DIAGRAM_IDS)[number]>();
+    expect([props.diagram, unknown.label]).toEqual(["tpi_cycle", "Cycle"]);
   });
 });
