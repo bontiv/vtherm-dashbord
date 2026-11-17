@@ -32,7 +32,7 @@ Le dashboard SHALL permettre de créer un thermostat dans une page de configurat
 
 #### Scenario: Choix du type par cartes
 - **WHEN** l'écran de choix du type est affiché
-- **THEN** chaque type est une carte cliquable, focusable et de nom accessible son titre, qui dit ce que le type commande et donne des exemples d'appareils, avec les couleurs du thème, trois cartes côte à côte sur un écran large et empilées sur un écran étroit, avec la carte du type du brouillon visiblement sélectionnée, et aucune action Continuer
+- **THEN** chaque type est une carte cliquable, focusable et de nom accessible son titre, qui dit ce que le type commande et donne des exemples d'appareils, avec les couleurs du thème, trois cartes côte à côte sur un écran large et empilées sur un écran étroit, sans aucune carte sélectionnée à l'arrivée, et aucune action Continuer
 
 #### Scenario: Type choisi
 - **WHEN** l'administrateur clique une carte, ou l'active par Entrée ou Espace, sur l'écran de choix du type, par exemple celle de `over_climate`
@@ -40,7 +40,7 @@ Le dashboard SHALL permettre de créer un thermostat dans une page de configurat
 
 #### Scenario: Retour au choix du type
 - **WHEN** l'administrateur est dans une section de la création et ouvre le segment « Nouveau thermostat » du fil d'ariane
-- **THEN** l'écran de choix du type est affiché avec le type courant sélectionné, sans perdre le brouillon, et changer de type garde les valeurs que le nouveau type accepte
+- **THEN** l'écran de choix du type est affiché avec la carte du type choisi sélectionnée, sans perdre le brouillon, et changer de type garde les valeurs que le nouveau type accepte
 
 #### Scenario: Sections de la création
 - **WHEN** l'administrateur crée un thermostat `over_climate` sans régulation par vanne

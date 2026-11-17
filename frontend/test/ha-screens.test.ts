@@ -95,7 +95,9 @@ describe("the creation of a thermostat", () => {
     const cards = () => findAll<HTMLElement>(choice()?.shadowRoot as ShadowRoot, "ha-card.type-card");
     await vi.waitFor(() => expect(cards()).toHaveLength(3));
     expect(cards().map((card) => card.dataset["type"])).toEqual(["thermostat_over_switch", "thermostat_over_climate", "thermostat_over_valve"]);
-    expect(cards()[0]?.getAttribute("aria-pressed")).toBe("true");
+    // No card is selected on arrival: the first type is only the default of the draft.
+    expect(cards().map((card) => card.getAttribute("aria-pressed"))).toEqual(["false", "false", "false"]);
+    expect(cards().some((card) => card.classList.contains("selected"))).toBe(false);
     expect(find(choice()?.shadowRoot as ShadowRoot, "ha-selector")).toBeNull();
     expect(find(choice()?.shadowRoot as ShadowRoot, "ha-button.continue")).toBeNull();
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();

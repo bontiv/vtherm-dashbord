@@ -289,6 +289,8 @@ export class VThermDashboardPanel extends LitElement {
 
   private readonly language: LanguageController;
   private started = false;
+  /** The draft of creation whose type the user chose, so that a card is shown as selected only on the way back, not by default. */
+  private typeChosenFor: object | undefined;
   private query: MediaQueryList | undefined;
 
   constructor() {
@@ -865,8 +867,9 @@ export class VThermDashboardPanel extends LitElement {
     const next = () => this.onNavigate(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { path: buildPath({ tab: CORE_TOP_TABS.thermostats, thermostat: NEW_THERMOSTAT, ...(first === undefined ? {} : { entry: first }), rest: [] }) } }));
     return html`<vtherm-type-choice
       .hass=${this.hass}
-      .value=${String(values["thermostat_type"] ?? "")}
+      .value=${this.typeChosenFor === draft ? String(values["thermostat_type"] ?? "") : ""}
       .select=${(type: string) => {
+        this.typeChosenFor = draft;
         if (type !== values["thermostat_type"]) {
           draft.changeType(type);
         }

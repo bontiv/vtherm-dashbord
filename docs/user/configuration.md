@@ -64,7 +64,7 @@ section at a time. The menu only lists what a new thermostat needs, in this orde
 
 To change the type later, select **New thermostat** in the breadcrumb above the page: the choice of the type opens again, with
 your draft kept. Changing the type keeps the values that the new type accepts, such as the name and the sensors, and drops the
-others, such as an underlying of another domain. The card of the current type is outlined when you come back. **Cancel** on the choice of the type drops the creation.
+others, such as an underlying of another domain. No card is selected when the choice opens; when you come back, the card of the type you chose is outlined. **Cancel** on the choice of the type drops the creation.
 The features, the presets and the sections of the add-ons are on the page of the thermostat once it is created.
 
 **Create** replaces **Save**, and **Cancel** replaces **Discard**. **Create** stays off while a required field is empty. A warning at the top of the page, above the card, says which ones, section by

@@ -280,7 +280,7 @@ describe("the creation of a thermostat", () => {
   const REQUIRED = { name: "Bureau", temperature_sensor_entity_id: "sensor.office", external_temperature_sensor_entity_id: "sensor.outdoor" };
   const menuTexts = (panel: HTMLElement) => texts(findAll((find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot as ShadowRoot, "a"));
   const cancelButton = (panel: HTMLElement) => find<HTMLButtonElement>(actions(panel)?.shadowRoot as ShadowRoot, "button.cancel") as HTMLButtonElement;
-  const choice = (panel: HTMLElement) => find(root(panel), "vtherm-type-choice") as unknown as { value: string; select(type: string): void };
+  const choice = (panel: HTMLElement) => find(root(panel), "vtherm-type-choice") as unknown as HTMLElement & { value: string; select(type: string): void };
   /** Choose the type on the screen of the choice, which goes on to the page of configuration. */
   async function chooseType(panel: HTMLElement, type: string): Promise<void> {
     choice(panel).select(type);
@@ -309,7 +309,7 @@ describe("the creation of a thermostat", () => {
     expect(choice(panel)).not.toBeNull();
     expect(find(root(panel), "vtherm-side-menu")).toBeNull();
     expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat"]);
-    choice(panel).select(choice(panel).value);
+    choice(panel).select("thermostat_over_switch");
     await drawn(panel);
     expect(window.location.pathname).toBe(`${NEW}/core.tab.main`);
     expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "TPI parameters", "Advanced parameters"]);
@@ -318,10 +318,26 @@ describe("the creation of a thermostat", () => {
     expect(find(root(panel), "vtherm-native-main-thermostat")).not.toBeNull();
   });
 
-  it("opens the choice of the type at the address of the new thermostat, with the type of the draft selected", async () => {
+  it("opens the choice of the type at the address of the new thermostat, with no type selected by default", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: NEW });
-    expect(choice(panel).value).toBe("thermostat_over_switch");
+    expect(choice(panel).value).toBe("");
     expect(find(root(panel), "vtherm-native-main-thermostat")).toBeNull();
+  });
+
+  it("selects the card of the type that was chosen on the way back, and no card for a new creation", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: NEW });
+    await chooseType(panel, "thermostat_over_valve");
+    findAll<HTMLAnchorElement>(find(root(panel), "vtherm-breadcrumb")?.shadowRoot as ShadowRoot, "a").find((link) => link.textContent?.trim() === "New thermostat")?.click();
+    await settle(panel);
+    expect(choice(panel).value).toBe("thermostat_over_valve");
+    const pressed = () => findAll<HTMLElement>(choice(panel).shadowRoot as ShadowRoot, ".type-card").map((card) => card.getAttribute("aria-pressed"));
+    await vi.waitFor(() => expect(pressed()).toEqual(["false", "false", "true"]));
+    find<HTMLButtonElement>(choice(panel).shadowRoot as ShadowRoot, "button.cancel")?.click();
+    await settle(panel);
+    find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
+    await settle(panel);
+    expect(choice(panel).value).toBe("");
+    await vi.waitFor(() => expect(pressed()).toEqual(["false", "false", "false"]));
   });
 
   it("goes back to the choice of the type from the breadcrumb, keeping the draft, and changes the type", async () => {
@@ -331,7 +347,7 @@ describe("the creation of a thermostat", () => {
     findAll<HTMLAnchorElement>(find(root(panel), "vtherm-breadcrumb")?.shadowRoot as ShadowRoot, "a").find((link) => link.textContent?.trim() === "New thermostat")?.click();
     await settle(panel);
     expect(window.location.pathname).toBe(NEW);
-    expect(choice(panel).value).toBe("thermostat_over_switch");
+    expect(choice(panel).value).toBe("");
     await chooseType(panel, "thermostat_over_climate");
     expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Advanced parameters"]);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values).toMatchObject({ thermostat_type: "thermostat_over_climate", name: "Bureau" });
@@ -405,7 +421,7 @@ describe("the creation of a thermostat", () => {
     expect(window.location.pathname).toBe(`/vtherm/${THERMOSTATS}`);
     find<HTMLAnchorElement>(find(root(panel), "vtherm-thermostat-list")?.shadowRoot as ShadowRoot, "a.create")?.click();
     await settle(panel);
-    choice(panel).select(choice(panel).value);
+    choice(panel).select("thermostat_over_switch");
     await drawn(panel);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values["name"]).toBeUndefined();
   });
