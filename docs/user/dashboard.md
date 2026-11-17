@@ -33,8 +33,7 @@ A thermostat is in the area of its device. If you gave its climate entity an are
 everywhere in Home Assistant. To change the area of a thermostat, change it in Home Assistant: the list follows at once, and so do the
 names of the areas and of the floors when you rename them.
 
-The thermostats without area come last, under **No area**. For each of them, a link opens its device in Home Assistant so that you can
-give it an area.
+The thermostats without area come last, under **No area**. Give them an area in Home Assistant, on the page of their device.
 
 Above the list, **By area** and **By name** let you choose the order. The dashboard remembers your choice in this browser. When none
 of your thermostats has an area, the list is simply ordered by name, without headings and without this choice.

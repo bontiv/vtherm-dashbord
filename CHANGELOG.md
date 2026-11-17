@@ -37,7 +37,7 @@ The second beta.
 - The project is under the Apache License 2.0 (`LICENSE`, `NOTICE`). The SDK `@vtherm/dashboard-sdk` carries both files: a plugin
   author, free or paid, keeps the licence and the notice of the author when the plugin includes the SDK.
 - The list of the thermostats groups them by area of Home Assistant, ordered by floor then by name, with the thermostats without
-  area at the end and a link to give each one an area in its device page. **By area** and **By name** choose the order, remembered in
+  area at the end. **By area** and **By name** choose the order, remembered in
   the browser. The names of the areas and of the floors follow Home Assistant live. The selector of the menu orders the thermostats
   the same way and names each one with its area.
 - `vtherm_dashboard/get_thermostats` gives the device, the climate entity, the area and the floor of each thermostat.

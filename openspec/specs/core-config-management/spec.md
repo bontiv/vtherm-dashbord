@@ -272,7 +272,7 @@ Par défaut, la liste des thermostats SHALL regrouper les thermostats par pièce
 
 #### Scenario: Sans pièce
 - **WHEN** un thermostat n'a de pièce ni par son appareil ni par son entité
-- **THEN** il apparaît dans le groupe « Sans pièce », en dernier, avec un lien qui ouvre sa fiche d'appareil dans Home Assistant pour lui attribuer une pièce
+- **THEN** il apparaît dans le groupe « Sans pièce », en dernier, sans lien pour lui attribuer une pièce
 
 #### Scenario: Aucune pièce dans la maison
 - **WHEN** aucun thermostat n'a de pièce

@@ -56,16 +56,10 @@ describe("the list of the thermostats by area", () => {
     expect(names(list)).toEqual(["Sofa", "Bed", "Attic", "Towel rail"]);
   });
 
-  it("offers to give an area to a thermostat without area, in its device page of Home Assistant", async () => {
+  it("shows no link to give an area to the thermostats without area", async () => {
     const list = await mountList();
-    const links = [...shadow(list).querySelectorAll<HTMLAnchorElement>("a.assign")];
-    // The thermostat without device cannot be given an area from its device.
-    expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([["Assign an area to Towel rail", "/config/devices/device/device-towel"]]);
-    const changed = vi.fn();
-    window.addEventListener("location-changed", changed, { once: true });
-    links[0]?.click();
-    expect(window.location.pathname).toBe("/config/devices/device/device-towel");
-    expect(changed).toHaveBeenCalled();
+    expect(shadow(list).querySelector('a[href^="/config/devices/device/"]')).toBeNull();
+    expect(shadow(list).textContent).not.toContain("Assign an area");
   });
 
   it("shows the new name of an area that Home Assistant renamed, without reading the list again", async () => {

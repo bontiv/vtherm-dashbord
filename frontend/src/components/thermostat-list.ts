@@ -8,7 +8,7 @@ import type { ThermostatInfo } from "../navigation.ts";
 import { t } from "../shell-translations.ts";
 import { groupByArea, hasNoArea } from "../thermostat-areas.ts";
 import type { AreaGroup, HassAreas } from "../thermostat-areas.ts";
-import { followLink, openHomeAssistantPage } from "./events.ts";
+import { followLink } from "./events.ts";
 import { defineElement } from "./define.ts";
 import { narrowStyles } from "./narrow-styles.ts";
 import { isDefined, renderAlert } from "./ha.ts";
@@ -151,17 +151,6 @@ export class VThermThermostatList extends LitElement {
       background-color: var(--primary-color);
       border: 0;
     }
-    a.assign {
-      display: inline;
-      padding: 0;
-      color: var(--primary-color);
-      background: none;
-      border: 0;
-      font-size: 14px;
-    }
-    .assign-row {
-      padding: 0 16px 8px;
-    }
     .empty {
       padding: 32px 16px;
       text-align: center;
@@ -257,23 +246,6 @@ export class VThermThermostatList extends LitElement {
     </ul>`;
   }
 
-  /** The links that open the device of each thermostat without area in Home Assistant, to give it one. */
-  private renderAssign(thermostats: readonly ThermostatInfo[]): TemplateResult[] {
-    return thermostats
-      .filter((thermostat) => typeof thermostat.deviceId === "string" && thermostat.deviceId !== "")
-      .map((thermostat) => {
-        const path = `/config/devices/device/${encodeURIComponent(String(thermostat.deviceId))}`;
-        const open = (event: MouseEvent): void => {
-          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-            return;
-          }
-          event.preventDefault();
-          openHomeAssistantPage(path);
-        };
-        return html`<div class="assign-row"><a class="assign touch-target" href=${path} @click=${open}>${t("shell.thermostats.assign_area", { name: thermostat.name })}</a></div>`;
-      });
-  }
-
   private renderGroup(group: AreaGroup): TemplateResult {
     const homeless = group.areaId === null;
     return html`<section aria-labelledby="area-${group.areaId ?? "none"}">
@@ -282,7 +254,7 @@ export class VThermThermostatList extends LitElement {
         <span class="area breakable">${homeless ? t("shell.thermostats.no_area") : group.name}</span>
         ${group.floorName === undefined ? undefined : html`<span class="floor breakable">${group.floorName}</span>`}
       </h3>
-      ${this.renderItems(group.thermostats)} ${homeless ? this.renderAssign(group.thermostats) : undefined}
+      ${this.renderItems(group.thermostats)}
     </section>`;
   }
 
