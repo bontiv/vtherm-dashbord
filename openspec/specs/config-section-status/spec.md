@@ -36,7 +36,7 @@ Quand plusieurs statuts s'appliquent à une section, le menu SHALL afficher le p
 - **THEN** l'entrée affiche « Off » et non « Central »
 
 ### Requirement: Sections des fonctionnalités éteintes
-Une section qui représente une fonctionnalité désactivée SHALL rester dans le menu, en retrait et avec le statut éteinte. Ouverte, elle SHALL afficher une courte explication de la fonctionnalité et un interrupteur d'activation, sans ses champs. Activer cet interrupteur SHALL modifier, dans le brouillon, la même valeur que l'onglet qui la porte (« Fonctions », ou « Sous-jacents » pour la synchronisation de la température), et afficher les champs de la section.
+Une section qui représente une fonctionnalité désactivée SHALL rester dans le menu, en retrait et avec le statut éteinte. Ouverte, elle SHALL afficher une courte explication de la fonctionnalité et un interrupteur d'activation, sans ses champs. Activer cet interrupteur SHALL modifier, dans le brouillon, la valeur de l'étape du config flow qui la porte (« features », ou « Sous-jacents » pour la synchronisation de la température), et afficher les champs de la section.
 
 #### Scenario: Découverte de la détection d'ouverture
 - **WHEN** l'administrateur ouvre la section « Ouverture » d'un thermostat dont la fonctionnalité est éteinte
@@ -44,7 +44,11 @@ Une section qui représente une fonctionnalité désactivée SHALL rester dans l
 
 #### Scenario: Activation sur place
 - **WHEN** l'administrateur active l'interrupteur de la section « Ouverture »
-- **THEN** les champs de la section apparaissent, l'onglet « fonctionnalités » montre la fonctionnalité active et le pied de la carte indique « Modifications non enregistrées »
+- **THEN** les champs de la section apparaissent, l'interrupteur reste au-dessus d'eux pour désactiver la fonctionnalité, et le pied de la carte indique « Modifications non enregistrées »
+
+#### Scenario: Actions d'une section éteinte
+- **WHEN** la section d'une fonctionnalité éteinte est ouverte, par exemple juste après que l'administrateur l'a éteinte
+- **THEN** les actions « Enregistrer » et « Annuler » sont au pied de la même carte que le titre, l'explication et l'interrupteur, actives dès que le brouillon a une modification
 
 #### Scenario: Fonctionnalité non applicable
 - **WHEN** une fonctionnalité ne s'applique pas au type du thermostat, comme le démarrage et l'arrêt automatiques pour `over_switch`
@@ -59,7 +63,7 @@ Une section qui représente une fonctionnalité désactivée SHALL rester dans l
 - **THEN** la section « Synchronisation de la température » n'apparaît pas dans le menu
 
 ### Requirement: Accès à la première erreur
-Après un enregistrement refusé, les messages au-dessus des actions d'enregistrement de la section SHALL proposer d'ouvrir la première autre section en erreur dans l'ordre du menu, et chaque section en erreur SHALL avoir le statut refusée jusqu'à ce que ses valeurs refusées soient modifiées ou qu'un enregistrement réussisse.
+Après un enregistrement refusé, les messages au-dessus des actions d'enregistrement de la section SHALL proposer d'ouvrir la première autre section en erreur dans l'ordre du menu, et chaque section en erreur SHALL avoir le statut refusée jusqu'à ce que ses valeurs refusées soient modifiées ou qu'un enregistrement réussisse. Une valeur refusée de l'étape « features » SHALL rendre en erreur la section de la fonctionnalité qui la déclare.
 
 #### Scenario: Erreur dans une autre section
 - **WHEN** l'administrateur enregistre depuis la section principale et que la section TPI est refusée
@@ -69,16 +73,9 @@ Après un enregistrement refusé, les messages au-dessus des actions d'enregistr
 - **WHEN** l'administrateur modifie le champ refusé de la section TPI
 - **THEN** l'entrée TPI quitte le statut refusée et prend le statut calculé sur le brouillon
 
-### Requirement: Sections toujours actives sans coche
-Une section du groupe « Paramètres généraux », qui ne peut pas être éteinte, SHALL ne rien afficher quand elle est complète. Elle SHALL continuer d'afficher les statuts refusée, incomplète et héritée.
-
-#### Scenario: Fonctions complètes
-- **WHEN** la section « Fonctions » d'un thermostat n'a aucune valeur manquante
-- **THEN** son entrée n'affiche ni coche ni texte de statut
-
-#### Scenario: Paramètres avancés hérités
-- **WHEN** la section « Paramètres avancés » utilise la configuration centrale et que rien ne manque
-- **THEN** son entrée affiche « Central »
+#### Scenario: Activation d'une fonctionnalité refusée
+- **WHEN** Versatile Thermostat refuse `use_window_feature` de l'étape « features » à l'enregistrement
+- **THEN** l'entrée « Ouverture » a le statut refusée, et le pied de la carte de la section enregistrée propose « Aller à Ouverture »
 
 ### Requirement: Humidité éteinte
 La section « Humidité » d'un thermostat SHALL avoir le statut éteinte quand l'option « Utiliser un capteur d'humidité » est décochée dans le brouillon. Sa page SHALL rester affichée normalement, avec cette option, pour qu'on puisse la cocher.
@@ -112,3 +109,14 @@ Une section d'un thermostat qui utilise la configuration centrale SHALL avoir le
 #### Scenario: Fonctionnalité propre au thermostat
 - **WHEN** un thermostat a la détection d'ouverture activée et utilise la configuration centrale de l'ouverture, alors que la configuration centrale a cette fonctionnalité désactivée
 - **THEN** l'entrée « Détection d'ouverture » du thermostat affiche « Central », car Versatile Thermostat active la fonctionnalité d'après la valeur du thermostat
+
+### Requirement: Sections des paramètres généraux sans coche
+Une section du groupe « Paramètres généraux », qui ne peut pas être éteinte, SHALL ne rien afficher quand elle est complète. Elle SHALL continuer d'afficher les statuts refusée, incomplète et héritée.
+
+#### Scenario: Principaux attributs complets
+- **WHEN** la section « Principaux attributs » d'un thermostat n'a aucune valeur manquante
+- **THEN** son entrée n'affiche ni coche ni texte de statut
+
+#### Scenario: Section de sécurité héritée
+- **WHEN** la section « Sécurité et dérogation » utilise la configuration centrale et que rien ne manque
+- **THEN** son entrée affiche « Central »

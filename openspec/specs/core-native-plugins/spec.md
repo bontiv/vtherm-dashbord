@@ -58,7 +58,7 @@ Le dashboard SHALL fournir les plugins natifs `core`, `core_tpi`, `core_presets`
 - **THEN** chacun requiert `core` et est chargé après lui
 
 ### Requirement: Ordre des onglets du config flow
-Les menus d'un thermostat et de la Configuration SHALL ranger les onglets natifs, dans cet ordre, sous « Paramètres généraux » : principal, sous-jacents, fonctions, presets, TPI, régulation par vanne, avancé ; puis sous « Fonctionnalités » : chaudière centrale, ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, synchronisation de température, verrouillage, humidité, panne de chauffage. L'ordre SHALL venir de positions déclaratives.
+Les menus d'un thermostat et de la Configuration SHALL ranger les onglets natifs, dans cet ordre, sous « Paramètres généraux » : principal, sous-jacents, presets, TPI, régulation par vanne, avancé ; puis sous « Fonctionnalités » : chaudière centrale, ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, synchronisation de température, verrouillage, humidité, panne de chauffage. L'ordre SHALL venir de positions déclaratives.
 
 #### Scenario: Ordre par défaut
 - **WHEN** un thermostat dont toutes les fonctionnalités sont activées est ouvert sans plugin tiers
@@ -66,7 +66,7 @@ Les menus d'un thermostat et de la Configuration SHALL ranger les onglets natifs
 
 #### Scenario: Configuration centrale
 - **WHEN** l'administrateur ouvre le menu de la Configuration d'une configuration centrale existante
-- **THEN** il voit sous « Paramètres généraux » : principal, fonctions, presets, TPI, avancé ; puis sous « Fonctionnalités » les sections de fonctionnalités de la configuration centrale, dont le verrouillage
+- **THEN** il voit sous « Paramètres généraux » : principal, presets, TPI, avancé ; puis sous « Fonctionnalités » les sections de fonctionnalités de la configuration centrale, dont le verrouillage
 
 #### Scenario: Insertion tierce
 - **WHEN** un plugin tiers déclare `after: core_tpi.tab.main`
@@ -75,21 +75,6 @@ Les menus d'un thermostat et de la Configuration SHALL ranger les onglets natifs
 #### Scenario: Insertion tierce dans un groupe
 - **WHEN** un plugin tiers déclare `after: core_tpi.tab.main` et le groupe partagé « Paramètres généraux »
 - **THEN** son onglet suit l'onglet TPI sans couper le groupe en deux intitulés
-
-### Requirement: Plugin `core` : principal, type et fonctionnalités
-Le plugin `core` SHALL fournir les onglets "principal", "type" et "fonctionnalités". L'onglet "principal" SHALL contenir les paramètres de base du thermostat, ou ceux de la configuration centrale pour la configuration générale.
-
-#### Scenario: Onglet principal d'un thermostat
-- **WHEN** l'onglet principal d'un thermostat est affiché
-- **THEN** il propose le nom, le capteur de température, le capteur de dernière vue (facultatif), la durée de cycle en minutes (défaut 5), la puissance de l'équipement (défaut 1) et son unité, et les options "utiliser la configuration centrale" (défaut oui), "utiliser le mode central" (défaut oui) et "utilisé par la chaudière centrale" (défaut non)
-
-#### Scenario: Paramètres propres du principal
-- **WHEN** l'héritage de la section principale est désactivé
-- **THEN** l'onglet propose le capteur de température extérieure (obligatoire), la température minimale, la température maximale et le pas
-
-#### Scenario: Principal de la configuration générale
-- **WHEN** l'onglet principal de la configuration générale est affiché
-- **THEN** il propose le capteur de température extérieure (obligatoire), la température minimale (défaut 7), la maximale (défaut 35) et le pas (défaut 0,1)
 
 ### Requirement: Onglet type d'un thermostat sur interrupteur
 Pour un thermostat `over_switch`, l'onglet "type" SHALL proposer les entités sous-jacentes (obligatoires, une ou plusieurs parmi interrupteur, booléen, sélecteur, climate), la période de maintien d'activité, la fonction proportionnelle, le mode climatisation, l'inversion de commande et les commandes personnalisées d'allumage et d'extinction.
@@ -123,21 +108,6 @@ Pour un thermostat `over_valve`, l'onglet "type" SHALL proposer les entités de 
 #### Scenario: Trop de valeurs
 - **WHEN** la liste des ouvertures contient plus de valeurs que de vannes
 - **THEN** l'erreur "nombre de valeurs incorrect" est affichée
-
-### Requirement: Onglet fonctionnalités
-L'onglet "fonctionnalités" SHALL proposer l'activation des fonctionnalités ouverture, mouvement, puissance et présence pour tous les types, la détection de panne de chauffage pour les types sans climate simple, le démarrage et l'arrêt automatiques pour `over_climate` sans régulation par vanne, et la chaudière centrale pour la configuration générale. L'interrupteur d'activation affiché dans l'onglet d'une fonctionnalité SHALL modifier la même valeur.
-
-#### Scenario: Activation d'une fonctionnalité
-- **WHEN** l'administrateur active la fonctionnalité mouvement
-- **THEN** l'onglet mouvement passe du statut éteinte à son statut calculé et affiche ses champs
-
-#### Scenario: Fonctionnalité non applicable
-- **WHEN** un thermostat `over_switch` est ouvert
-- **THEN** l'option de démarrage et d'arrêt automatiques n'est pas proposée
-
-#### Scenario: Activation depuis l'onglet de la fonctionnalité
-- **WHEN** l'administrateur active la fonctionnalité mouvement par l'interrupteur de l'onglet mouvement
-- **THEN** l'onglet "fonctionnalités" montre la fonctionnalité mouvement active
 
 ### Requirement: Plugin `core_tpi`
 Le plugin `core_tpi` SHALL fournir l'onglet TPI pour la fonction proportionnelle TPI, la régulation par vanne et la configuration générale. L'onglet SHALL proposer les coefficients intérieur (0,6, de 0 à 10) et extérieur (0,01, de 0 à 1), les délais minimaux d'activation (10) et de désactivation (0) et les seuils bas et haut (de -10 à 10, défaut 0).
@@ -394,3 +364,37 @@ L'identifiant du plugin de l'onglet « Sécurité et dérogation », ceux de ses
 #### Scenario: Contrat des plugins tiers
 - **WHEN** un plugin tiers se place `after:core_advanced.tab.main` ou ouvre l'adresse de la section avancée enregistrée avant le changement
 - **THEN** la contribution est placée au même endroit et l'adresse ouvre la même section, sous son nouveau titre
+
+### Requirement: Plugin `core` : principal et type
+Le plugin `core` SHALL fournir les onglets "principal" et "type". L'onglet "principal" SHALL contenir les paramètres de base du thermostat, ou ceux de la configuration centrale pour la configuration générale. Il SHALL ne fournir aucun onglet « fonctionnalités » : ni `core.tab.features`, ni `core.general.features`.
+
+#### Scenario: Onglet principal d'un thermostat
+- **WHEN** l'onglet principal d'un thermostat est affiché
+- **THEN** il propose le nom, le capteur de température, le capteur de dernière vue (facultatif), la durée de cycle en minutes (défaut 5), la puissance de l'équipement (défaut 1) et son unité, et les options "utiliser la configuration centrale" (défaut oui), "utiliser le mode central" (défaut oui) et "utilisé par la chaudière centrale" (défaut non)
+
+#### Scenario: Paramètres propres du principal
+- **WHEN** l'héritage de la section principale est désactivé
+- **THEN** l'onglet propose le capteur de température extérieure (obligatoire), la température minimale, la température maximale et le pas
+
+#### Scenario: Principal de la configuration générale
+- **WHEN** l'onglet principal de la configuration générale est affiché
+- **THEN** il propose le capteur de température extérieure (obligatoire), la température minimale (défaut 7), la maximale (défaut 35) et le pas (défaut 0,1)
+
+#### Scenario: Ancienne adresse de l'onglet des fonctionnalités
+- **WHEN** l'utilisateur ouvre une adresse enregistrée de `core.tab.features`
+- **THEN** la page par défaut du thermostat s'ouvre avec l'avis d'adresse inconnue
+
+### Requirement: Activation des fonctionnalités par leur onglet
+Chaque fonctionnalité que Versatile Thermostat propose pour le type de la configuration (ouverture, mouvement, puissance et présence pour tous ; panne de chauffage sans climate simple ; démarrage et arrêt automatiques pour `over_climate` sans régulation par vanne ; chaudière centrale pour la configuration générale) SHALL s'activer et se désactiver par l'interrupteur de son onglet. La valeur SHALL être enregistrée dans l'étape « features » du config flow.
+
+#### Scenario: Activation d'une fonctionnalité
+- **WHEN** l'administrateur active la fonctionnalité mouvement par l'interrupteur de l'onglet mouvement, puis enregistre
+- **THEN** l'onglet mouvement passe du statut éteinte à son statut calculé, affiche ses champs, et Versatile Thermostat reçoit `use_motion_feature` dans l'étape « features »
+
+#### Scenario: Désactivation d'une fonctionnalité
+- **WHEN** l'administrateur décoche l'interrupteur affiché au-dessus de l'onglet mouvement actif
+- **THEN** l'onglet repasse au statut éteinte, ses champs disparaissent, et les actions « Enregistrer » et « Annuler » sont au pied de la carte de l'interrupteur pour enregistrer la modification sur place
+
+#### Scenario: Fonctionnalité non applicable
+- **WHEN** un thermostat `over_switch` est ouvert
+- **THEN** aucun onglet ne propose le démarrage et l'arrêt automatiques
