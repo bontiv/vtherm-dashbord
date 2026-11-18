@@ -25,7 +25,11 @@
     },
     "mounts": [
         "type=bind,source=C:\\VS-Projects\\versatile_thermostat,target=/workspaces/vtherm_dashboard/external/versatile_thermostat",
-        "type=bind,source=C:\\VS-Projects\\vtherm_api,target=/workspaces/vtherm_dashboard/external/vtherm_api"
+        "type=bind,source=C:\\VS-Projects\\vtherm_api,target=/workspaces/vtherm_dashboard/external/vtherm_api",
+        // The npm dependencies live on volumes of the container, not on the folder of the host: reading their thousands of files through
+        // the mount of the host made each test file start in about 16 s. The sources stay on the host.
+        "type=volume,source=vtherm-dashboard-node-modules,target=${containerWorkspaceFolder}/node_modules",
+        "type=volume,source=vtherm-dashboard-frontend-node-modules,target=${containerWorkspaceFolder}/frontend/node_modules"
     ],
     "postCreateCommand": "bash .devcontainer/post-create.sh",
     "containerEnv": {

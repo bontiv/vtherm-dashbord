@@ -12,7 +12,8 @@ GitHub CLI. Its `postCreateCommand` runs `.devcontainer/post-create.sh`, which:
    Versatile Thermostat needs;
 3. installs the packages that the browser of Home Assistant needs at its start (voice assistants, cameras): without them the page stays
    on "Loading data", because Home Assistant does not install them for a development instance;
-4. runs `npm install` for the workspaces, then builds the SDK and installs it in the sample plugin, which is not a workspace (see below);
+4. runs `npm ci` for the workspaces, into `node_modules` and `frontend/node_modules`, which are volumes of the container (see
+   [Why the tests are fast](#why-the-tests-are-fast)), then builds the SDK and installs it in the sample plugin, which is not a workspace (see below);
 5. copies `.devcontainer/configuration.yaml` to `config/configuration.yaml`, the configuration of the development instance.
 
 Versatile Thermostat and HACS are cloned at the commit of `external-refs.txt`, the one that the continuous integration tests against (`scripts/fetch-external.sh`).
@@ -161,7 +162,8 @@ the container, with any Python 3.
 ## The tests
 | Command | What it runs |
 | --- | --- |
-| `pytest` | The Python tests: the server, the config flow driver (with the real Versatile Thermostat in `external/`), the registry, the catalog of add-ons. |
+| `pytest -n auto` | The Python tests, in parallel: the server, the config flow driver (with the real Versatile Thermostat in `external/`), the registry, the catalog of add-ons. `pytest` alone runs them one after the other, which is better for one file or one test. |
+| `pytest -n auto -m "not vtherm"` | The Python tests without the ones that run the real Versatile Thermostat (marker `vtherm`), for a quick loop while you work. Run the whole suite before a commit: the continuous integration always does. |
 | `npm test` | The TypeScript tests (Vitest): the SDK, the frontend, the scripts and the examples. The sample plugin has its own tests: see below. The checks of the documentation (`frontend/test/docs.test.ts`) are skipped. |
 | `npm run test:docs` | The checks of the documentation: each page that describes the plugins, the theme and the dashboard says what the code does. They are long, so they run apart, in the Vitest mode `docs`. |
 | `npm run check` | Everything that is not a test: types, lint, no JavaScript, documentation, SDK reference, generated catalogs, Python format and pylint. |
@@ -183,6 +185,23 @@ npm run build && npm test
 It uses Vite, Vitest and TypeScript from the root `node_modules`, so run `npm install` at the root first. In the continuous integration, the job `sample-plugin` does the same and only warns when it fails.
 
 Useful variants: `npx vitest run frontend/test/panel.test.ts`, `pytest tests/test_plugin_list.py -k cycle`, `scripts/check-python.sh path.py`.
+
+### Why the tests are fast
+The dev container reads the sources from the folder of the host. On Windows, that mount is slow for many small files: reading the
+thousands of files of `node_modules` through it made each file of Vitest tests start in about 16 s. So:
+
+- `node_modules` and `frontend/node_modules` are volumes of the container (`mounts` of `.devcontainer/devcontainer.json`); the
+  sources stay on the host. After this change, rebuild the container ("Rebuild Container"): `post-create.sh` gives the volumes to
+  the user of the container and runs `npm ci`. The old `node_modules` folders of the host are hidden in the container: you can delete
+  them on the host.
+- The plugin `pytest-homeassistant-custom-component` turns on the debug mode of the event loop in every test: every future then
+  records the stack that created it, and reads each file of the stack. `tests/conftest.py` keeps the debug mode in the continuous
+  integration (variable `CI`) and when `VTHERM_ASYNCIO_DEBUG=1`, and turns it off otherwise. Set the variable to see what the debug
+  mode reports (slow callbacks, coroutines never awaited): `VTHERM_ASYNCIO_DEBUG=1 pytest`.
+- A test that runs the real Versatile Thermostat gets the marker `vtherm` from `tests/conftest.py`, through the fixture `real_vtherm`
+  or the mark `requires_vtherm`: nothing to declare in the file of the test. The orchestration of the command `save_config` (the tabs,
+  then the presets) is tested with a fake `ConfigWriter` in `tests/test_save_command.py`; what Versatile Thermostat does stays tested
+  with the real one.
 
 ### Generated files
 | Command | Updates |

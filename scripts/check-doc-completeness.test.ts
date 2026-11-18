@@ -5,9 +5,24 @@ import type { Source } from "./check-doc-completeness.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
+/**
+ * The real files, each read from the disk once for the whole file of tests: the cases read the same pages again and again, and each
+ * read through the mount of the host in the devcontainer is slow.
+ */
+const disk = ((source: Source): Source => {
+  const read = new Map<string, string | undefined>();
+  return {
+    read: (path) => {
+      if (!read.has(path)) {
+        read.set(path, source.read(path));
+      }
+      return read.get(path);
+    },
+  };
+})(diskSource(ROOT));
+
 /** A repository made of the real files, with some removed or changed. */
 function repository(changes: Record<string, string | undefined> = {}): Source {
-  const disk = diskSource(ROOT);
   return { read: (path) => (path in changes ? changes[path] : disk.read(path)) };
 }
 

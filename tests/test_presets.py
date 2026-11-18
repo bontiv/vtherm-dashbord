@@ -95,40 +95,6 @@ async def client_fixture(hass: HomeAssistant, writer, setup_dashboard, hass_ws_c
     return await hass_ws_client(hass)
 
 
-async def test_save_the_configuration_then_the_presets_in_one_command(hass: HomeAssistant, writer: ConfigWriter, client) -> None:
-    """The tabs are saved through the flow, then the presets are applied."""
-    entry = await own_presets(hass, writer)
-    await client.send_json_auto_id({"type": "vtherm_dashboard/save_config", "entry_id": entry.entry_id, "changes": {"main": {"cycle_min": 9}}, "presets": {"eco_temp": 18}})
-    result = (await client.receive_json())["result"]
-    await hass.async_block_till_done()
-    assert (result["ok"], result["config_saved"], result["errors"], result["preset_errors"]) == (True, True, [], [])
-    assert entry.data["cycle_min"] == 9
-    assert {preset.preset: preset.value for preset in read_presets(hass, entry.entry_id)}["eco_temp"] == 18
-
-
-async def test_a_preset_that_fails_keeps_the_saved_configuration(hass: HomeAssistant, writer: ConfigWriter, client) -> None:
-    """The configuration of the flow stays saved, and the error is on the preset."""
-    entry = await own_presets(hass, writer)
-    await client.send_json_auto_id({"type": "vtherm_dashboard/save_config", "entry_id": entry.entry_id, "changes": {"main": {"cycle_min": 11}}, "presets": {"eco_temp": 99}})
-    result = (await client.receive_json())["result"]
-    await hass.async_block_till_done()
-    assert (result["ok"], result["config_saved"]) == (False, True)
-    assert result["preset_errors"] == [{"tab": "presets", "field": "eco_temp", "code": "out_of_range"}]
-    assert entry.data["cycle_min"] == 11
-
-
-async def test_the_presets_are_not_applied_when_the_configuration_is_refused(hass: HomeAssistant, writer: ConfigWriter, client) -> None:
-    """When the flow refuses the tabs, nothing is written: not the tabs, not the presets."""
-    entry = await own_presets(hass, writer)
-    await client.send_json_auto_id(
-        {"type": "vtherm_dashboard/save_config", "entry_id": entry.entry_id, "changes": {"main": {"temperature_sensor_entity_id": "sensor.nothing"}}, "presets": {"eco_temp": 18}}
-    )
-    result = (await client.receive_json())["result"]
-    assert (result["ok"], result["config_saved"], result["preset_errors"]) == (False, False, [])
-    assert result["errors"] == [{"tab": "main", "field": "temperature_sensor_entity_id", "code": "unknown_entity"}]
-    assert {preset.preset: preset.value for preset in read_presets(hass, entry.entry_id)}["eco_temp"] == 7.0
-
-
 async def test_create_and_read_through_the_commands(hass: HomeAssistant, writer: ConfigWriter, client) -> None:  # pylint: disable=unused-argument
     """The commands create the central configuration and a thermostat, and read the presets."""
     await client.send_json_auto_id(

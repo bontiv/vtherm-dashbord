@@ -51,9 +51,11 @@ while todo:
 print("\n".join(sorted(requirements)))
 PYTHON
 
-# Frontend and SDK: npm workspaces installed from the root package.json.
+# Frontend and SDK: npm workspaces installed from the root package.json, into the volumes of devcontainer.json. A new volume belongs to
+# root: give it to the user of the container first.
 if [ -f package.json ]; then
-    npm install
+    sudo chown -R "$(id -u):$(id -g)" node_modules frontend/node_modules 2>/dev/null || true
+    npm ci
 fi
 
 # The sample plugin is not a workspace. It gets the SDK of this repository from a tarball, like a plugin of an author. This is best effort:

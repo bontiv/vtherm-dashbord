@@ -1,5 +1,8 @@
 """Pytest configuration: custom integrations of the repository are enabled in every test."""
 
+import asyncio
+import os
+from collections.abc import Mapping
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -17,7 +20,32 @@ from custom_components.vtherm_dashboard.const import DOMAIN
 EXTERNAL_VTHERM = Path(__file__).resolve().parent.parent / "external" / "versatile_thermostat" / "custom_components"
 """The Versatile Thermostat of the development environment. Tests that run its real code need it, see requires_vtherm."""
 
-requires_vtherm = pytest.mark.skipif(not EXTERNAL_VTHERM.is_dir(), reason="external/versatile_thermostat is not available")
+REQUIRES_VTHERM_REASON = "external/versatile_thermostat is not available"
+requires_vtherm = pytest.mark.skipif(not EXTERNAL_VTHERM.is_dir(), reason=REQUIRES_VTHERM_REASON)
+
+
+def asyncio_debug_wanted(environ: Mapping[str, str]) -> bool:
+    """Whether the tests run the event loop in debug mode: in the continuous integration, or when VTHERM_ASYNCIO_DEBUG is 1.
+
+    The debug mode makes every future record the stack that created it, which reads each file of the stack. Through the mount of the
+    host in the devcontainer, that made the tests of the real Versatile Thermostat ten times slower.
+    """
+    return bool(environ.get("CI")) or environ.get("VTHERM_ASYNCIO_DEBUG") == "1"
+
+
+@pytest.fixture(autouse=True)
+async def enable_event_loop_debug() -> None:
+    """Replace the fixture of pytest-homeassistant-custom-component that always turns the debug mode of the event loop on."""
+    asyncio.get_running_loop().set_debug(asyncio_debug_wanted(os.environ))
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Mark `vtherm` the tests that run the code of the real Versatile Thermostat: through the fixture real_vtherm, or requires_vtherm."""
+    for item in items:
+        uses_fixture = "real_vtherm" in getattr(item, "fixturenames", ())
+        required = any(marker.kwargs.get("reason") == REQUIRES_VTHERM_REASON for marker in item.iter_markers("skipif"))
+        if uses_fixture or required:
+            item.add_marker(pytest.mark.vtherm)
 
 
 @pytest.fixture(name="real_vtherm")

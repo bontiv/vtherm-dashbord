@@ -43,7 +43,8 @@ jobs:
       - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
         run: bash scripts/fetch-external.sh
       - name: Test with coverage
-        run: pytest --cov --cov-report=xml:coverage/python/coverage.xml --cov-report=html:coverage/python/html
+        # In parallel, one process per core. CI is set by GitHub Actions, so the event loop of the tests runs in debug mode.
+        run: pytest -n auto --cov --cov-report=xml:coverage/python/coverage.xml --cov-report=html:coverage/python/html
       - name: Write the coverage in the summary
         if: always()
         run: |

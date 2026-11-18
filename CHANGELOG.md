@@ -80,6 +80,10 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   step "features" of Versatile Thermostat, as before.
 
 ### For contributors
+- The tests are much faster in the dev container: `node_modules` is on volumes of the container (rebuild the container), the Python
+  tests run in parallel with `pytest -n auto` and without the debug mode of the event loop outside the continuous integration
+  (`VTHERM_ASYNCIO_DEBUG=1` turns it on), and the tests that run the real Versatile Thermostat have the marker `vtherm`
+  (`pytest -m "not vtherm"` leaves them out). Measured in the dev container: Vitest from 72 s to about 8 s, pytest from 194 s to 19 s.
 - `npm run test:docs` runs the checks of the documentation, which `npm test` now skips because they are long.
 - The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not
   published yet can no longer make `npm ci` fail for the whole repository. The CI job `sample-plugin` builds the SDK, installs it in the
