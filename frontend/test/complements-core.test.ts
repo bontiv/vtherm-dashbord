@@ -3,8 +3,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HacsClient, HacsError, MIN_HACS_VERSION, compareVersions, hacsLink } from "../src/complements/hacs-client.ts";
+import { displayName, isEnglishFallback } from "../src/complements/display.ts";
 import { ComplementsModel } from "../src/complements/model.ts";
-import { configFlowPath, deduceState } from "../src/complements/states.ts";
+import { configFlowPath, deduceState, updateOf } from "../src/complements/states.ts";
 import type { Complement, HacsRepository } from "../src/complements/types.ts";
 import { catalogAnswer, complement as makeComplement, createFakeHacs, withHandlers } from "./support/fake-hacs.ts";
 
@@ -153,6 +154,45 @@ describe("the state of an add-on", () => {
   });
 });
 
+describe("the name of an add-on", () => {
+  it("loses the experimental prefix, whatever its case", () => {
+    expect(displayName("[EXPERIMENTAL] An assistant")).toEqual({ name: "An assistant", experimental: true });
+    expect(displayName("[experimental] An assistant")).toEqual({ name: "An assistant", experimental: true });
+    expect(displayName("[Experimental]An assistant")).toEqual({ name: "An assistant", experimental: true });
+  });
+
+  it("is kept when there is no prefix", () => {
+    expect(displayName("Versatile Card UI")).toEqual({ name: "Versatile Card UI", experimental: false });
+    expect(displayName("A [EXPERIMENTAL] card").experimental).toBe(false);
+  });
+
+  it("marks an English text only for a user who reads another language", () => {
+    expect(isEnglishFallback("en", "fr")).toBe(true);
+    expect(isEnglishFallback("fr", "fr-CA")).toBe(false);
+    expect(isEnglishFallback("en", "en-GB")).toBe(false);
+  });
+});
+
+describe("the update of an add-on", () => {
+  it("is offered when the available version differs from the installed one", () => {
+    expect(updateOf(repo({ installed: true, installed_version: "1.2.0", available_version: "1.3.0" }))).toEqual({ installed: "1.2.0", available: "1.3.0" });
+  });
+
+  it("is not offered when the versions are equal", () => {
+    expect(updateOf(repo({ installed: true, installed_version: "1.2.0", available_version: "1.2.0" }))).toBeUndefined();
+    expect(updateOf(repo({ installed: true, installed_version: "1.2.0", available_version: null }))).toBeUndefined();
+  });
+
+  it("is offered when HACS says pending-upgrade", () => {
+    expect(updateOf(repo({ installed: true, status: "pending-upgrade", installed_version: "1.2.0", available_version: "1.2.0" }))).toEqual({ installed: "1.2.0", available: "1.2.0" });
+  });
+
+  it("is not offered for a repository that is not installed, or unknown", () => {
+    expect(updateOf(repo({ installed: false, installed_version: null, available_version: "2.0.0" }))).toBeUndefined();
+    expect(updateOf(undefined)).toBeUndefined();
+  });
+});
+
 describe("the model", () => {
   let model: ComplementsModel;
   let hass: { callWS: ReturnType<typeof vi.fn>; callService: ReturnType<typeof vi.fn> };
@@ -193,6 +233,64 @@ describe("the model", () => {
     await model.load(true);
     expect(model.loadError).toBe("catalog_unavailable");
     expect(model.response?.complements).toHaveLength(1);
+  });
+
+  describe("what needs an action", () => {
+    const ha = (fields: Partial<Complement["ha"]> = {}) => ({ found: true, loaded: true, config_entries: 0, config_flow: false, ...fields });
+    const load = async (item: Record<string, unknown>, repository: Record<string, unknown>) => {
+      serve({ "vtherm_dashboard/get_complements": catalogAnswer([makeComplement(item) as never]) }, createFakeHacs({ repositories: [{ id: "1", full_name: "owner/add-on", category: "integration", installed: true, ...repository }] }));
+      await model.load();
+      return model.response!.complements[0]!;
+    };
+
+    it("is true for an add-on to configure", async () => {
+      expect(model.needsAction(await load({ ha: ha({ config_flow: true }) }, {}))).toBe(true);
+    });
+
+    it("is true for an add-on that waits for a restart", async () => {
+      expect(model.needsAction(await load({ ha: ha() }, { status: "pending-restart" }))).toBe(true);
+    });
+
+    it("is true for a configured add-on with an update, and gives the versions", async () => {
+      const item = await load({ ha: ha({ config_entries: 1, config_flow: true }) }, { installed_version: "1.2.0", available_version: "1.3.0" });
+      expect(model.stateOf(item)).toBe("configured");
+      expect(model.updateOf(item)).toEqual({ installed: "1.2.0", available: "1.3.0" });
+      expect(model.needsAction(item)).toBe(true);
+    });
+
+    it("is false for a configured add-on without update", async () => {
+      expect(model.needsAction(await load({ ha: ha({ config_entries: 1, config_flow: true }) }, { installed_version: "1.2.0", available_version: "1.2.0" }))).toBe(false);
+    });
+  });
+
+  it("keeps the criteria of the lists until it is reset", () => {
+    model.criteria.set("page", { query: "a", type: "", family: "", certification: "", state: "", sort: "name" });
+    expect(model.criteria.get("page")?.query).toBe("a");
+    model.reset();
+    expect(model.criteria.size).toBe(0);
+  });
+
+  it("shows the catalog before HACS answers, and does not install meanwhile", async () => {
+    const hacs = createFakeHacs({ repositories: [{ id: "1", full_name: "owner/add-on", category: "integration" }] });
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    withHandlers(hass as never, async (message) => {
+      if (String(message["type"]).startsWith("hacs/")) {
+        await held;
+      }
+      return hacs.handle(message);
+    }, async (message) => (message["type"] === "vtherm_dashboard/get_complements" ? catalogAnswer([complement() as never]) : undefined));
+    model.attach(hass as never);
+    const loading = model.load();
+    await vi.waitFor(() => expect(model.hacsLoading).toBe(true));
+    const item = model.response!.complements[0]!;
+    expect(model.canInstall(item)).toBe(false);
+    release();
+    await loading;
+    expect(model.hacsLoading).toBe(false);
+    expect(model.canInstall(item)).toBe(true);
   });
 
   it("installs an add-on, then reads everything again", async () => {

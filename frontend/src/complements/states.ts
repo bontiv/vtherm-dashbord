@@ -1,5 +1,5 @@
 /** The state of an add-on, deduced from what Home Assistant and HACS say. The dashboard stores nothing, so the states stay right after a restart. */
-import type { Complement, ComplementState, HacsRepository } from "./types.ts";
+import type { Complement, ComplementState, HacsRepository, UpdateInfo } from "./types.ts";
 
 /**
  * Deduce the state of an add-on.
@@ -37,3 +37,19 @@ export function deduceState(complement: Complement, repository: HacsRepository |
 
 /** The address of the page of Home Assistant that starts the config flow of an integration. */
 export const configFlowPath = (domain: string): string => `/config/integrations/dashboard/add?domain=${encodeURIComponent(domain)}`;
+
+/**
+ * The update that HACS offers for a repository, or undefined. The repository must be installed, and HACS must say `pending-upgrade` or
+ * give an available version that differs from the installed one. An update is not a state: it comes on top of the state.
+ */
+export function updateOf(repository: HacsRepository | undefined): UpdateInfo | undefined {
+  if (repository?.installed !== true) {
+    return undefined;
+  }
+  const installed = repository.installed_version ?? "";
+  const available = repository.available_version ?? "";
+  if (repository.status !== "pending-upgrade" && (available === "" || available === installed)) {
+    return undefined;
+  }
+  return { installed, available };
+}

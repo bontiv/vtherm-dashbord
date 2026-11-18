@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { defineTranslations } from "@vtherm/dashboard-sdk";
 
-import { createFormatters, createLanguageController, resolveLocalizedField, translateErrorCode, userLanguage } from "../src/i18n.ts";
+import { createFormatters, createLanguageController, resolveLocalizedField, resolveLocalizedFieldWithLanguage, translateErrorCode, userLanguage } from "../src/i18n.ts";
 
 const en = { "tab.title": "Smart TPI", "error.generic": "Unknown error ({code})", "error.unknown_entity": "This entity does not exist" } as const;
 const fr = { "tab.title": "TPI intelligent", "error.generic": "Erreur inconnue ({code})", "error.unknown_entity": "Cette entité n'existe pas" };
@@ -126,6 +126,13 @@ describe("remote content in several languages", () => {
     expect(resolveLocalizedField(entry, "description", "pt_br")).toBe("Texto do Brasil");
     expect(resolveLocalizedField(entry, "description", "ja")).toBe("English text");
     expect(resolveLocalizedField(entry, "description", "en")).toBe("English text");
+  });
+
+  it("says which language gave the text", () => {
+    expect(resolveLocalizedFieldWithLanguage(entry, "description", "fr")).toEqual({ text: "Texte français", language: "fr" });
+    expect(resolveLocalizedFieldWithLanguage(entry, "description", "fr-CA")).toEqual({ text: "Texte français", language: "fr" });
+    expect(resolveLocalizedFieldWithLanguage(entry, "description", "ja")).toEqual({ text: "English text", language: "en" });
+    expect(resolveLocalizedFieldWithLanguage({ name: "x" }, "description", "fr")).toBeUndefined();
   });
 
   it("falls back to English when the text of the language is empty, and reports a missing text", () => {

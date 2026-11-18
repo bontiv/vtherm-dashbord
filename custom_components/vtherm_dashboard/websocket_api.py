@@ -12,7 +12,16 @@ from vtherm_api import VThermAPI
 
 from .const import DATA_DEV_SERVER, DOMAIN
 from .config_flow_driver import FlowConfigWriter, SaveResult
-from .complements import ERROR_UNAVAILABLE as ERROR_CATALOG_UNAVAILABLE, CatalogUnavailableError, async_complements
+from .complements import (
+    ERROR_NOT_FOUND,
+    ERROR_README_UNAVAILABLE,
+    ERROR_UNAVAILABLE as ERROR_CATALOG_UNAVAILABLE,
+    CatalogUnavailableError,
+    ComplementNotFoundError,
+    ReadmeUnavailableError,
+    async_complement_readme,
+    async_complements,
+)
 from .plugin_list import build_plugin_list
 from .presets import async_set_presets, read_presets
 from .vtherm_config import SUPPORTED_CONFIG_VERSION, ConfigNotFoundError, central_entry, list_thermostats, read_central_config, read_config
@@ -44,6 +53,9 @@ WS_GET_HUMIDITY_SUGGESTION = f"{DOMAIN}/get_humidity_suggestion"
 
 WS_GET_COMPLEMENTS = f"{DOMAIN}/get_complements"
 """The type of the command that returns the catalog of add-ons."""
+
+WS_GET_COMPLEMENT_README = f"{DOMAIN}/get_complement_readme"
+"""The type of the command that returns the README of an add-on of the catalog."""
 CHANGES_SCHEMA = vol.Schema({str: dict})
 PRESETS_SCHEMA = vol.Schema({str: vol.Coerce(float)})
 
@@ -60,6 +72,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_config)
     websocket_api.async_register_command(hass, ws_get_humidity_suggestion)
     websocket_api.async_register_command(hass, ws_get_complements)
+    websocket_api.async_register_command(hass, ws_get_complement_readme)
 
 
 @websocket_api.websocket_command(
@@ -199,3 +212,21 @@ async def ws_get_complements(hass: HomeAssistant, connection: websocket_api.Acti
         connection.send_result(msg["id"], await async_complements(hass, msg["refresh"]))
     except CatalogUnavailableError as err:
         connection.send_error(msg["id"], ERROR_CATALOG_UNAVAILABLE, str(err))
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): WS_GET_COMPLEMENT_README, vol.Required("complement_id"): str, vol.Required("language"): str})
+@websocket_api.async_response
+async def ws_get_complement_readme(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Return the README of an add-on of the catalog, with its links made absolute.
+
+    Only the repository of an add-on of the catalog is read. An identifier that is not in the catalog, or an add-on without a GitHub
+    repository, is `not_found`, and GitHub is not contacted. The identifier of the add-on is `complement_id`: `id` is the number of the
+    message in the WebSocket protocol of Home Assistant.
+    """
+    try:
+        connection.send_result(msg["id"], await async_complement_readme(hass, msg["complement_id"], msg["language"]))
+    except (ComplementNotFoundError, CatalogUnavailableError) as err:
+        connection.send_error(msg["id"], ERROR_NOT_FOUND, str(err))
+    except ReadmeUnavailableError as err:
+        connection.send_error(msg["id"], ERROR_README_UNAVAILABLE, str(err))

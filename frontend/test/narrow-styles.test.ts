@@ -60,6 +60,28 @@ describe("the styles of the narrow screen", () => {
   });
 });
 
+describe("the breadcrumb on a phone", () => {
+  const css = flatten(VThermBreadcrumb.styles)
+    .map((style) => (style as { cssText?: string }).cssText ?? "")
+    .join("\n");
+
+  it("centers its segments on the height of the links", () => {
+    expect(css).toMatch(/\bol\s*\{[^}]*align-items: center/);
+  });
+
+  it("never grows wider than the toolbar that holds it", () => {
+    expect(css).toMatch(/:host\s*\{[^}]*min-width: 0/);
+  });
+
+  it("keeps the segments on one row, each ending with an ellipsis, the last one taking the rest of the row", () => {
+    const narrow = css.slice(css.indexOf(`@media ${NARROW_QUERY}`));
+    expect(narrow).toMatch(/\bol\s*\{[^}]*flex-wrap: nowrap/);
+    expect(narrow).toMatch(/\bli\s*\{[^}]*min-width: 0[^}]*max-width: 50%[^}]*overflow: hidden[^}]*text-overflow: ellipsis[^}]*white-space: nowrap/);
+    expect(narrow).toMatch(/li > a\.touch-target\s*\{[^}]*display: block[^}]*text-overflow: ellipsis[^}]*line-height: 44px/);
+    expect(narrow).toMatch(/li\[aria-current="page"\]\s*\{[^}]*flex: 0 1 auto[^}]*max-width: none/);
+  });
+});
+
 describe("the help of a field on a phone", () => {
   it("has a button of 44 px on a touch screen, and a panel that is never wider than the field", () => {
     const css = flatten(VThermFieldHelp.styles)

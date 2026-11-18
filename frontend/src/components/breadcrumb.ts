@@ -1,10 +1,10 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, unsafeCSS } from "lit";
 import type { TemplateResult } from "lit";
 
 import type { Crumb } from "../navigation.ts";
 import { followLink } from "./events.ts";
 import { defineElement } from "./define.ts";
-import { narrowStyles } from "./narrow-styles.ts";
+import { NARROW_QUERY, TOUCH_TARGET, narrowStyles } from "./narrow-styles.ts";
 
 /** The number of segments that the breadcrumb keeps on a narrow screen. */
 export const NARROW_SEGMENTS = 2;
@@ -24,6 +24,8 @@ export class VThermBreadcrumb extends LitElement {
     css`
     :host {
       display: block;
+      /* The breadcrumb is a flex item of the toolbar: without this, a long segment would widen it past the screen. */
+      min-width: 0;
       padding: 8px 16px;
       color: var(--secondary-text-color);
       background-color: var(--primary-background-color);
@@ -32,6 +34,7 @@ export class VThermBreadcrumb extends LitElement {
     ol {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 6px;
       margin: 0;
       padding: 0;
@@ -50,6 +53,38 @@ export class VThermBreadcrumb extends LitElement {
     }
     [aria-current="page"] {
       color: var(--primary-text-color);
+    }
+    @media ${unsafeCSS(NARROW_QUERY)} {
+      /* The segments hold on one row: a link keeps its width up to half of the row, the last segment takes the rest and ends with an
+         ellipsis. The full name stays in the title of the page. */
+      ol {
+        flex-wrap: nowrap;
+      }
+      li {
+        flex: 0 0 auto;
+        min-width: 0;
+        max-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      /* The segment of a link is a flex box and the link a block in it: the text of the link ends with the ellipsis, and the link keeps
+         the height of a touch target. */
+      li:has(> a) {
+        display: flex;
+        align-items: center;
+      }
+      li > a.touch-target {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: ${unsafeCSS(TOUCH_TARGET)}px;
+      }
+      li[aria-current="page"] {
+        flex: 0 1 auto;
+        max-width: none;
+      }
     }
   `,
   ];

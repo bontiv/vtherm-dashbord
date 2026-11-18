@@ -143,12 +143,31 @@ export function translateErrorCode(translations: AnyTranslations, code: string):
  * @returns The text, or undefined when the entry has no text in any language of the chain.
  */
 export function resolveLocalizedField(entry: Readonly<Record<string, unknown>>, field: string, language: string): string | undefined {
+  return resolveLocalizedFieldWithLanguage(entry, field, language)?.text;
+}
+
+/** A text of a remote entry, with the language tag of the version that was chosen. */
+export interface LocalizedText {
+  readonly text: string;
+  /** The tag of the chain that gave the text, for example `fr`, or `en` for the English text. */
+  readonly language: string;
+}
+
+/**
+ * Pick the text of a remote entry like {@link resolveLocalizedField}, and say which language the text is in. A page uses it to mark a
+ * text that is shown in English because the entry has no text in the language of the user.
+ *
+ * @param entry - The remote entry.
+ * @param field - The name of the field, for example `description`.
+ * @param language - The language of the user.
+ */
+export function resolveLocalizedFieldWithLanguage(entry: Readonly<Record<string, unknown>>, field: string, language: string): LocalizedText | undefined {
   for (const tag of languageChain(language)) {
     const value = entry[tag === "en" ? field : `${field}_${tag.replace(/-/g, "_")}`];
     if (typeof value === "string" && value.trim() !== "") {
-      return value;
+      return { text: value, language: tag };
     }
   }
   const english = entry[`${field}_en`];
-  return typeof english === "string" && english.trim() !== "" ? english : undefined;
+  return typeof english === "string" && english.trim() !== "" ? { text: english, language: "en" } : undefined;
 }

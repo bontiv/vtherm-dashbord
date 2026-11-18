@@ -66,3 +66,38 @@ export interface HacsRepository {
   readonly available_version: string | null;
   readonly config_flow: boolean;
 }
+
+/** The criteria of a list of the add-ons. An empty value means all. */
+export interface ListCriteria {
+  query: string;
+  type: string;
+  family: string;
+  certification: string;
+  state: string;
+  /** `certification` (the default), `name` or `state`. */
+  sort: string;
+}
+
+/** An update that HACS offers for an installed repository. */
+export interface UpdateInfo {
+  readonly installed: string;
+  readonly available: string;
+}
+
+/** The answer of `vtherm_dashboard/get_complement_readme`. */
+export interface ComplementReadme {
+  /** The README in Markdown, with its links made absolute. */
+  readonly markdown: string;
+  /** The language of the file that was chosen: `en` for the main README. */
+  readonly language: string;
+  /** The page of the file on GitHub. */
+  readonly source_url: string;
+  readonly fetched_at: number;
+}
+
+/** What the page knows about the README of an add-on. */
+export type ReadmeState =
+  | { readonly status: "none" }
+  | { readonly status: "loading" }
+  | { readonly status: "error" }
+  | { readonly status: "ready"; readonly readme: ComplementReadme };

@@ -37,4 +37,15 @@ describe("the documentation of the add-ons", () => {
       expect(format, field).toContain(`\`${field}\``);
     }
   });
+
+  it("describes the new behaviours of the pages: update, filters, summary, manual install and documentation", () => {
+    const page = read("docs/user/complements.md");
+    for (const text of [en["update.available"], "1.2.0 → 1.3.0", "Reading HACS…", "To handle", "Clear filters", "Filters (1)", "(EN)", "Experimental", "Manual install", "Import into Home Assistant", "Copy", "Documentation", "address of the page"]) {
+      expect(page, text).toContain(text);
+    }
+    expect(page).not.toContain("Link only");
+    expect(read("docs/reference/websocket-api.md")).toContain("`vtherm_dashboard/get_complement_readme`");
+    expect(read("docs/reference/catalog-format.md")).toContain("[EXPERIMENTAL]");
+    expect(read("docs/contributing/complements.md")).toContain("absolutize_links");
+  });
 });

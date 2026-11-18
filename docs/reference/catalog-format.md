@@ -30,6 +30,9 @@ to the repository of the web site `bontiv/vtherm-website`.
 The dashboard installs an entry only when it has a repository and a category. Anything else is a link only.
 
 ## Descriptions
+A `name` that starts with `[EXPERIMENTAL]`, in any letter case, is shown without the prefix, with an **Experimental** badge, and the page of
+the add-on warns that it can change or stop working. The search still matches the full name.
+
 The descriptions are HTML and are never shown as they are. Only paragraphs, line breaks, links, emphasis (`em`, `strong`, `b`, `i`),
 lists, `code` and `pre` are kept. Scripts, event attributes, styles and any other tag are removed. A link must be `http`, `https` or
-`mailto`, and it opens in a new tab with `rel="noopener noreferrer"`.
+`mailto`, and it opens in a new tab with `rel="noopener noreferrer"`. A line break inside a paragraph or a list item is kept as a line break.

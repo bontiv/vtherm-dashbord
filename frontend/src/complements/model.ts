@@ -7,8 +7,8 @@
 import type { Hass } from "@vtherm/dashboard-sdk";
 import { HacsClient, HacsError } from "./hacs-client.ts";
 import type { HacsStatus, InstallOutcome, InstallStep } from "./hacs-client.ts";
-import { deduceState } from "./states.ts";
-import type { Complement, ComplementState, ComplementsResponse, HacsRepository } from "./types.ts";
+import { deduceState, updateOf } from "./states.ts";
+import type { Complement, ComplementReadme, ComplementState, ComplementsResponse, HacsRepository, ListCriteria, ReadmeState, UpdateInfo } from "./types.ts";
 
 /** What an installation is doing. */
 export interface InstallProgress {
@@ -40,6 +40,10 @@ export class ComplementsModel {
   /** The code of the error of the last read of the catalog, when it failed. */
   loadError: string | undefined;
   loading = false;
+  /** HACS is being read. The catalog is already shown meanwhile. */
+  hacsLoading = false;
+  /** The last criteria of each list, by page, so that coming back to a list finds it as it was. */
+  readonly criteria = new Map<string, ListCriteria>();
   hacs: HacsStatus = { kind: "absent" };
   repositories: readonly HacsRepository[] = [];
   /** The repositories of HACS could not be read, with the reason. */
@@ -48,6 +52,8 @@ export class ComplementsModel {
   restartOptions: RestartOptions = DEFAULT_RESTART;
   private hass: Hass | undefined;
   private readonly installs = new Map<string, InstallProgress>();
+  /** The README read in this session of the page, by add-on and language, so that coming back to an add-on does not ask again. */
+  private readonly readmes = new Map<string, ReadmeState>();
   private readonly listeners = new Set<() => void>();
 
   /** Be told when anything changes. */
@@ -72,13 +78,50 @@ export class ComplementsModel {
     this.response = undefined;
     this.loadError = undefined;
     this.loading = false;
+    this.hacsLoading = false;
+    this.criteria.clear();
     this.hacs = { kind: "absent" };
     this.repositories = [];
     this.hacsFailure = undefined;
     this.restart = "idle";
     this.restartOptions = DEFAULT_RESTART;
     this.installs.clear();
+    this.readmes.clear();
     this.notify();
+  }
+
+  /**
+   * The README of an add-on. The first call starts the reading, and the model tells its subscribers when it is done. An add-on without
+   * a repository has none, and no command is sent for it.
+   *
+   * @param complement - The add-on.
+   * @param language - The language of the user.
+   */
+  readmeOf(complement: Complement, language: string): ReadmeState {
+    if (complement.repository === null) {
+      return { status: "none" };
+    }
+    const key = `${complement.id}\u0000${language}`;
+    const known = this.readmes.get(key);
+    if (known !== undefined) {
+      return known;
+    }
+    const hass = this.hass;
+    if (hass === undefined) {
+      return { status: "loading" };
+    }
+    this.readmes.set(key, { status: "loading" });
+    hass.callWS<ComplementReadme>({ type: "vtherm_dashboard/get_complement_readme", complement_id: complement.id, language }).then(
+      (readme) => {
+        this.readmes.set(key, { status: "ready", readme });
+        this.notify();
+      },
+      () => {
+        this.readmes.set(key, { status: "error" });
+        this.notify();
+      },
+    );
+    return { status: "loading" };
   }
 
   /**
@@ -94,18 +137,32 @@ export class ComplementsModel {
     this.loading = true;
     this.notify();
     try {
-      const [catalog, hacs] = await Promise.allSettled([hass.callWS<ComplementsResponse>({ type: "vtherm_dashboard/get_complements", refresh }), this.readHacs(hass)]);
-      if (catalog.status === "fulfilled") {
-        this.response = catalog.value;
-        this.loadError = undefined;
-      } else {
-        this.loadError = String((catalog.reason as { code?: string } | undefined)?.code ?? "unknown");
-      }
-      if (hacs.status === "rejected") {
-        this.hacs = { kind: "broken", message: String(hacs.reason) };
+      // The catalog is shown as soon as it answers; HACS has 6 000 repositories to list and comes later.
+      const catalogRead = hass
+        .callWS<ComplementsResponse>({ type: "vtherm_dashboard/get_complements", refresh })
+        .then(
+          (value) => {
+            this.response = value;
+            this.loadError = undefined;
+          },
+          (reason: unknown) => {
+            this.loadError = String((reason as { code?: string } | undefined)?.code ?? "unknown");
+          },
+        )
+        .then(() => {
+          this.notify();
+        });
+      await catalogRead;
+      this.hacsLoading = true;
+      this.notify();
+      try {
+        await this.readHacs(hass);
+      } catch (reason) {
+        this.hacs = { kind: "broken", message: String(reason) };
       }
     } finally {
       this.loading = false;
+      this.hacsLoading = false;
       this.notify();
     }
   }
@@ -137,9 +194,20 @@ export class ComplementsModel {
     return deduceState(complement, this.repositoryOf(complement));
   }
 
-  /** Whether the dashboard can install an add-on now: it is not installed, HACS is ready, and the add-on is of an installable kind. */
+  /** The update that HACS offers for an add-on, if any. */
+  updateOf(complement: Complement): UpdateInfo | undefined {
+    return updateOf(this.repositoryOf(complement));
+  }
+
+  /** Whether an add-on waits for the user: to configure, to restart, or to update. */
+  needsAction(complement: Complement): boolean {
+    const state = this.stateOf(complement);
+    return state === "to_configure" || state === "restart_required" || this.updateOf(complement) !== undefined;
+  }
+
+  /** Whether the dashboard can install an add-on now: HACS is read and ready, it is not installed, and the add-on is of an installable kind. */
   canInstall(complement: Complement): boolean {
-    return this.hacs.kind === "ready" && this.hacsFailure === undefined && complement.hacs_category !== null && this.stateOf(complement) === "not_installed";
+    return !this.hacsLoading && this.hacs.kind === "ready" && this.hacsFailure === undefined && complement.hacs_category !== null && this.stateOf(complement) === "not_installed";
   }
 
   /** What the installation of an add-on is doing. */

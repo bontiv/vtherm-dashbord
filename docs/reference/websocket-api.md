@@ -258,3 +258,42 @@ Each add-on has:
 | `ha` | `found` (the integration is in `custom_components`), `loaded`, `config_entries` (their number) and `config_flow` (the manifest declares one). |
 
 Error: `catalog_unavailable` when the catalog cannot be read and there is no copy. `unauthorized` for a user who is not an administrator.
+
+### `vtherm_dashboard/get_complement_readme`
+Administrators only. Reads the README of the repository of an add-on of the catalog, with its relative links and images made absolute.
+
+The command only reads the repository of an add-on that the catalog has: it takes the identifier of the add-on, never an address. The
+parameter is `complement_id`, because `id` is the number of the message in the WebSocket protocol of Home Assistant.
+
+Request:
+
+| Parameter | Content |
+| --- | --- |
+| `complement_id` | The `id` of an add-on of the catalog. |
+| `language` | The language tag of the user, for example `fr-CA`. |
+
+The server reads from `https://raw.githubusercontent.com/<owner>/<repo>/HEAD/`, in this order: `README-<lang>.md`, `README.<lang>.md`,
+`README_<lang>.md` (with the base language, `fr` for `fr-CA`; skipped for English), then `README.md`. When `README.md` does not exist,
+`https://api.github.com/repos/<owner>/<repo>/readme` gives the real name and folder of the file.
+
+Response:
+
+| Field | Content |
+| --- | --- |
+| `markdown` | The README, with its links made absolute. |
+| `language` | The language of the file that was chosen: `en` for the main README. |
+| `source_url` | The page of the file on GitHub. |
+| `fetched_at` | When the README was read, in seconds since the epoch. |
+
+The links are made absolute as follows. A relative image (`![text](target)`, an HTML `src`) is read from
+`https://raw.githubusercontent.com/<owner>/<repo>/HEAD/<folder of the README>/`. A relative link points to
+`https://github.com/<owner>/<repo>/blob/HEAD/<folder of the README>/`. A target that is absolute (`http:`, `https:`, `mailto:`) or an
+anchor (`#…`) is kept, except the page of an image on GitHub (`github.com/<owner>/<repo>/blob/<ref>/<path>`), which becomes the raw
+image.
+
+The server keeps the answer in memory for an hour, for each repository and each requested language. A failure is not kept. A README
+larger than 512 KiB is refused.
+
+Errors: `not_found` when the identifier is not in the catalog, or the add-on has no GitHub repository (GitHub is not contacted).
+`readme_unavailable` when the README cannot be read: no file, an error of GitHub, a timeout or a file that is too large. `unauthorized`
+for a user who is not an administrator.

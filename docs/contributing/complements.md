@@ -8,6 +8,7 @@ How the tab "VT add-ons" works, and what to do when HACS changes.
 | --- | --- | --- |
 | The catalog | `custom_components/vtherm_dashboard/complements.py` | Reads the catalog, caches it, keeps the last valid copy, normalizes the entries and adds what Home Assistant knows. |
 | The command | `vtherm_dashboard/get_complements`, in `websocket_api.py` | Gives the add-ons to the page. See [WebSocket API](../reference/websocket-api.md). |
+| The README | `custom_components/vtherm_dashboard/complements.py` (`ReadmeReader`, `absolutize_links`) | Reads the README of a repository of the catalog and makes its links absolute. |
 | The adapter of HACS | `frontend/src/complements/hacs-client.ts` | The only code that calls HACS. |
 | The states | `frontend/src/complements/states.ts` | Deduces the state of an add-on. |
 | The model | `frontend/src/complements/model.ts` | The state that the pages share: the catalog, HACS, the installations and the restart. |
@@ -25,6 +26,23 @@ Without a copy, the command fails with `catalog_unavailable`.
 
 The catalog is read leniently: a missing field is accepted, and an entry without a name or a type is ignored with a warning in the log
 and in `warnings`, which does not stop the other entries.
+
+## The README of an add-on
+The command `vtherm_dashboard/get_complement_readme` takes the `complement_id` of an add-on of the catalog and the language of the
+user. It looks the add-on up in the current catalog: an unknown identifier, or an add-on without a GitHub repository, is `not_found`
+and nothing is requested. This is what keeps the command from reading any other repository.
+
+The files are tried in this order on `raw.githubusercontent.com`: `README-<lang>.md`, `README.<lang>.md`, `README_<lang>.md` (the base
+language of the tag, skipped for English), then `README.md`. A 404 goes to the next file, any other error is `readme_unavailable`. When
+`README.md` is missing, the API `repos/<owner>/<repo>/readme` gives the real path (letter case, `docs/` or `.github/`), which is
+then read. The limit is 512 KiB, read in chunks. The cache is in memory, an hour for each repository and requested language, and a
+failure is not cached.
+
+`absolutize_links` rewrites the targets with the folder of the file that was read as the base: `[text](target)`, `![text](target)`,
+`[name]: target` and the HTML attributes `src` and `href`. Images and `src` go to the raw files, other targets to the page on GitHub, an
+image page on GitHub becomes the raw image, and absolute targets and anchors stay. The page shows the result with `ha-markdown` and
+puts `target="_blank"` and `rel="noopener noreferrer"` on its absolute links; without `ha-markdown`, it shows the description of the
+catalog.
 
 ## HACS
 HACS has no public API. The adapter calls the commands of its own interface:
@@ -84,6 +102,7 @@ config flow of an integration. It is checked on the version of Home Assistant th
 `tests/test_complements.py` reads the real file of the catalog (`tests/data/plugins.json`) and covers the caches, the offline copy and
 the entries. `frontend/test/complements-core.test.ts` covers the adapter, the states and the model, `complements-sanitize.test.ts` the
 sanitizer on a complete DOM (jsdom, since happy-dom does not run DOMPurify), and `complements-pages.test.ts` the pages.
+`tests/test_complement_readme.py` covers the README: the links, the files tried, the cache and the command.
 
 The adapter is also checked against the real HACS, in two steps that share `shared/hacs-answers.json`:
 

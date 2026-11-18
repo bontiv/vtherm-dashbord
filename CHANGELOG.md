@@ -9,6 +9,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 ## [Unreleased]
 
 ### Added
+- The page of an add-on shows the README of its repository in a **Documentation** card, in the language of the user when the
+  repository has one, else the main README marked **(EN)**, with its relative links and images made absolute. The new administrator
+  command `vtherm_dashboard/get_complement_readme` reads it for an add-on of the catalog only, and keeps it in memory for an hour.
 - The Presets section shows the temperatures as a table: a row for each preset (frost, eco, comfort, boost) and a column for each
   situation (normal, away, air conditioning, air conditioning away), instead of up to fifteen fields in a list. The columns follow the
   presence feature and the AC mode, a cell without an entity shows "—", changed cells are marked, and a warning that does not block the
@@ -34,6 +37,21 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   to them.
 
 ### Changed
+- The add-ons pages are easier to read and to act on. The status of an add-on is an icon and a text with a contrast of at least 4.5:1,
+  apart from its type, family and certification. A whole card opens the add-on and carries the action to do (**Configure**,
+  **Restart Home Assistant**, **Open in HACS**). The versions ("1.2.0 → 1.3.0") and **Update available** come on top of the state.
+  The label "Link only" is now **Manual install**.
+- The lists of add-ons offer only the filter values that exist on the page, a **To handle** choice, a count, **Clear filters**, a
+  sort (certification with headings, name, state), a summary of the add-ons that need an action, and on a phone the filters are behind
+  a **Filters** button. The search, the filters and the sort are kept in the address.
+- The page of an add-on is a header, an action card and a documentation card, side by side on a wide screen. It is shown as soon as the
+  catalog is read, without waiting for HACS ("Reading HACS…"). A name with the `[EXPERIMENTAL]` prefix is shown without it and with a
+  badge, and the page warns about it. The title of the tab starts with the name of the add-on. Descriptions keep their line breaks, and
+  an English text shown to another language is marked **(EN)**.
+- A blueprint is imported, and an add-on repository is added, with the windows of Home Assistant (My Home Assistant links), or with a
+  copyable address when the integration `my` is not there. The window of confirmation of an installation shows the HACS category in
+  the language of the user and the repository as a link.
+- The breadcrumb of the dashboard centers its current segment, and keeps the last segment on one line on a phone.
 - The fields of a native section are tiles on a grid that uses the width of the screen, on one column on a phone. The settings that
   are rarely changed are in a closed panel **Advanced settings (N)** at the end of their section, which opens by itself when one of
   them is refused or missing.

@@ -6,7 +6,7 @@
  * and on a version of Home Assistant without them, the page draws its plain HTML controls (`fallback`).
  */
 import { ensureHaControls, haControlsStatus } from "@vtherm/dashboard-sdk";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 
 /** What a page can draw now. */
@@ -97,6 +97,8 @@ export interface ButtonOptions {
   readonly disabled?: boolean;
   /** A secondary action: a plain button of Home Assistant. */
   readonly plain?: boolean;
+  /** Whether the button opens a panel, and whether the panel is open: it sets `aria-expanded`. */
+  readonly expanded?: boolean;
 }
 
 /**
@@ -108,10 +110,10 @@ export interface ButtonOptions {
  */
 export function renderButton(label: unknown, onClick: () => void, options: ButtonOptions = {}): TemplateResult {
   if (isDefined("ha-button")) {
-    return html`<ha-button class=${options.className ?? ""} appearance=${options.plain === true ? "plain" : "accent"} .disabled=${options.disabled === true} @click=${onClick}>${label}</ha-button>`;
+    return html`<ha-button class=${options.className ?? ""} appearance=${options.plain === true ? "plain" : "accent"} .disabled=${options.disabled === true} aria-expanded=${options.expanded === undefined ? nothing : String(options.expanded)} @click=${onClick}>${label}</ha-button>`;
   }
   // fallback: ha-button is not defined.
-  return html`<button class=${options.className ?? ""} ?disabled=${options.disabled === true} @click=${onClick}>${label}</button>`;
+  return html`<button class=${options.className ?? ""} ?disabled=${options.disabled === true} aria-expanded=${options.expanded === undefined ? nothing : String(options.expanded)} @click=${onClick}>${label}</button>`;
 }
 
 /** An action of a dialog. */

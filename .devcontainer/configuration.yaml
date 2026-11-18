@@ -10,6 +10,9 @@ homeassistant:
 
 frontend:
 config:
+# Without default_config, the integration "my" is not loaded, so the links /_my_redirect/... that the add-ons pages use (import of a
+# blueprint, add-on repository) answer 404. A usual installation loads it.
+my:
 history:
 logbook:
 
