@@ -119,11 +119,11 @@ L'onglet Thermostats SHALL afficher par défaut la liste des thermostats en plei
 - **THEN** la vue d'ensemble du nouveau thermostat est ouverte
 
 ### Requirement: Onglet Configuration
-L'icône Configuration SHALL ouvrir un menu en deux groupes : "Versatile Thermostat" (sections de la configuration générale) puis "Dashboard" (état des plugins et mode développement), suivis des entrées de plugins qui ciblent cet onglet.
+L'icône Configuration SHALL ouvrir un menu en trois groupes : « Paramètres généraux » et « Fonctionnalités » (sections de la configuration générale), puis « Dashboard » (état des plugins et mode développement), suivis des entrées de plugins qui ciblent cet onglet.
 
 #### Scenario: Menu de configuration
 - **WHEN** l'utilisateur ouvre la configuration
-- **THEN** le menu affiche le groupe "Versatile Thermostat", puis le groupe "Dashboard"
+- **THEN** le menu affiche le groupe « Paramètres généraux », puis le groupe « Fonctionnalités », puis le groupe « Dashboard »
 
 ### Requirement: Affichage sur mobile
 Sur un écran étroit, le menu de gauche SHALL devenir un tiroir ouvert par un bouton, la barre d'onglets supérieurs SHALL défiler horizontalement en gardant la roue crantée visible, et le fil d'ariane SHALL se limiter à ses deux derniers segments. Le titre du dashboard SHALL alors ne pas être affiché, tout en restant accessible aux lecteurs d'écran, et l'en-tête SHALL tenir sur une ligne : le bouton du menu de Home Assistant, les onglets supérieurs, puis la roue crantée.

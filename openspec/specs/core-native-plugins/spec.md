@@ -36,11 +36,15 @@ Le plugin `core` SHALL fournir les onglets supérieurs `core.top.dashboard`, `co
 - **THEN** sa page prend la place de la page Overview
 
 ### Requirement: Menu de la configuration
-Le plugin `core` SHALL fournir dans le menu de Configuration les pages "Plugins" (`core.page.plugins`) et "Développement" (`core.page.dev_plugins`) du groupe "Dashboard". Les sections `general_config` des plugins natifs SHALL déclarer le groupe "Versatile Thermostat".
+Le plugin `core` SHALL fournir dans le menu de Configuration les pages "Plugins" (`core.page.plugins`) et "Développement" (`core.page.dev_plugins`) du groupe "Dashboard". Les sections `general_config` des plugins natifs SHALL déclarer le groupe partagé « Paramètres généraux » ou « Fonctionnalités », selon que la section peut être éteinte, et la page de création de la configuration centrale SHALL déclarer le groupe « Paramètres généraux ».
 
 #### Scenario: Pages du groupe Dashboard
 - **WHEN** l'utilisateur ouvre le menu de Configuration
-- **THEN** les pages "Plugins" et "Développement" apparaissent sous le groupe "Dashboard", après les sections du groupe "Versatile Thermostat"
+- **THEN** les pages "Plugins" et "Développement" apparaissent sous le groupe "Dashboard", après les sections des groupes « Paramètres généraux » et « Fonctionnalités »
+
+#### Scenario: Configuration centrale à créer
+- **WHEN** la configuration centrale n'existe pas encore
+- **THEN** la page « Créer la configuration centrale » apparaît seule sous le groupe « Paramètres généraux »
 
 ### Requirement: Liste et identifiants des plugins natifs
 Le dashboard SHALL fournir les plugins natifs `core`, `core_tpi`, `core_presets`, `core_window`, `core_motion`, `core_power`, `core_presence`, `core_central_boiler`, `core_auto_start_stop`, `core_valve_regulation`, `core_sync_temp`, `core_humidity`, `core_advanced`, `core_lock`, `core_heating_failure` et `core_complements` (voir la spec `complements-catalog`). Les identifiants de plugins commençant par `core` SHALL être réservés aux plugins natifs.
@@ -54,15 +58,23 @@ Le dashboard SHALL fournir les plugins natifs `core`, `core_tpi`, `core_presets`
 - **THEN** chacun requiert `core` et est chargé après lui
 
 ### Requirement: Ordre des onglets du config flow
-Les onglets natifs SHALL apparaître dans l'ordre du menu du config flow : principal, fonctionnalités, type, TPI, presets, chaudière centrale, ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, régulation par vanne, synchronisation de température, avancé, verrouillage, humidité, détection de panne de chauffage. Cet ordre SHALL être obtenu par des positions déclaratives, sans numéro d'ordre.
+Les menus d'un thermostat et de la Configuration SHALL ranger les onglets natifs, dans cet ordre, sous « Paramètres généraux » : principal, sous-jacents, fonctions, presets, TPI, régulation par vanne, avancé ; puis sous « Fonctionnalités » : chaudière centrale, ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, synchronisation de température, verrouillage, humidité, panne de chauffage. L'ordre SHALL venir de positions déclaratives.
 
 #### Scenario: Ordre par défaut
 - **WHEN** un thermostat dont toutes les fonctionnalités sont activées est ouvert sans plugin tiers
-- **THEN** les onglets suivent l'ordre indiqué
+- **THEN** la vue d'ensemble est en tête sans groupe, puis les onglets suivent l'ordre indiqué sous les intitulés « Paramètres généraux » et « Fonctionnalités », avec la même mise en forme que les groupes du menu de la Configuration
+
+#### Scenario: Configuration centrale
+- **WHEN** l'administrateur ouvre le menu de la Configuration d'une configuration centrale existante
+- **THEN** il voit sous « Paramètres généraux » : principal, fonctions, presets, TPI, avancé ; puis sous « Fonctionnalités » les sections de fonctionnalités de la configuration centrale, dont le verrouillage
 
 #### Scenario: Insertion tierce
 - **WHEN** un plugin tiers déclare `after: core_tpi.tab.main`
 - **THEN** son onglet suit immédiatement l'onglet TPI
+
+#### Scenario: Insertion tierce dans un groupe
+- **WHEN** un plugin tiers déclare `after: core_tpi.tab.main` et le groupe partagé « Paramètres généraux »
+- **THEN** son onglet suit l'onglet TPI sans couper le groupe en deux intitulés
 
 ### Requirement: Plugin `core` : principal, type et fonctionnalités
 Le plugin `core` SHALL fournir les onglets "principal", "type" et "fonctionnalités". L'onglet "principal" SHALL contenir les paramètres de base du thermostat, ou ceux de la configuration centrale pour la configuration générale.

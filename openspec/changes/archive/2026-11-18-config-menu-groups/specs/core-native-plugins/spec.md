@@ -12,7 +12,7 @@ Le plugin `core` SHALL fournir dans le menu de Configuration les pages "Plugins"
 - **THEN** la page « Créer la configuration centrale » apparaît seule sous le groupe « Paramètres généraux »
 
 ### Requirement: Ordre des onglets du config flow
-Dans le menu d'un thermostat et dans celui de la Configuration, les onglets natifs SHALL former deux groupes partagés. « Paramètres généraux », pour les onglets qui ne peuvent pas être éteints, dans l'ordre : principal, sous-jacents, fonctions, presets, TPI, régulation par vanne, avancé. Puis « Fonctionnalités », pour ceux qui peuvent l'être, dans l'ordre : chaudière centrale, ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, synchronisation de température, verrouillage, humidité, détection de panne de chauffage. Cet ordre SHALL être obtenu par des positions déclaratives, sans numéro d'ordre.
+Les menus d'un thermostat et de la Configuration SHALL ranger les onglets natifs, dans cet ordre, sous « Paramètres généraux » : principal, sous-jacents, fonctions, presets, TPI, régulation par vanne, avancé ; puis sous « Fonctionnalités » : chaudière centrale, ouverture, mouvement, puissance, présence, démarrage et arrêt automatiques, synchronisation de température, verrouillage, humidité, panne de chauffage. L'ordre SHALL venir de positions déclaratives.
 
 #### Scenario: Ordre par défaut
 - **WHEN** un thermostat dont toutes les fonctionnalités sont activées est ouvert sans plugin tiers
