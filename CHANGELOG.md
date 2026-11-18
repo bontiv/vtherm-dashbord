@@ -62,6 +62,10 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   users nor the automations. A thermostat that uses a central lock that blocks nothing shows `Central (off)`.
 - The section Sync device internal temperature of a climate thermostat stays in the menu while the option is off, and turns it on in
   place, as the sections of the other features do.
+- The tab "Advanced parameters" is now "Safety and manual override" ("Sécurité et dérogation", "Sicherheit und manuelle Übersteuerung"):
+  it holds the safety mode, the manual override and the repair of an incorrect state, and its name no longer repeats the closed panel
+  "Advanced settings (N)" of each section. Its description keeps the old name, which Versatile Thermostat still uses. Identifiers and
+  addresses do not change.
 
 ### For contributors
 - `npm run test:docs` runs the checks of the documentation, which `npm test` now skips because they are long.
@@ -85,6 +89,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   also return `{ kind: "off" }`, for a section without `feature` that its values turn off, and `{ kind: "inherited", off: true }`,
   shown `Central (off)`. The native tabs follow a new order in the menus (see the page Native plugins): a tab placed `after` a native
   tab keeps its target, but its neighbors may change. The change is compatible.
+- The title of the tab of `core_advanced` changes, not its contract: `core_advanced`, `core_advanced.tab.main`,
+  `core_advanced.general.main`, the catalog key `title.advanced` and the keys of its fields stay, so a placement `after:core_advanced.tab.main`
+  or a saved address keeps working. The change is compatible.
 
 ## [0.1.0-beta2]
 The second beta.

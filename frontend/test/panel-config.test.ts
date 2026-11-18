@@ -332,7 +332,7 @@ describe("the creation of a thermostat", () => {
     choice(panel).select("thermostat_over_switch");
     await drawn(panel);
     expect(window.location.pathname).toBe(`${NEW}/core.tab.main`);
-    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "TPI parameters", "Advanced parameters"]);
+    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "TPI parameters", "Safety and manual override"]);
     expect(find(find(root(panel), "vtherm-side-menu")?.shadowRoot as ShadowRoot, "select")).toBeNull();
     expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat", "Main attributes"]);
     expect(find(root(panel), "vtherm-native-main-thermostat")).not.toBeNull();
@@ -369,7 +369,7 @@ describe("the creation of a thermostat", () => {
     expect(window.location.pathname).toBe(NEW);
     expect(choice(panel).value).toBe("");
     await chooseType(panel, "thermostat_over_climate");
-    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Advanced parameters"]);
+    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Safety and manual override"]);
     expect(nativeTab(panel, "vtherm-native-main-thermostat").values).toMatchObject({ thermostat_type: "thermostat_over_climate", name: "Bureau" });
   });
 
@@ -390,13 +390,13 @@ describe("the creation of a thermostat", () => {
   it("opens the section of the address, with a new draft", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: `${NEW}/core_advanced.tab.main` });
     expect(find(root(panel), "vtherm-native-advanced-thermostat")).not.toBeNull();
-    expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat", "Advanced parameters"]);
+    expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["Thermostats", "New thermostat", "Safety and manual override"]);
   });
 
   it("shows no section of the features, of the presets or of a plugin, and no TPI for a thermostat over a climate", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: NEW });
     await chooseType(panel, "thermostat_over_climate");
-    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Advanced parameters"]);
+    expect(menuTexts(panel)).toEqual(["Main attributes", "Underlyings", "Safety and manual override"]);
   });
 
   it("keeps the draft from a section to another, without asking", async () => {
@@ -555,7 +555,7 @@ describe("the central configuration", () => {
     await drawn(panel);
     expect(window.location.pathname).toBe(`/vtherm/${CONFIGURATION}`);
     expect(find(root(panel), "core-create-central-page")).toBeNull();
-    expect(menuTexts(panel)).toEqual(["Main attributes", "TPI parameters", "Advanced parameters"]);
+    expect(menuTexts(panel)).toEqual(["Main attributes", "TPI parameters", "Safety and manual override"]);
     expect(actionsText(panel)).toContain("Create");
     expect(find(root(panel), "main > .missing")?.textContent).toContain("Still missing");
     expect(actionButton(panel, "save").disabled).toBe(true);

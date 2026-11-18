@@ -361,4 +361,21 @@ describe("the translations of the native plugins", () => {
     expect(tpi.t("field.tpi_coef_int")).not.toBe(tpi.english["field.tpi_coef_int"]);
     await tpi.setLanguage("en");
   });
+
+  it("name the advanced tab after its content in each language, and keep the old name in its description", async () => {
+    const advanced = definitions.get("core_advanced")?.translations as unknown as { setLanguage(language: string): Promise<void>; t: (key: string) => string };
+    const expected = {
+      en: ["Safety and manual override", "Advanced parameters"],
+      fr: ["Sécurité et dérogation", "Paramètres avancés"],
+      de: ["Sicherheit und manuelle Übersteuerung", "Erweiterte Einstellungen"],
+    };
+    for (const [language, [title, oldName]] of Object.entries(expected)) {
+      await advanced.setLanguage(language);
+      expect(advanced.t("title.advanced")).toBe(title);
+      expect(advanced.t("description.advanced")).toContain(oldName);
+    }
+    await advanced.setLanguage("en");
+    const contributions = definitions.get("core_advanced")?.contributions.thermostat_config?.map((contribution) => contribution.id);
+    expect(contributions).toEqual(["core_advanced.tab.main"]);
+  });
 });

@@ -1218,6 +1218,16 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["sync_with_calibration", "sync_entity_ids"]),
   },
   core_advanced: {
+    "title.advanced": {
+      en: "Safety and manual override",
+      fr: "Sécurité et dérogation",
+      de: "Sicherheit und manuelle Übersteuerung",
+    },
+    "description.advanced": {
+      en: "Safety settings (maximum delay between two measurements, minimum power and power in safety mode), manual override duration and repair of an incorrect state. Versatile Thermostat calls this tab \"Advanced parameters\". Leave the default values if you don't know what you are doing. These parameters can lead to very poor temperature control or bad power regulation",
+      fr: "Réglages de sécurité (délai maximal entre deux mesures, puissance minimale et puissance en mode sécurité), durée de la dérogation manuelle et réparation de l'état incorrect. Versatile Thermostat appelle cet onglet « Paramètres avancés ». Laissez les valeurs par défaut si vous ne savez pas ce que vous faites. Ces paramètres peuvent induire des mauvais comportements du thermostat",
+      de: "Sicherheitseinstellungen (maximale Zeitspanne zwischen zwei Messungen, Mindestleistung und Leistung im Sicherheitsmodus), Dauer der manuellen Übersteuerung und Reparatur des fehlerhaften Zustands. Versatile Thermostat nennt diesen Tab „Erweiterte Einstellungen\". Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun. Diese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
+    },
     ...helpOf([
       "use_advanced_central_config", "safety_delay_min", "safety_min_on_percent", "safety_default_on_percent", "repair_incorrect_state",
       "manual_override_duration_min",

@@ -77,8 +77,11 @@ export function buildCatalogs(plugin: string, vtherm: Record<Language, VthermTra
   }
   const tabs = TAB_DEFINITIONS.filter((definition) => definition.plugin === plugin);
   for (const definition of tabs) {
-    add(`title.${definition.tab}`, Object.fromEntries(LANGUAGES.map((language) => [language, vtherm[language].config.step["menu"]?.menu_options?.[definition.tab]])));
-    const description = Object.fromEntries(LANGUAGES.map((language) => [language, vtherm[language].config.step[definition.tab]?.description]));
+    // A title or description of the dashboard takes precedence over the one of Versatile Thermostat.
+    const titleKey = `title.${definition.tab}`;
+    add(titleKey, own[titleKey] !== undefined ? fromText(own[titleKey]) : Object.fromEntries(LANGUAGES.map((language) => [language, vtherm[language].config.step["menu"]?.menu_options?.[definition.tab]])));
+    const descriptionKey = `description.${definition.tab}`;
+    const description = own[descriptionKey] !== undefined ? fromText(own[descriptionKey]) : Object.fromEntries(LANGUAGES.map((language) => [language, vtherm[language].config.step[definition.tab]?.description]));
     if (LANGUAGES.every((language) => description[language] !== undefined)) {
       add(`description.${definition.tab}`, description);
     }

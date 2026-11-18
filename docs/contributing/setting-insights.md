@@ -1,7 +1,7 @@
 # Setting insights: the ported rules of Versatile Thermostat
 Audience: contributors.
 
-The panels "What VT would do with these settings" of the tabs TPI, open window and advanced replay rules of Versatile Thermostat on the
+The panels "What VT would do with these settings" of the tabs TPI, open window and safety and manual override replay rules of Versatile Thermostat on the
 recorded history of a thermostat. The rules are ported to TypeScript in `frontend/src/insights/`, as pure functions (no DOM, no Lit, no
 Home Assistant), from the reference version of Versatile Thermostat named in `external-refs.txt` and checked out in `external/`. This page
 lists what is ported from where, how the port is checked against the Python code, and what to do when the reference version changes.

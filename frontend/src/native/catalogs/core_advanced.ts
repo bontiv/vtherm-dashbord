@@ -9,8 +9,8 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "title.advanced": "Advanced parameters",
-  "description.advanced": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation",
+  "title.advanced": "Safety and manual override",
+  "description.advanced": "Safety settings (maximum delay between two measurements, minimum power and power in safety mode), manual override duration and repair of an incorrect state. Versatile Thermostat calls this tab \"Advanced parameters\". Leave the default values if you don't know what you are doing. These parameters can lead to very poor temperature control or bad power regulation",
   "field.manual_override_duration_min": "Manual override duration (min)",
   "help.manual_override_duration_min": "After a manual temperature change, the VTherm reverts to the previous preset after this duration (in minutes). 0 disables the feature.",
   "field.repair_incorrect_state": "Repair incorrect state",
@@ -62,8 +62,8 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "title.advanced": "Paramètres avancés",
-  "description.advanced": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
+  "title.advanced": "Sécurité et dérogation",
+  "description.advanced": "Réglages de sécurité (délai maximal entre deux mesures, puissance minimale et puissance en mode sécurité), durée de la dérogation manuelle et réparation de l'état incorrect. Versatile Thermostat appelle cet onglet « Paramètres avancés ». Laissez les valeurs par défaut si vous ne savez pas ce que vous faites. Ces paramètres peuvent induire des mauvais comportements du thermostat",
   "field.manual_override_duration_min": "Durée de la dérogation manuelle (min)",
   "help.manual_override_duration_min": "Après un changement manuel de température, le VTherm revient au preset précédent après cette durée (en minutes). 0 désactive la fonction.",
   "field.repair_incorrect_state": "Réparer l'état incorrect",
@@ -115,8 +115,8 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "title.advanced": "Erweiterte Einstellungen",
-  "description.advanced": "Konfiguration der erweiterten Einstellungen. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
+  "title.advanced": "Sicherheit und manuelle Übersteuerung",
+  "description.advanced": "Sicherheitseinstellungen (maximale Zeitspanne zwischen zwei Messungen, Mindestleistung und Leistung im Sicherheitsmodus), Dauer der manuellen Übersteuerung und Reparatur des fehlerhaften Zustands. Versatile Thermostat nennt diesen Tab „Erweiterte Einstellungen\". Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun. Diese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
   "field.manual_override_duration_min": "Dauer der manuellen Übersteuerung (min)",
   "help.manual_override_duration_min": "Nach einer manuellen Temperaturänderung kehrt das VTherm nach dieser Dauer (in Minuten) zur vorherigen Voreinstellung zurück. 0 deaktiviert die Funktion.",
   "field.repair_incorrect_state": "Fehlerhafte Zustand reparieren",

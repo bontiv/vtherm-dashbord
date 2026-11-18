@@ -23,7 +23,7 @@ The menus of a thermostat and of the general configuration put the native tabs i
 (`tab-definitions.ts`), which is not the order of the flow:
 
 - **General settings** (`core:settings`), the tabs that cannot be turned off: main attributes, underlyings, features, presets, TPI,
-  valve regulation, advanced. The page that creates the central configuration is in this group too.
+  valve regulation, safety and manual override. The page that creates the central configuration is in this group too.
 - **Optional features** (`core:features`), the tabs that can be off: central boiler, window, motion, power, presence, auto start and
   stop, synchronization of the temperature, lock, humidity, heating failure detection.
 
@@ -72,8 +72,8 @@ The table is generated from the code by `frontend/test/native-docs.test.ts`. Do 
 | `core_auto_start_stop` | `core_auto_start_stop.tab.main` | `thermostat_config` | Auto start and stop |
 | `core_valve_regulation` | `core_valve_regulation.tab.main` | `thermostat_config` | Valve regulation configuration |
 | `core_sync_temp` | `core_sync_temp.tab.main` | `thermostat_config` | Synchronize device temperature |
-| `core_advanced` | `core_advanced.tab.main` | `thermostat_config` | Advanced parameters |
-| `core_advanced` | `core_advanced.general.main` | `general_config` | Advanced parameters |
+| `core_advanced` | `core_advanced.tab.main` | `thermostat_config` | Safety and manual override (Versatile Thermostat: Advanced parameters) |
+| `core_advanced` | `core_advanced.general.main` | `general_config` | Safety and manual override (Versatile Thermostat: Advanced parameters) |
 | `core_lock` | `core_lock.tab.main` | `thermostat_config` | Lock |
 | `core_lock` | `core_lock.general.main` | `general_config` | Lock |
 | `core_humidity` | `core_humidity.tab.main` | `thermostat_config` | Humidity |

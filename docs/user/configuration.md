@@ -60,7 +60,7 @@ Home Assistant without these controls (they were checked on Home Assistant 2026.
 
 ## Create the central configuration
 Until it exists, the section "Central configuration" of the gear offers to create it. **Create the central configuration** opens
-its sections in the same page as for any configuration: Main attributes, TPI parameters and Advanced parameters, with the default
+its sections in the same page as for any configuration: Main attributes, TPI parameters and Safety and manual override, with the default
 values of Versatile Thermostat. Change what you need, then press **Create** at the foot of the card of any section. The thermostats
 that use the central configuration can then start. **Cancel** drops the creation, without asking, and brings back the offer.
 
@@ -72,7 +72,7 @@ section at a time. The menu only lists what a new thermostat needs, in this orde
 1. **Main attributes**.
 2. **Underlyings**, the devices that the thermostat controls. Its form depends on the type.
 3. **TPI parameters**, when the type uses them.
-4. **Advanced parameters**.
+4. **Safety and manual override**: the safety mode, the manual override and the repair of an incorrect state. Versatile Thermostat calls this step "Advanced parameters".
 
 To change the type later, select **New thermostat** in the breadcrumb above the page: the choice of the type opens again, with
 your draft kept. Changing the type keeps the values that the new type accepts, such as the name and the sensors, and drops the
@@ -85,8 +85,8 @@ and your draft stays. When it succeeds, the overview of the new thermostat opens
 confirm, as for any draft; **Cancel** does not ask.
 
 When there is a central configuration, a new thermostat uses it by default. Without a central configuration, the options that need
-one are off and cannot be turned on, and the new thermostat has its own TPI and advanced parameters, with the defaults of Versatile
-Thermostat unless you change them in the sections "TPI parameters" and "Advanced parameters".
+one are off and cannot be turned on, and the new thermostat has its own TPI and safety parameters, with the defaults of Versatile
+Thermostat unless you change them in the sections "TPI parameters" and "Safety and manual override".
 
 ## Use the central configuration
 Most sections have a switch **Customize for this thermostat**. While it is off, the section uses the central configuration: it shows
@@ -110,7 +110,7 @@ applies to the thermostat. The sections of the general settings show no check ma
 | Presets | switch, climate and valve thermostats | The temperature of each preset, in a table. They are `number` entities, saved after the configuration. See [The presets table](#the-presets-table). |
 | TPI parameters | the proportional function is TPI, or a valve regulates | The TPI coefficients, and Auto TPI with its learning type. |
 | Valve regulation | a climate that regulates with a valve | The valves, their offsets and their opening. |
-| Advanced | always | The advanced parameters. |
+| Safety and manual override | always | The safety mode, the manual override and the repair of an incorrect state. Versatile Thermostat calls this section "Advanced parameters". |
 
 **Optional features**, the sections that can be off. A section whose feature is off stays in the menu with the status `Off`, and
 offers to turn it on:
@@ -131,7 +131,7 @@ offers to turn it on:
 The identifiers of these sections, which a plugin can use to place its own tab, are in [Native plugins](../plugins/native-plugins.md).
 
 ## What VT would do with these settings
-The sections TPI parameters, Window and Advanced of a thermostat end with a closed panel **What VT would do with these settings**.
+The sections TPI parameters, Window and Safety and manual override of a thermostat end with a closed panel **What VT would do with these settings**.
 Open it to see the effect of the values of the page, before you save them. Every value that the dashboard computes is marked
 *estimation*: it applies the rules of Versatile Thermostat to the values of the page, and to the history that Home Assistant
 recorded; it does not predict how the room would have reacted to other settings.
@@ -144,7 +144,7 @@ recorded; it does not predict how the room would have reacted to other settings.
   and the time within ±0.5° of the setpoint. The two shares differ when the settings or the mode changed during the period.
 - **Window**, with the method **Temperature drop**: the slope of the temperature over 24 h or 7 days, the periods where a window
   would have been detected with your thresholds, and the strongest drop. A detection longer than the maximum duration stops there.
-- **Advanced**: the silences of the room and outdoor sensors over 24 h or 7 days, those longer than the safety delay, and the
+- **Safety and manual override**: the silences of the room and outdoor sensors over 24 h or 7 days, those longer than the safety delay, and the
   longest. VT enters the safety mode only while the heating share is at least the minimal share of safety. A thermostat over a
   climate without valve regulation never enters it, so the panel says so.
 
