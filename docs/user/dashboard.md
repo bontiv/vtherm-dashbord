@@ -74,8 +74,8 @@ the title, for example "Window detection, off".
 
 The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, synchronization of the
 temperature, heating failure detection) stay in the menu, so that you can find them. Open one: it explains the feature and has a switch
-to turn it on. Turning it on shows its fields and changes the same value as the section Features (the section Underlyings for the
-synchronization of the temperature); save to keep it. A feature that does not exist for the type of the thermostat, such as the auto
+to turn it on. Turning it on shows its fields, with the switch above them to turn it off again; save to keep the change, with the
+actions at the foot of the page. The synchronization of the temperature changes the same option as the section Underlyings. A feature that does not exist for the type of the thermostat, such as the auto
 start and stop of a thermostat over a switch, is not in the menu. The sections Humidity and Lock have no such switch: their page shows
 their options as usual, and checking one of them turns the section on.
 

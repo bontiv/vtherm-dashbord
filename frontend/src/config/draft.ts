@@ -167,6 +167,11 @@ export class ConfigDraft {
     return new Set(this.errors.flatMap((error) => (error.tab === null ? [] : [error.tab])));
   }
 
+  /** The fields of a tab that the last save refused, while they were not changed. */
+  refusedFields(tab: string): ReadonlySet<string> {
+    return new Set(this.errors.flatMap((error) => (error.tab === tab ? [error.field] : [])));
+  }
+
   /** Forget the changes: the fields show the saved values again. */
   discard(): void {
     this.changes.clear();

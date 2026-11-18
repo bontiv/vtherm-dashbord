@@ -95,9 +95,10 @@ export function nativeStatus(definition: TabDefinition, kind: ConfigKind): (cont
 export function nativeTabContributions(plugin: string, translations: AnyTranslations): { thermostat_config: Contribution<"thermostat_config">[]; general_config: Contribution<"general_config">[] } {
   const thermostat: Contribution<"thermostat_config">[] = [];
   const general: Contribution<"general_config">[] = [];
-  // In the order of the menu, so that a tab of the plugin finds the tab of the same plugin that it follows.
+  // In the order of the menu, so that a tab of the plugin finds the tab of the same plugin that it follows. A step of the flow that is
+  // not in the menu, such as `features`, has neither contribution nor element.
   const menuIndex = (definition: TabDefinition): number => MENU_ORDER.findIndex((candidate) => candidate.tab === definition.tab);
-  const ordered = TAB_DEFINITIONS.filter((candidate) => candidate.plugin === plugin).sort((a, b) => menuIndex(a) - menuIndex(b));
+  const ordered = TAB_DEFINITIONS.filter((candidate) => candidate.plugin === plugin && menuIndex(candidate) >= 0).sort((a, b) => menuIndex(a) - menuIndex(b));
   for (const definition of ordered) {
     if (definition.thermostat !== undefined) {
       const tag = tagOf(definition, "thermostat");

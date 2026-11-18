@@ -106,14 +106,14 @@ applies to the thermostat. The sections of the general settings show no check ma
 | --- | --- | --- |
 | Main attributes | always | Name, temperature sensors, cycle, and whether the thermostat uses the central configuration. |
 | Underlyings | thermostat only | The devices that the thermostat controls. The form depends on the type. |
-| Features | always | The features to turn on: window, motion, power, presence, and others. |
 | Presets | switch, climate and valve thermostats | The temperature of each preset, in a table. They are `number` entities, saved after the configuration. See [The presets table](#the-presets-table). |
 | TPI parameters | the proportional function is TPI, or a valve regulates | The TPI coefficients, and Auto TPI with its learning type. |
 | Valve regulation | a climate that regulates with a valve | The valves, their offsets and their opening. |
 | Safety and manual override | always | The safety mode, the manual override and the repair of an incorrect state. Versatile Thermostat calls this section "Advanced parameters". |
 
 **Optional features**, the sections that can be off. A section whose feature is off stays in the menu with the status `Off`, and
-offers to turn it on:
+offers to turn it on. The switch stays above the section while the feature is on, to turn it off; it is the only place to turn a
+feature on or off, and the save actions are at the foot of its card while the feature is off:
 
 | Section | Appears when | Off when | What it configures |
 | --- | --- | --- | --- |

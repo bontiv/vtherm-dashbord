@@ -88,7 +88,8 @@ phone. When several apply, the first of this list is shown:
   status, and the development mode reports the problem.
 - `feature` is the key of the boolean value that turns the feature of the section on. While it is false, the section stays in the menu,
   and its page shows the explanation `feature_intro.<feature>` of your catalog with a switch drawn by the dashboard, instead of your
-  component. The switch changes the value in the draft, as the native tab "features" does.
+  component. The switch changes the value in the draft, in the step `features` of the flow, and stays above your component while the
+  feature is on, to turn it off. While the feature is off, the dashboard draws the save actions at the foot of the card of the switch.
 - `{ kind: "off" }` returned by `status` is for a section without `feature` whose values make it do nothing: the entry is off, and its
   page shows your component as usual, without the switch of the dashboard.
 - Without `status` nor `feature`, the entry only shows `Error` after a refused save.

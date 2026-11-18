@@ -1,4 +1,4 @@
-/** The native plugin `core`: the top tabs, the overview pages, the pages of the configuration, and the tabs main, features and type. */
+/** The native plugin `core`: the top tabs, the overview pages, the pages of the configuration, and the tabs main and type. */
 
 import { CORE_MENU_GROUPS, CORE_TOP_TABS, defineTranslations, registerUiPlugin } from "@vtherm/dashboard-sdk";
 import type { UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";

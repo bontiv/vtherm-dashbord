@@ -73,6 +73,12 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   too long, and whose second line covered the value (the safety delay, the thresholds of the window detection, the delays of the
   window, the power sensors, among others), have a short name in the dashboard; their hint keeps the details.
 
+- The tab **Features** is gone from the menu of a thermostat and from the Configuration: each feature is turned on and off by the
+  switch of its own section, in the group **Optional features**, which already showed the state of each one. The switch stays above
+  the section while the feature is on, and the save actions are at the foot of its card while the feature is off, so a feature turned off
+  in place is saved there. A value of the features that a save refuses puts the section of that feature in error. The values are saved in the
+  step "features" of Versatile Thermostat, as before.
+
 ### For contributors
 - `npm run test:docs` runs the checks of the documentation, which `npm test` now skips because they are long.
 - The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not
@@ -98,6 +104,8 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 - The title of the tab of `core_advanced` changes, not its contract: `core_advanced`, `core_advanced.tab.main`,
   `core_advanced.general.main`, the catalog key `title.advanced` and the keys of its fields stay, so a placement `after:core_advanced.tab.main`
   or a saved address keeps working. The change is compatible.
+- **BREAKING**: the contributions `core.tab.features` and `core.general.features` no longer exist. A plugin placed `after:` or
+  `before:` one of them gets the warning `target_missing` and goes last: place it relative to `core.tab.type` or `core.tab.main`.
 
 ## [0.1.0-beta2]
 The second beta.

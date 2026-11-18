@@ -418,7 +418,7 @@ export function isAvailable(definition: TabDefinition, values: Values, kind: Con
  * The last part of the identifier of the contribution of a tab.
  *
  * A native plugin with a single tab names it `main` (`core_tpi.tab.main`); the plugin `core`, which holds several tabs, names each
- * one after its tab (`core.tab.features`).
+ * one after its tab (`core.tab.type`).
  */
 const tabKey = (definition: TabDefinition): string => (TAB_DEFINITIONS.filter((candidate) => candidate.plugin === definition.plugin).length === 1 ? "main" : definition.tab);
 
@@ -436,14 +436,16 @@ export type MenuGroup = "settings" | "features";
 
 /**
  * The tabs in the order of the menus of a thermostat and of the general configuration, with their group. The general settings go from
- * what the thermostat is (main attributes) and what it drives (underlyings), through what it does (features, which depend on the type),
- * to the settings of every day (presets), the tuning of the regulation (TPI, valve) and the expert settings. The features keep the
- * order of the flow. `TAB_DEFINITIONS` keeps the order of the flow, which the saves and the checks of drift follow.
+ * what the thermostat is (main attributes) and what it drives (underlyings) to the settings of every day (presets), the tuning of the
+ * regulation (TPI, valve) and the expert settings. The features keep the order of the flow. `TAB_DEFINITIONS` keeps the order of the
+ * flow, which the saves and the checks of drift follow.
+ *
+ * A step of the flow that is not in this list has no tab: the step `features` is saved, but its values are turned on and off by the
+ * switch of the tab of each feature, which declares the value as its `feature`.
  */
 export const MENU_ORDER: readonly { readonly tab: FlowTab; readonly group: MenuGroup }[] = [
   { tab: "main", group: "settings" },
   { tab: "type", group: "settings" },
-  { tab: "features", group: "settings" },
   { tab: "presets", group: "settings" },
   { tab: "tpi", group: "settings" },
   { tab: "valve_regulation", group: "settings" },

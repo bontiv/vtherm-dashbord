@@ -634,6 +634,11 @@ describe("the sections of the features that are off", () => {
   const host = (panel: HTMLElement) => find(root(panel), "vtherm-contribution") as HTMLElement & { updateComplete: Promise<boolean> };
   const featureSwitch = (panel: HTMLElement) => host(panel).shadowRoot?.querySelector<HTMLInputElement>(".switch input[type=checkbox]") as HTMLInputElement;
   const menuText = (panel: HTMLElement) => (find(root(panel), "vtherm-side-menu") as HTMLElement).shadowRoot?.textContent ?? "";
+  const statusOf = (panel: HTMLElement, title: string) => {
+    const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
+    const link = findAll<HTMLAnchorElement>(menu.shadowRoot as ShadowRoot, "a").find((anchor) => anchor.querySelector(".title")?.textContent?.startsWith(title));
+    return link?.querySelector(".status")?.textContent?.trim() ?? null;
+  };
 
   it("stay in the menu, off, and show the explanation and the switch of the feature instead of its fields", async () => {
     const { panel } = await mount({ configs: salonAndChambre(), path: WINDOW });
@@ -646,7 +651,7 @@ describe("the sections of the features that are off", () => {
     expect(find(root(panel), "vtherm-native-window-thermostat")).toBeNull();
   });
 
-  it("turn on in place: the fields appear, the tab Features shows the feature on, and the change is not saved yet", async () => {
+  it("turn on in place: the fields appear, the change is not saved yet, and the save sends it in the step features", async () => {
     const { panel, hass } = await mount({ configs: salonAndChambre(), path: WINDOW });
     await drawn(panel);
     const toggle = featureSwitch(panel);
@@ -657,17 +662,54 @@ describe("the sections of the features that are off", () => {
     expect(find(root(panel), "vtherm-native-window-thermostat")).not.toBeNull();
     expect(actionsText(panel)).toContain("Unsaved changes");
     expect(calls(hass, "vtherm_dashboard/save_config")).toEqual([]);
-    await openMenu(panel, "Features");
-    expect(nativeTab(panel, "vtherm-native-features-thermostat").values["use_window_feature"]).toBe(true);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(calls(hass, "vtherm_dashboard/save_config")).toHaveLength(1));
+    expect(calls(hass, "vtherm_dashboard/save_config")[0]?.["changes"]).toMatchObject({ features: { use_window_feature: true } });
   });
 
-  it("turn on from the tab Features as well: the section of the feature then shows its fields", async () => {
-    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.features` });
-    nativeTab(panel, "vtherm-native-features-thermostat").proposeChanges({ use_window_feature: true });
-    await openMenu(panel, "Window detection");
+  it("turn off from the switch above the section of a feature that is on", async () => {
+    const configs = salonAndChambre();
+    const salon = configs["climate.salon"] as { values: Record<string, unknown> };
+    salon.values = { ...salon.values, use_window_feature: true, use_window_central_config: false, window_sensor_entity_id: "binary_sensor.window" };
+    const { panel } = await mount({ configs, path: WINDOW });
+    await drawn(panel);
     await host(panel).updateComplete;
-    expect(featureSwitch(panel).checked).toBe(true);
     expect(find(root(panel), "vtherm-native-window-thermostat")).not.toBeNull();
+    const toggle = featureSwitch(panel);
+    expect(toggle.checked).toBe(true);
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event("change"));
+    await drawn(panel);
+    await host(panel).updateComplete;
+    expect(find(root(panel), "vtherm-native-window-thermostat")).toBeNull();
+    expect(menuText(panel)).toContain("Window detection, off");
+    // The section is no longer shown, but the card of the switch holds the save actions: the change can be saved here.
+    const inCard = host(panel).shadowRoot?.querySelector(".feature vtherm-card-actions") as (HTMLElement & { updateComplete: Promise<boolean> }) | null;
+    expect(inCard).not.toBeNull();
+    await inCard?.updateComplete;
+    expect(inCard?.shadowRoot?.textContent).toContain("Unsaved changes");
+    expect((inCard?.shadowRoot?.querySelector("button.save") as HTMLButtonElement | null)?.disabled).toBe(false);
+    expect(find(root(panel), ".actions-card")).toBeNull();
+  });
+
+  it("have no tab Features: its old address shows the default page of the thermostat, with the notice", async () => {
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.features` });
+    await drawn(panel);
+    expect(menuText(panel)).not.toContain("Features");
+    expect(find(root(panel), ".notice")?.textContent).toContain("does not exist");
+  });
+
+  it("put a refused value of the step features on the section of its feature, with the link to go to it", async () => {
+    const refusingWindow = async (message: Record<string, unknown>) =>
+      message["type"] === "vtherm_dashboard/save_config"
+        ? { ok: false, config_saved: false, entry_id: "climate.salon", errors: [{ tab: "features", field: "use_window_feature", code: "invalid_value" }], preset_errors: [] }
+        : undefined;
+    const { panel } = await mount({ configs: salonAndChambre(), path: `/vtherm/${THERMOSTATS}/climate.salon/core.tab.main`, handlers: [refusingWindow] });
+    nativeTab(panel, "vtherm-native-main-thermostat").proposeChanges({ name: "Living room" });
+    await drawn(panel);
+    actionButton(panel, "save").click();
+    await vi.waitFor(() => expect(actionsText(panel)).toContain("A value of Window detection was refused."));
+    expect(statusOf(panel, "Window detection")).toBe("Error");
   });
 });
 

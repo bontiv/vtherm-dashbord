@@ -6,7 +6,9 @@ import type { FakeHost } from "@vtherm/dashboard-sdk/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { LABEL_MAX_LENGTH, fieldLabelKey, isWideField } from "../src/native/fields.ts";
-import { CREATION_TABS, MENU_ORDER, NATIVE_TAB_PLUGINS, definitionOfContribution, featureStepOf, fieldsOfPlugin, menuGroupOf } from "../src/native/tab-definitions.ts";
+import { fieldsOf } from "../src/native/schemas.ts";
+import { CREATION_TABS, MENU_ORDER, NATIVE_TAB_PLUGINS, TAB_DEFINITIONS, definitionOfContribution, featureStepOf, fieldsOfPlugin, isAvailable, menuGroupOf } from "../src/native/tab-definitions.ts";
+import type { ConfigKind, TabDefinition } from "../src/native/tab-definitions.ts";
 import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
 let host: FakeHost;
@@ -57,7 +59,7 @@ describe("the native plugins", () => {
     expect(order).toContain("core_tpi.tab.main");
     expect(order).toContain("core_lock.tab.main");
     expect(order).toContain("core_sync_temp.tab.main");
-    expect(order.filter((id) => id.startsWith("core.tab."))).toEqual(["core.tab.main", "core.tab.type", "core.tab.features"]);
+    expect(order.filter((id) => id.startsWith("core.tab."))).toEqual(["core.tab.main", "core.tab.type"]);
   });
 
   it("put the tabs of a thermostat in the order of the menu, after the overview, under the groups of the core", () => {
@@ -66,7 +68,7 @@ describe("the native plugins", () => {
     expect(order.slice(1).map((id) => definitionOfContribution(id)?.definition.tab)).toEqual(MENU_ORDER.map((item) => item.tab).filter((tab) => tab !== "central_boiler"));
     expect(groupsOf(host.resolved("thermostat_config"))).toEqual([
       [undefined, ["thermostat_overview"]],
-      [CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "valve_regulation", "advanced"]],
+      [CORE_MENU_GROUPS.settings, ["main", "type", "presets", "tpi", "valve_regulation", "advanced"]],
       [CORE_MENU_GROUPS.features, ["window", "motion", "power", "presence", "auto_start_stop", "sync_device_internal_temp", "lock", "humidity", "heating_failure_detection"]],
     ]);
   });
@@ -75,16 +77,16 @@ describe("the native plugins", () => {
     const menuOf = (values: Record<string, unknown>) => groupsOf(host.visible(host.resolved("thermostat_config"), thermostat(values)));
     expect(menuOf({ thermostat_type: "thermostat_over_switch", proportional_function: "tpi" })).toEqual([
       [undefined, ["thermostat_overview"]],
-      [CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "advanced"]],
+      [CORE_MENU_GROUPS.settings, ["main", "type", "presets", "tpi", "advanced"]],
       [CORE_MENU_GROUPS.features, ["window", "motion", "power", "presence", "lock", "humidity", "heating_failure_detection"]],
     ]);
-    expect(menuOf({ thermostat_type: "thermostat_over_valve", proportional_function: "tpi" })[1]).toEqual([CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "advanced"]]);
+    expect(menuOf({ thermostat_type: "thermostat_over_valve", proportional_function: "tpi" })[1]).toEqual([CORE_MENU_GROUPS.settings, ["main", "type", "presets", "tpi", "advanced"]]);
     expect(menuOf({ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" })).toEqual([
       [undefined, ["thermostat_overview"]],
-      [CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "advanced"]],
+      [CORE_MENU_GROUPS.settings, ["main", "type", "presets", "advanced"]],
       [CORE_MENU_GROUPS.features, ["window", "motion", "power", "presence", "auto_start_stop", "sync_device_internal_temp", "lock", "humidity"]],
     ]);
-    expect(menuOf(everything)[1]).toEqual([CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "valve_regulation", "advanced"]]);
+    expect(menuOf(everything)[1]).toEqual([CORE_MENU_GROUPS.settings, ["main", "type", "presets", "tpi", "valve_regulation", "advanced"]]);
   });
 
   it("put the sections of the general configuration under the groups of the core, before the pages of the dashboard", () => {
@@ -93,7 +95,7 @@ describe("the native plugins", () => {
     expect(ids(menu).slice(-2)).toEqual(["core.page.plugins", "core.page.dev_plugins"]);
     expect(groupMenu(menu).map((section) => section.group)).toEqual([CORE_MENU_GROUPS.settings, CORE_MENU_GROUPS.features, "group.dashboard"]);
     expect(groupsOf(sections)).toEqual([
-      [CORE_MENU_GROUPS.settings, ["create", "main", "features", "presets", "tpi", "advanced"]],
+      [CORE_MENU_GROUPS.settings, ["create", "main", "presets", "tpi", "advanced"]],
       [CORE_MENU_GROUPS.features, ["central_boiler", "window", "motion", "power", "presence", "lock", "heating_failure_detection"]],
     ]);
   });
@@ -150,14 +152,13 @@ function createThirdParty(): FakeHost {
 
 describe("the tabs that apply to a thermostat", () => {
   it("show every tab of a thermostat that uses everything", () => {
-    expect(visibleTabs(everything)).toEqual(["main", "type", "features", "presets", "tpi", "valve_regulation", "advanced", "window", "motion", "power", "presence", "sync_device_internal_temp", "lock", "humidity", "heating_failure_detection"]);
+    expect(visibleTabs(everything)).toEqual(["main", "type", "presets", "tpi", "valve_regulation", "advanced", "window", "motion", "power", "presence", "sync_device_internal_temp", "lock", "humidity", "heating_failure_detection"]);
   });
 
   it("keep the tabs of the features of a thermostat over a switch in the menu while the features are off", () => {
     expect(visibleTabs({ thermostat_type: "thermostat_over_switch", proportional_function: "tpi" })).toEqual([
       "main",
       "type",
-      "features",
       "presets",
       "tpi",
       "advanced",
@@ -169,6 +170,34 @@ describe("the tabs that apply to a thermostat", () => {
       "humidity",
       "heating_failure_detection",
     ]);
+  });
+
+  it("have no tab Features: the step is saved, but has no contribution in either menu", () => {
+    const ids = [...host.resolved("thermostat_config"), ...host.resolved("general_config")].map((entry) => entry.id);
+    expect(ids).not.toContain("core.tab.features");
+    expect(ids).not.toContain("core.general.features");
+    expect(customElements.get("vtherm-native-features-thermostat")).toBeUndefined();
+    expect(customElements.get("vtherm-native-features-central")).toBeUndefined();
+  });
+
+  it("give each value of the step Features a tab of a feature in the menu, for every type of configuration", () => {
+    const features = TAB_DEFINITIONS.find((definition) => definition.tab === "features") as TabDefinition;
+    const cases: [Record<string, unknown>, ConfigKind][] = [
+      [{ thermostat_type: "thermostat_over_switch" }, "thermostat"],
+      [{ thermostat_type: "thermostat_over_valve" }, "thermostat"],
+      [{ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" }, "thermostat"],
+      [{ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_valve" }, "thermostat"],
+      [{ thermostat_type: "thermostat_central_config" }, "central"],
+    ];
+    for (const [values, kind] of cases) {
+      const layout = (kind === "thermostat" ? features.thermostat : features.central)?.(values);
+      const keys = (layout?.base ?? []).flatMap((name) => fieldsOf(name)).map((field) => field.key);
+      expect(keys.length, String(values["thermostat_type"])).toBeGreaterThan(0);
+      for (const key of keys) {
+        const tab = TAB_DEFINITIONS.find((definition) => definition.feature === key);
+        expect(tab !== undefined && isAvailable(tab, values, kind), `${String(values["thermostat_type"])} ${key}`).toBe(true);
+      }
+    }
   });
 
   it("declare the value that turns the feature of each tab of a feature on", () => {

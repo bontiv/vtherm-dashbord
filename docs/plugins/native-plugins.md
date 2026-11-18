@@ -22,8 +22,8 @@ The menus of a thermostat and of the general configuration put the native tabs i
 (`CORE_MENU_GROUPS`, see [Groups of the menus](hooks-and-placement.md#groups-of-the-menus)), in the order of `MENU_ORDER`
 (`tab-definitions.ts`), which is not the order of the flow:
 
-- **General settings** (`core:settings`), the tabs that cannot be turned off: main attributes, underlyings, features, presets, TPI,
-  valve regulation, safety and manual override. The page that creates the central configuration is in this group too.
+- **General settings** (`core:settings`), the tabs that cannot be turned off: main attributes, underlyings, presets, TPI, valve
+  regulation, safety and manual override. The page that creates the central configuration is in this group too.
 - **Optional features** (`core:features`), the tabs that can be off: central boiler, window, motion, power, presence, auto start and
   stop, synchronization of the temperature, lock, humidity, heating failure detection.
 
@@ -32,8 +32,9 @@ tab is placed `after` the closest tab before it in `MENU_ORDER` whose plugin is 
 load order. A tab of yours placed between two native tabs keeps the heading whole when it declares the same group.
 
 ## Identifiers of the contributions
-A plugin with one tab names it `main`: `core_tpi.tab.main`. `core` has three tabs, named after them: `core.tab.main`,
-`core.tab.features` and `core.tab.type`. A section of the central configuration uses `general` instead of `tab`.
+A plugin with one tab names it `main`: `core_tpi.tab.main`. `core` has two tabs, named after them: `core.tab.main` and
+`core.tab.type`. A section of the central configuration uses `general` instead of `tab`. There is no tab for the step `features` of the
+flow: `core.tab.features` and `core.general.features` no longer exist (place your tab relative to `core.tab.type` or `core.tab.main`).
 
 For example, `placement: { after: "core_tpi.tab.main" }` puts a tab right after the TPI tab, and `placement: { replace: "core_lock.tab.main" }`
 puts yours in place of the lock tab.
@@ -53,11 +54,9 @@ calls "Advanced parameters".
 | `core` | `core.page.overview` | `global_page` | Overview |
 | `core` | `core.general.create` | `general_config` | Central configuration |
 | `core` | `core.general.main` | `general_config` | Main attributes |
-| `core` | `core.general.features` | `general_config` | Features |
 | `core` | `core.page.thermostat_overview` | `thermostat_config` | Overview |
 | `core` | `core.tab.main` | `thermostat_config` | Main attributes |
 | `core` | `core.tab.type` | `thermostat_config` | Underlyings |
-| `core` | `core.tab.features` | `thermostat_config` | Features |
 | `core_tpi` | `core_tpi.tab.main` | `thermostat_config` | TPI parameters |
 | `core_tpi` | `core_tpi.general.main` | `general_config` | TPI parameters |
 | `core_presets` | `core_presets.tab.main` | `thermostat_config` | Presets |
@@ -97,9 +96,11 @@ The tabs of the features (window, motion, power, presence, auto start and stop, 
 heating failure detection) declare the value that turns their feature on (`feature`: `use_window_feature`, `use_motion_feature`,
 `use_power_feature`, `use_presence_feature`, `use_auto_start_stop_feature`, `use_central_boiler_feature`,
 `sync_device_internal_temp`, `use_heating_failure_detection_feature`). While the feature is off, the tab stays in the menu with the
-status `Off`; its page shows the explanation of the feature and the switch of the dashboard instead of its fields, and turning the
-switch on changes, in the draft, the same value as the tab that holds it (`featureStepOf`): the tab Features, or the tab Underlyings
-for the synchronization of the temperature of a thermostat over a climate.
+status `Off`; its page shows the explanation of the feature and the switch of the dashboard instead of its fields, with the save
+actions at the foot of the same card. While the feature is on, the switch stays above the fields to turn it off. The switch is the only place to turn a
+feature on or off: the step `features` of the flow has no tab. It changes, in the draft, the value of the step of the flow that holds
+it (`featureStepOf`): `features`, or `type` for the synchronization of the temperature of a thermostat over a climate. A value of
+the step `features` that a save refuses puts the tab of its feature in error.
 A tab whose feature does not exist for the type of the thermostat is not in the menu: the auto start and stop for a thermostat over a
 switch, the heating failure detection for a thermostat over a climate without valve regulation, as the form Features of
 Versatile Thermostat decides, or the synchronization of the temperature for a thermostat that is not over a climate.

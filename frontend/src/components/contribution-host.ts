@@ -16,6 +16,11 @@ export interface FeatureControl {
   readonly on: boolean;
   /** Turn the feature on or off in the draft. */
   toggle(on: boolean): void;
+  /**
+   * The save actions of the section, drawn at the foot of the card of the switch while the feature is off: the component, which draws
+   * them at the foot of its own card, is not shown then.
+   */
+  readonly actions?: TemplateResult | undefined;
 }
 
 /**
@@ -121,14 +126,20 @@ export class VThermContributionHost extends LitElement {
     return html`<label class="switch touch-target"><span>${label}</span><input type="checkbox" .checked=${feature.on} @change=${toggle} /></label>`;
   }
 
-  /** The switch of the feature: alone in a card with the explanation while the feature is off, above the section while it is on. */
+  /**
+   * The switch of the feature: alone in a card with the explanation and the save actions while the feature is off, above the section
+   * while it is on.
+   */
   private renderFeature(feature: FeatureControl): TemplateResult {
     const content = feature.on
       ? this.renderSwitch(feature)
       : html`<h2>${feature.title}</h2>
           <p class="intro">${feature.intro}</p>
           ${this.renderSwitch(feature)}`;
-    return isDefined("ha-card") ? html`<ha-card class="feature"><div class="feature-content">${content}</div></ha-card>` : html`<div class="feature"><div class="feature-content">${content}</div></div>`;
+    const actions = feature.on ? undefined : feature.actions;
+    return isDefined("ha-card")
+      ? html`<ha-card class="feature"><div class="feature-content">${content}</div>${actions}</ha-card>`
+      : html`<div class="feature"><div class="feature-content">${content}</div>${actions}</div>`;
   }
 
   protected override render(): TemplateResult {

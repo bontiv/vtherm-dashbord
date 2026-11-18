@@ -238,24 +238,6 @@ describe("the tab type", () => {
     expect(findAll(root, 'input[type="radio"]')).toEqual([]);
   });
 });
-describe("the tab features", () => {
-  it("offers the features of a thermostat over a switch, without auto start and stop", async () => {
-    const { root } = await render("core.tab.features", { thermostat_type: "thermostat_over_switch" });
-    expect(labels(root)).toEqual(["use_window_feature", "use_motion_feature", "use_power_feature", "use_presence_feature", "use_heating_failure_detection_feature"]);
-  });
-
-  it("offers auto start and stop, and no heating failure detection, to a climate without valve regulation", async () => {
-    const { root } = await render("core.tab.features", { thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" });
-    expect(labels(root)).toContain("use_auto_start_stop_feature");
-    expect(labels(root)).not.toContain("use_heating_failure_detection_feature");
-  });
-
-  it("offers the central boiler in the general configuration", async () => {
-    const { root } = await render("core.general.features", { thermostat_type: "thermostat_central_config" });
-    expect(labels(root)).toContain("use_central_boiler_feature");
-  });
-});
-
 describe("the tab TPI and Auto TPI", () => {
   it("shows the inheritance and the central coefficients read-only", async () => {
     const { root } = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: true });

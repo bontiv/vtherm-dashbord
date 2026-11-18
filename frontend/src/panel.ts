@@ -841,10 +841,21 @@ export class VThermDashboardPanel extends LitElement {
     ];
   }
 
-  /** Whether the last save of the configuration of the route refused a value of the tab of a native section. */
+  /**
+   * Whether the last save of the configuration of the route refused a value of the tab of a native section. The step `features` has no
+   * tab: a refused value of it belongs to the section of the feature that declares this value.
+   */
   private isRefused(entry: PlacedEntry, route: Route): boolean {
+    const draft = this.session?.get(this.entryOf(route))?.draft;
+    if (draft === undefined) {
+      return false;
+    }
     const tab = definitionOfContribution(entry.id)?.definition.tab;
-    return tab !== undefined && this.session?.get(this.entryOf(route))?.draft.refusedTabs().has(tab) === true;
+    if (tab !== undefined && draft.refusedTabs().has(tab)) {
+      return true;
+    }
+    const feature = (entry.contribution as { feature?: unknown }).feature;
+    return typeof feature === "string" && draft.refusedFields("features").has(feature);
   }
 
   /** The sections whose status function failed, reported once each. */
@@ -894,6 +905,11 @@ export class VThermDashboardPanel extends LitElement {
   /** The card of the save actions under a configuration component that does not draw them itself (`save_actions` is not `component`). */
   private renderActionsCard(entry: PlacedEntry, entryId: string | null): TemplateResult | undefined {
     if ((entry.contribution as { save_actions?: string }).save_actions === "component") {
+      return undefined;
+    }
+    // A section whose feature is off has its actions in the card of its switch.
+    const feature = (entry.contribution as { feature?: unknown }).feature;
+    if (typeof feature === "string" && this.session?.get(entryId)?.draft.values()[feature] !== true) {
       return undefined;
     }
     const actions = renderCardActions(this.draftControls(entryId), String(this.languageVersion));
@@ -984,11 +1000,15 @@ export class VThermDashboardPanel extends LitElement {
       return undefined;
     }
     const registry = (this.loaded as BootstrapResult).registry;
+    const on = draft.values()[key] === true;
     return {
       title,
       intro: registry.translate(entry.pluginId, `feature_intro.${key}`),
-      on: draft.values()[key] === true,
-      toggle: (on) => draft.propose(this.featureStep(entry, key, draft.values()), { [key]: on }),
+      on,
+      toggle: (value) => draft.propose(this.featureStep(entry, key, draft.values()), { [key]: value }),
+      // While the feature is off, its component is not shown: the save actions are at the foot of the card of the switch, so that a
+      // feature turned off in place is saved there.
+      actions: on ? undefined : renderCardActions(this.draftControls(entryId), String(this.languageVersion)),
     };
   }
 
