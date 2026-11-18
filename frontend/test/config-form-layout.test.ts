@@ -241,3 +241,20 @@ describe("the method of detection of a window", () => {
     expect(find(root, ".method")).toBeNull();
   });
 });
+
+describe("the panel of estimation", () => {
+  it("creates its content when it starts to open, before Home Assistant measures it, and leaves its state to Home Assistant", async () => {
+    const { element, root } = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: false });
+    const panel = find<MockHaElement>(root, "ha-expansion-panel.insights") as MockHaElement;
+    expect(panel.expanded).toBe(false);
+    expect(find(panel, "vtherm-insight-tpi")).toBeNull();
+    panel.dispatchEvent(new CustomEvent("expanded-will-change", { detail: { expanded: true } }));
+    await element.updateComplete;
+    expect(find(panel, "vtherm-insight-tpi")).not.toBeNull();
+    // The dashboard does not set `expanded`: a binding would make the height of the panel stay fixed while its content grows.
+    expect(panel.expanded).toBe(false);
+    panel.dispatchEvent(new CustomEvent("expanded-changed", { detail: { expanded: false } }));
+    await element.updateComplete;
+    expect(find(panel, "vtherm-insight-tpi")).toBeNull();
+  });
+});

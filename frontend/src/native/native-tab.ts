@@ -1265,7 +1265,14 @@ export class NativeTabElement extends LitElement {
         class="insights"
         outlined
         .header=${title}
-        .expanded=${this.insightOpen}
+        @expanded-will-change=${(event: CustomEvent<{ expanded: boolean }>) => {
+          // The panel measures its content before it opens, animates its height, and frees it at the end of the animation. The content
+          // must exist before that measure, and the panel keeps its own state (no binding of `expanded`): otherwise the height does not
+          // animate, stays fixed, and the content that the history adds later overflows the card.
+          if (event.detail.expanded) {
+            this.insightOpen = true;
+          }
+        }}
         @expanded-changed=${(event: CustomEvent<{ expanded: boolean }>) => (this.insightOpen = event.detail.expanded)}
         >${content}</ha-expansion-panel
       >`;
