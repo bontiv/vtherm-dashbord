@@ -128,7 +128,8 @@ class ComplementsPageBase extends LitElement {
     }
     .filters {
       margin-bottom: 8px;
-      align-items: flex-end;
+      /* The fields align on their top: ha-input keeps 8 px under its field for a hint, which ha-select does not. */
+      align-items: flex-start;
     }
     .filters > * {
       min-width: 160px;

@@ -487,6 +487,15 @@ describe("the description", () => {
   });
 });
 
+describe("the filter bar", () => {
+  it("aligns its fields on their top, since the search field keeps room for a hint under it", async () => {
+    const { panel } = await open(CATALOG);
+    const css = ((page(panel)?.constructor as unknown as { styles: { cssText?: string }[] }).styles ?? []).map((style) => style.cssText ?? "").join("\n");
+    expect(css).toMatch(/\.filters\s*\{[^}]*align-items: flex-start/);
+    expect(css).not.toMatch(/\.filters\s*\{[^}]*align-items: flex-end/);
+  });
+});
+
 describe("the status and the cards", () => {
   it("separates the status from the metadata and shows the experimental badge on a name without prefix", async () => {
     const { panel } = await open(CATALOG, { complements: [complement({ name: "[EXPERIMENTAL] An assistant" })] });
