@@ -75,6 +75,9 @@ jobs:
         run: npm ci
       - name: Build the SDK and the frontend
         run: npm run build
+      # The diagrams of the help check that each file of Versatile Thermostat they cite exists in external/.
+      - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
+        run: bash scripts/fetch-external.sh
       - name: Test with coverage
         run: npm test -- --coverage
       - name: Write the coverage in the summary
