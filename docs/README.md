@@ -30,6 +30,7 @@ people it is written for: **User** (uses the dashboard), **Plugin author** (writ
 | [Development environment](contributing/development-environment.md) | Contributor | The dev container, `external/`, running Home Assistant, the tests, the generated files, the preview and hassfest. |
 | [Code conventions](contributing/code-conventions.md) | Contributor | English only, strict TypeScript and the list of JavaScript exceptions, the Python rules of Versatile Thermostat and the check command. |
 | [Driving the config flow](contributing/config-flow-driver.md) | Contributor | How the configuration of Versatile Thermostat is validated and saved, the tabs and steps, the presets, the versions and the evolution planned. |
+| [Setting insights](contributing/setting-insights.md) | Contributor | The rules of Versatile Thermostat ported for the estimation panels, from which file and function, the fixtures that check them, and what to do when `external-refs.txt` changes. |
 
 ## Rules for the documentation
 

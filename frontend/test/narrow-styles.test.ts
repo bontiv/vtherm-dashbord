@@ -13,6 +13,7 @@ import { NARROW_QUERY as SHARED_QUERY, TOUCH_TARGET, narrowStyles } from "../src
 import { VThermPluginStatus } from "../src/components/plugin-status.ts";
 import { VThermSideMenu } from "../src/components/side-menu.ts";
 import { VThermThermostatList } from "../src/components/thermostat-list.ts";
+import { VThermTimeChart } from "../src/components/time-chart.ts";
 import { VThermTopBar } from "../src/components/top-bar.ts";
 import { VThermWidgets } from "../src/components/widgets.ts";
 import { VThermDevPluginsPage } from "../src/dev/dev-plugins-page.ts";
@@ -42,6 +43,7 @@ describe("the styles of the narrow screen", () => {
       VThermBreadcrumb,
       VThermCardActions,
       VThermFieldHelp,
+      VThermTimeChart,
       VThermThermostatList,
       VThermWidgets,
       VThermPluginStatus,
@@ -66,6 +68,20 @@ describe("the help of a field on a phone", () => {
     expect(css).toMatch(new RegExp(String.raw`@media \(pointer: coarse\)\s*\{\s*\.toggle\s*\{[^}]*width: ${TOUCH_TARGET}px;[^}]*height: ${TOUCH_TARGET}px`));
     expect(css).toMatch(/\.panel\s*\{[^}]*min-width: 0/);
     expect(css).toMatch(/\.info\s*\{[^}]*white-space: pre-line/);
+  });
+});
+
+describe("the chart of time series on a phone", () => {
+  it("cannot overflow a screen of 360 px: it shrinks with its container and keeps its readout and its legend inside", () => {
+    const css = flatten(VThermTimeChart.styles)
+      .map((style) => (style as { cssText?: string }).cssText ?? "")
+      .join("\n");
+    expect(css).toMatch(/:host\s*\{[^}]*display: block;[^}]*min-width: 0;[^}]*max-width: 100%/);
+    expect(css).toMatch(/\.plot\s*\{[^}]*position: relative;[^}]*min-width: 0;[^}]*width: 100%/);
+    expect(css).toMatch(/\.plot > svg\s*\{[^}]*width: 100%;[^}]*max-width: 100%/);
+    expect(css).toMatch(/\.readout\s*\{[^}]*position: absolute;[^}]*box-sizing: border-box;[^}]*max-width: calc\(100% - 8px\);[^}]*overflow-wrap: anywhere/);
+    expect(css).toMatch(/\.legend\s*\{[^}]*flex-wrap: wrap;[^}]*min-width: 0/);
+    expect(css).toMatch(/\.legend-item\s*\{[^}]*min-width: 0;[^}]*overflow-wrap: anywhere/);
   });
 });
 

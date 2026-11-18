@@ -4,6 +4,8 @@
  * `generate-native-catalogs.ts` adds them to the texts that it takes from Versatile Thermostat. Keep the three languages complete.
  */
 
+import { INSIGHT_COMMON, INSIGHT_SAFETY, INSIGHT_TPI, INSIGHT_WINDOW } from "./insight-texts.ts";
+
 /** A text in the three languages. */
 export interface Text {
   readonly en: string;
@@ -1123,6 +1125,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       "auto_tpi_heating_rate", "auto_tpi_continuous_kext", "auto_tpi_enable_advanced_settings", "auto_tpi_avg_initial_weight", "auto_tpi_ema_alpha",
       "auto_tpi_ema_decay_rate", "auto_tpi_continuous_kext_alpha",
     ]),
+    ...INSIGHT_COMMON,
+    ...INSIGHT_TPI,
   },
   core_valve_regulation: {
     "option.proportional_function.tpi": { en: "TPI", fr: "TPI", de: "TPI" },
@@ -1153,6 +1157,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       "use_window_central_config", "window_sensor_entity_id", "window_delay", "window_off_delay", "window_auto_open_threshold",
       "window_auto_close_threshold", "window_auto_max_duration", "window_action",
     ]),
+    ...INSIGHT_COMMON,
+    ...INSIGHT_WINDOW,
   },
   core_motion: {
     "feature_intro.use_motion_feature": {
@@ -1211,6 +1217,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       "use_advanced_central_config", "safety_delay_min", "safety_min_on_percent", "safety_default_on_percent", "repair_incorrect_state",
       "manual_override_duration_min",
     ]),
+    ...INSIGHT_COMMON,
+    ...INSIGHT_SAFETY,
   },
   core_lock: {
     ...helpOf(["use_lock_central_config", "lock_code", "lock_users", "lock_automations", "auto_relock_sec"]),

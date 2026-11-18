@@ -120,6 +120,27 @@ The sections follow the menu of the config flow of Versatile Thermostat. A secti
 
 The identifiers of these sections, which a plugin can use to place its own tab, are in [Native plugins](../plugins/native-plugins.md).
 
+## What VT would do with these settings
+The sections TPI parameters, Window and Advanced of a thermostat end with a closed panel **What VT would do with these settings**.
+Open it to see the effect of the values of the page, before you save them. Every value that the dashboard computes is marked
+*estimation*: it applies the rules of Versatile Thermostat to the values of the page, and to the history that Home Assistant
+recorded; it does not predict how the room would have reacted to other settings.
+
+- **TPI parameters**: **Now** gives the heating share that TPI would apply now, decomposed into the room part and the outdoor part
+  (0 without an outdoor sensor), and how long the heater would be on and off in a cycle, with the reason when a rule changes it (a
+  pulse shorter than the minimal activation delay, the thresholds). Try another setpoint in the panel without changing the one of
+  the thermostat. **24 h** and **7 days** replay the period: the room, the setpoint, the share estimated with your settings (dashed)
+  and the share recorded by VT, their means, the mean time to reach the setpoint (lowered setpoints left out), the largest overshoot
+  and the time within ±0.5° of the setpoint. The two shares differ when the settings or the mode changed during the period.
+- **Window**, with the method **Temperature drop**: the slope of the temperature over 24 h or 7 days, the periods where a window
+  would have been detected with your thresholds, and the strongest drop. A detection longer than the maximum duration stops there.
+- **Advanced**: the silences of the room and outdoor sensors over 24 h or 7 days, those longer than the safety delay, and the
+  longest. VT enters the safety mode only while the heating share is at least the minimal share of safety. A thermostat over a
+  climate without valve regulation never enters it, so the panel says so.
+
+The history is read only while the panel is open, for the entities of this thermostat, and kept a few minutes. While a thermostat
+is being created, the panel gives only the estimation of now. When the history is too short or cannot be read, the panel says so.
+
 ## The detection of a window
 The section Window asks first **How to detect an open window?**, with two buttons:
 

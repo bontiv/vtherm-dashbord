@@ -98,6 +98,66 @@ hardware. The file is yours: git ignores `config/`.
 
 Logs: `config/home-assistant.log`, with debug for `custom_components.vtherm_dashboard` and `vtherm_api`.
 
+### A simulated week of history
+The panels of estimation of the native tabs (the TPI replay, the replay of the open window detection, the silences of the sensors)
+read the history of the recorder, and a development instance has almost none. `scripts/dev/seed_history.py` writes one simulated week
+for one thermostat into the database of the recorder, `config/home-assistant_v2.db`:
+
+- the room temperature sensor, which follows a simple thermal model (losses to the outdoor, a radiator with some inertia), reported
+  every 3 to 7 minutes;
+- the outdoor temperature sensor, with a daily cycle and a drift over the week, reported every 10 to 15 minutes;
+- the climate entity: state `heat`, target temperature (attribute `temperature`) at 20 °C from 6:30 (8:00 on weekends) to 22:30 and
+  17 °C at night, `current_temperature`, `hvac_action`, `power_percent`, and the other attributes it last recorded;
+- the heating share sensor of Versatile Thermostat (`sensor.<name>_power_percent`, in %) and its slope sensor
+  (`sensor.<name>_temperature_slope`, in °C/hour);
+- two aerations (the room loses about 6 °C/hour for 15 and 12 minutes) and a silence of 70 minutes of the room sensor (no state at
+  all). They are placed from the end of the period, so that the last 24 hours always have one aeration and the silence: an aeration at
+  end − 4 days 2 hours, the silence at end − 14 hours, an aeration at end − 7 hours. The script prints their times.
+
+**The data does not validate the calculations.** The "recorded" heating share is not recorded by Versatile Thermostat: the script
+computes it with the TPI formula, the same one as the estimation of the dashboard (`coef_int × (target − room) + coef_ext × (target −
+outdoor)`, clamped to 0..1, at the start of each cycle, without the thresholds and the caps of Versatile Thermostat), and the slope
+with the formula of Versatile Thermostat. The week serves to develop the panels and to take screenshots; the calculations are checked by
+the tests (`npm test`, `pytest`), not by this data.
+
+| Argument | Meaning |
+| --- | --- |
+| `--climate` | The climate entity of the thermostat (required), for example `climate.living_room`. |
+| `--room-sensor`, `--outdoor-sensor` | The room and outdoor temperature sensors of the thermostat (required). |
+| `--power-sensor`, `--slope-sensor` | The heating share and slope sensors. By default `sensor.<name>_power_percent` and `sensor.<name>_temperature_slope`, `<name>` being the name of the climate entity without `climate.`. `--no-slope` leaves the slope sensor out. |
+| `--db` | The database. By default `config/home-assistant_v2.db`. |
+| `--end` | The end of the period, ISO 8601 (`2026-11-18T09:00`). By default now. Without an offset, in the time zone of Home Assistant. |
+| `--days` | The length of the period, 7 by default. |
+| `--time-zone` | The time zone of the schedule. By default the one of Home Assistant (`config/.storage/core.config`). |
+| `--coef-int`, `--coef-ext`, `--cycle-min` | The TPI coefficients and the cycle of the simulated share: 0.6, 0.01 and 5 minutes by default. |
+| `--seed` | The seed of the random noise: the same arguments give the same week. |
+| `--dry-run` | Only read the database and print what would be written and replaced. Works while Home Assistant runs. |
+
+The rows inside the period are **replaced**: the rows of these entities between the start and the end of the period are deleted (with
+the attributes that no other row uses), then the simulated rows are written. The rows before and after the period are kept, and the
+chain of previous states (`old_state_id`) is joined to them. Other entities are not touched. The rows are written as the recorder of
+Home Assistant 2026.10 writes them (schema version 53: `states_meta`, `state_attributes` shared by hash, the timestamps
+`last_updated_ts`, `last_changed_ts` and `last_reported_ts`, the chain `old_state_id`, a context per row). The script warns when the
+database has another schema version, and refuses a database without the columns it writes.
+
+Home Assistant must be stopped, since it keeps its own view of the database while it runs. The script takes the lock that Home
+Assistant takes at its start (`config/.ha_run.lock`, next to the database): it refuses to write, without changing anything, while
+Home Assistant holds it, and Home Assistant cannot start while the script holds it. There is no option to force it. In the container:
+
+```
+# 1. Stop Home Assistant: Ctrl+C in the terminal of start-ha.sh, and wait for its prompt.
+python scripts/dev/seed_history.py --climate climate.living_room --room-sensor sensor.living_room_temperature \
+    --outdoor-sensor sensor.outdoor_temperature --dry-run    # optional: check the entities and the counts
+python scripts/dev/seed_history.py --climate climate.living_room --room-sensor sensor.living_room_temperature \
+    --outdoor-sensor sensor.outdoor_temperature
+# 2. Start Home Assistant again, with the same options as before.
+bash .devcontainer/start-ha.sh --dev-frontend
+```
+
+Run it again later to move the week to the current time: the rows of the previous run inside the new period are replaced. To keep a
+copy of the database, copy `config/home-assistant_v2.db` while Home Assistant is stopped. The script needs Linux (`fcntl`): run it in
+the container, with any Python 3.
+
 ## The tests
 | Command | What it runs |
 | --- | --- |

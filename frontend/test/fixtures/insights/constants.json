@@ -1,0 +1,14 @@
+{
+  "DEFAULT_SHORT_EMA_PARAMS": {
+    "max_alpha": 0.5,
+    "halflife_sec": 300,
+    "precision": 2
+  },
+  "DEFAULT_SAFETY_MIN_ON_PERCENT": 0.5,
+  "DEFAULT_SAFETY_DEFAULT_ON_PERCENT": 0.1,
+  "MIN_TIME_DECAY_SEC": 0,
+  "MIN_DELTA_T_SEC": 0,
+  "MAX_SLOPE_VALUE": 120,
+  "MAX_DURATION_MIN": 30,
+  "MIN_NB_POINT": 4
+}

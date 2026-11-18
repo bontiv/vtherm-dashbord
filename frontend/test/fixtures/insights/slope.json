@@ -1,0 +1,1222 @@
+{
+  "cycle_min": 5,
+  "open_threshold": 3.0,
+  "close_threshold": 0.0,
+  "start": 1767600000000,
+  "end": 1767621600000,
+  "room": [
+    [
+      1767600037000,
+      20.0
+    ],
+    [
+      1767600450000,
+      20.1
+    ],
+    [
+      1767600863000,
+      20.2
+    ],
+    [
+      1767601276000,
+      20.2
+    ],
+    [
+      1767601689000,
+      20.1
+    ],
+    [
+      1767602102000,
+      20.0
+    ],
+    [
+      1767602515000,
+      20.0
+    ],
+    [
+      1767602928000,
+      20.1
+    ],
+    [
+      1767603341000,
+      20.2
+    ],
+    [
+      1767603754000,
+      19.6
+    ],
+    [
+      1767604167000,
+      19.0
+    ],
+    [
+      1767604580000,
+      18.4
+    ],
+    [
+      1767604993000,
+      18.5
+    ],
+    [
+      1767605406000,
+      18.6
+    ],
+    [
+      1767605819000,
+      18.7
+    ],
+    [
+      1767606232000,
+      18.8
+    ],
+    [
+      1767606645000,
+      19.0
+    ],
+    [
+      1767607058000,
+      19.1
+    ],
+    [
+      1767607471000,
+      19.2
+    ],
+    [
+      1767607884000,
+      19.3
+    ],
+    [
+      1767608297000,
+      19.4
+    ],
+    [
+      1767608710000,
+      19.5
+    ],
+    [
+      1767609123000,
+      19.5
+    ],
+    [
+      1767609536000,
+      19.4
+    ],
+    [
+      1767609949000,
+      19.3
+    ],
+    [
+      1767610362000,
+      19.3
+    ],
+    [
+      1767610775000,
+      19.4
+    ],
+    [
+      1767610836000,
+      39.4
+    ],
+    [
+      1767610897000,
+      19.4
+    ],
+    [
+      1767611188000,
+      19.5
+    ],
+    [
+      1767611601000,
+      19.5
+    ],
+    [
+      1767616557000,
+      19.6
+    ],
+    [
+      1767616970000,
+      19.6
+    ],
+    [
+      1767617383000,
+      19.5
+    ],
+    [
+      1767617796000,
+      19.4
+    ],
+    [
+      1767618209000,
+      19.4
+    ],
+    [
+      1767618622000,
+      19.3
+    ],
+    [
+      1767619035000,
+      19.3
+    ],
+    [
+      1767619448000,
+      19.2
+    ],
+    [
+      1767619861000,
+      19.2
+    ],
+    [
+      1767620274000,
+      19.1
+    ],
+    [
+      1767620687000,
+      19.1
+    ],
+    [
+      1767621100000,
+      19.0
+    ],
+    [
+      1767621513000,
+      19.0
+    ]
+  ],
+  "events": [
+    {
+      "t": 1767600037000,
+      "kind": "measure",
+      "ema": 20.0,
+      "slope": null,
+      "nb_point": 1,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767600337000,
+      "kind": "cycle",
+      "ema": 20.0,
+      "slope": null,
+      "nb_point": 1,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767600450000,
+      "kind": "measure",
+      "ema": 20.05,
+      "slope": 0.44,
+      "nb_point": 2,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767600637000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.44,
+      "nb_point": 2,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767600863000,
+      "kind": "measure",
+      "ema": 20.12,
+      "slope": 0.58,
+      "nb_point": 3,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767600937000,
+      "kind": "cycle",
+      "ema": 20.12,
+      "slope": 0.58,
+      "nb_point": 3,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767601237000,
+      "kind": "cycle",
+      "ema": 20.12,
+      "slope": 0.58,
+      "nb_point": 3,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767601276000,
+      "kind": "measure",
+      "ema": 20.16,
+      "slope": 0.39,
+      "nb_point": 4,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767601537000,
+      "kind": "cycle",
+      "ema": 20.16,
+      "slope": 0.39,
+      "nb_point": 4,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767601689000,
+      "kind": "measure",
+      "ema": 20.13,
+      "slope": -0.13,
+      "nb_point": 5,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767601837000,
+      "kind": "cycle",
+      "ema": 20.13,
+      "slope": -0.13,
+      "nb_point": 5,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767602102000,
+      "kind": "measure",
+      "ema": 20.07,
+      "slope": -0.44,
+      "nb_point": 6,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767602137000,
+      "kind": "cycle",
+      "ema": 20.07,
+      "slope": -0.44,
+      "nb_point": 6,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767602437000,
+      "kind": "cycle",
+      "ema": 20.07,
+      "slope": -0.44,
+      "nb_point": 6,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767602515000,
+      "kind": "measure",
+      "ema": 20.03,
+      "slope": -0.37,
+      "nb_point": 7,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767602737000,
+      "kind": "cycle",
+      "ema": 20.03,
+      "slope": -0.37,
+      "nb_point": 7,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767602928000,
+      "kind": "measure",
+      "ema": 20.07,
+      "slope": 0.2,
+      "nb_point": 8,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767603037000,
+      "kind": "cycle",
+      "ema": 20.07,
+      "slope": 0.2,
+      "nb_point": 8,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767603337000,
+      "kind": "cycle",
+      "ema": 20.07,
+      "slope": 0.2,
+      "nb_point": 8,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767603341000,
+      "kind": "measure",
+      "ema": 20.13,
+      "slope": 0.46,
+      "nb_point": 9,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767603637000,
+      "kind": "cycle",
+      "ema": 20.13,
+      "slope": 0.46,
+      "nb_point": 9,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767603754000,
+      "kind": "measure",
+      "ema": 19.87,
+      "slope": -1.72,
+      "nb_point": 10,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767603937000,
+      "kind": "cycle",
+      "ema": 19.87,
+      "slope": -1.72,
+      "nb_point": 10,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767604167000,
+      "kind": "measure",
+      "ema": 19.43,
+      "slope": -3.41,
+      "nb_point": 11,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767604237000,
+      "kind": "cycle",
+      "ema": 19.43,
+      "slope": -3.41,
+      "nb_point": 11,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767604537000,
+      "kind": "cycle",
+      "ema": 19.43,
+      "slope": -3.41,
+      "nb_point": 11,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767604580000,
+      "kind": "measure",
+      "ema": 18.92,
+      "slope": -4.24,
+      "nb_point": 12,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767604837000,
+      "kind": "cycle",
+      "ema": 18.92,
+      "slope": -4.24,
+      "nb_point": 12,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767604993000,
+      "kind": "measure",
+      "ema": 18.71,
+      "slope": -2.31,
+      "nb_point": 13,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767605137000,
+      "kind": "cycle",
+      "ema": 18.71,
+      "slope": -2.31,
+      "nb_point": 13,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767605406000,
+      "kind": "measure",
+      "ema": 18.65,
+      "slope": -0.88,
+      "nb_point": 14,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767605437000,
+      "kind": "cycle",
+      "ema": 18.65,
+      "slope": -0.88,
+      "nb_point": 14,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767605737000,
+      "kind": "cycle",
+      "ema": 18.65,
+      "slope": -0.88,
+      "nb_point": 14,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767605819000,
+      "kind": "measure",
+      "ema": 18.68,
+      "slope": 0.03,
+      "nb_point": 15,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767606037000,
+      "kind": "cycle",
+      "ema": 18.68,
+      "slope": 0.03,
+      "nb_point": 15,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767606232000,
+      "kind": "measure",
+      "ema": 18.74,
+      "slope": 0.42,
+      "nb_point": 16,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767606337000,
+      "kind": "cycle",
+      "ema": 18.74,
+      "slope": 0.42,
+      "nb_point": 16,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767606637000,
+      "kind": "cycle",
+      "ema": 18.74,
+      "slope": 0.42,
+      "nb_point": 16,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767606645000,
+      "kind": "measure",
+      "ema": 18.87,
+      "slope": 0.99,
+      "nb_point": 17,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767606937000,
+      "kind": "cycle",
+      "ema": 18.87,
+      "slope": 0.99,
+      "nb_point": 17,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767607058000,
+      "kind": "measure",
+      "ema": 18.98,
+      "slope": 0.97,
+      "nb_point": 18,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767607237000,
+      "kind": "cycle",
+      "ema": 18.98,
+      "slope": 0.97,
+      "nb_point": 18,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767607471000,
+      "kind": "measure",
+      "ema": 19.09,
+      "slope": 0.96,
+      "nb_point": 19,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767607537000,
+      "kind": "cycle",
+      "ema": 19.09,
+      "slope": 0.96,
+      "nb_point": 19,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767607837000,
+      "kind": "cycle",
+      "ema": 19.09,
+      "slope": 0.96,
+      "nb_point": 19,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767607884000,
+      "kind": "measure",
+      "ema": 19.2,
+      "slope": 0.96,
+      "nb_point": 20,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767608137000,
+      "kind": "cycle",
+      "ema": 19.2,
+      "slope": 0.96,
+      "nb_point": 20,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767608297000,
+      "kind": "measure",
+      "ema": 19.3,
+      "slope": 0.89,
+      "nb_point": 21,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767608437000,
+      "kind": "cycle",
+      "ema": 19.3,
+      "slope": 0.89,
+      "nb_point": 21,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767608710000,
+      "kind": "measure",
+      "ema": 19.4,
+      "slope": 0.88,
+      "nb_point": 22,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767608737000,
+      "kind": "cycle",
+      "ema": 19.4,
+      "slope": 0.88,
+      "nb_point": 22,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767609037000,
+      "kind": "cycle",
+      "ema": 19.4,
+      "slope": 0.88,
+      "nb_point": 22,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767609123000,
+      "kind": "measure",
+      "ema": 19.45,
+      "slope": 0.52,
+      "nb_point": 23,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767609337000,
+      "kind": "cycle",
+      "ema": 19.45,
+      "slope": 0.52,
+      "nb_point": 23,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767609536000,
+      "kind": "measure",
+      "ema": 19.42,
+      "slope": -0.11,
+      "nb_point": 24,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767609637000,
+      "kind": "cycle",
+      "ema": 19.42,
+      "slope": -0.11,
+      "nb_point": 24,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767609937000,
+      "kind": "cycle",
+      "ema": 19.42,
+      "slope": -0.11,
+      "nb_point": 24,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767609949000,
+      "kind": "measure",
+      "ema": 19.36,
+      "slope": -0.44,
+      "nb_point": 25,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767610237000,
+      "kind": "cycle",
+      "ema": 19.36,
+      "slope": -0.44,
+      "nb_point": 25,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767610362000,
+      "kind": "measure",
+      "ema": 19.33,
+      "slope": -0.3,
+      "nb_point": 26,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767610537000,
+      "kind": "cycle",
+      "ema": 19.33,
+      "slope": -0.3,
+      "nb_point": 26,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767610775000,
+      "kind": "measure",
+      "ema": 19.37,
+      "slope": 0.22,
+      "nb_point": 27,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767610836000,
+      "kind": "measure",
+      "ema": 22.0,
+      "slope": 0.22,
+      "nb_point": 27,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767610837000,
+      "kind": "cycle",
+      "ema": 22.0,
+      "slope": 0.22,
+      "nb_point": 27,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767610897000,
+      "kind": "measure",
+      "ema": 21.66,
+      "slope": 54.1,
+      "nb_point": 28,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767611137000,
+      "kind": "cycle",
+      "ema": 21.66,
+      "slope": 54.1,
+      "nb_point": 28,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767611188000,
+      "kind": "measure",
+      "ema": 20.6,
+      "slope": 0.33,
+      "nb_point": 29,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767611437000,
+      "kind": "cycle",
+      "ema": 20.6,
+      "slope": 0.33,
+      "nb_point": 29,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767611601000,
+      "kind": "measure",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767611737000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767612037000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767612337000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767612637000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767612937000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767613237000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -3.77,
+      "nb_point": 30,
+      "open": true,
+      "close": false
+    },
+    {
+      "t": 1767613537000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -0.75,
+      "nb_point": 31,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767613837000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -0.15,
+      "nb_point": 32,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767614137000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -0.03,
+      "nb_point": 33,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767614437000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -0.01,
+      "nb_point": 34,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767614737000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": -0.0,
+      "nb_point": 35,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767615037000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.0,
+      "nb_point": 36,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767615337000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.0,
+      "nb_point": 37,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767615637000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.0,
+      "nb_point": 38,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767615937000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.0,
+      "nb_point": 39,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767616237000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.0,
+      "nb_point": 40,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767616537000,
+      "kind": "cycle",
+      "ema": 20.05,
+      "slope": 0.0,
+      "nb_point": 41,
+      "open": false,
+      "close": true
+    },
+    {
+      "t": 1767616557000,
+      "kind": "measure",
+      "ema": 19.83,
+      "slope": -0.13,
+      "nb_point": 42,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767616837000,
+      "kind": "cycle",
+      "ema": 19.83,
+      "slope": -0.13,
+      "nb_point": 42,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767616970000,
+      "kind": "measure",
+      "ema": 19.71,
+      "slope": -0.86,
+      "nb_point": 43,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767617137000,
+      "kind": "cycle",
+      "ema": 19.71,
+      "slope": -0.86,
+      "nb_point": 43,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767617383000,
+      "kind": "measure",
+      "ema": 19.61,
+      "slope": -0.87,
+      "nb_point": 44,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767617437000,
+      "kind": "cycle",
+      "ema": 19.61,
+      "slope": -0.87,
+      "nb_point": 44,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767617737000,
+      "kind": "cycle",
+      "ema": 19.61,
+      "slope": -0.87,
+      "nb_point": 44,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767617796000,
+      "kind": "measure",
+      "ema": 19.5,
+      "slope": -0.94,
+      "nb_point": 45,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767618037000,
+      "kind": "cycle",
+      "ema": 19.5,
+      "slope": -0.94,
+      "nb_point": 45,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767618209000,
+      "kind": "measure",
+      "ema": 19.45,
+      "slope": -0.54,
+      "nb_point": 46,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767618337000,
+      "kind": "cycle",
+      "ema": 19.45,
+      "slope": -0.54,
+      "nb_point": 46,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767618622000,
+      "kind": "measure",
+      "ema": 19.38,
+      "slope": -0.6,
+      "nb_point": 47,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767618637000,
+      "kind": "cycle",
+      "ema": 19.38,
+      "slope": -0.6,
+      "nb_point": 47,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767618937000,
+      "kind": "cycle",
+      "ema": 19.38,
+      "slope": -0.6,
+      "nb_point": 47,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767619035000,
+      "kind": "measure",
+      "ema": 19.34,
+      "slope": -0.4,
+      "nb_point": 48,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767619237000,
+      "kind": "cycle",
+      "ema": 19.34,
+      "slope": -0.4,
+      "nb_point": 48,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767619448000,
+      "kind": "measure",
+      "ema": 19.27,
+      "slope": -0.57,
+      "nb_point": 49,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767619537000,
+      "kind": "cycle",
+      "ema": 19.27,
+      "slope": -0.57,
+      "nb_point": 49,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767619837000,
+      "kind": "cycle",
+      "ema": 19.27,
+      "slope": -0.57,
+      "nb_point": 49,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767619861000,
+      "kind": "measure",
+      "ema": 19.23,
+      "slope": -0.39,
+      "nb_point": 50,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767620137000,
+      "kind": "cycle",
+      "ema": 19.23,
+      "slope": -0.39,
+      "nb_point": 50,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767620274000,
+      "kind": "measure",
+      "ema": 19.17,
+      "slope": -0.5,
+      "nb_point": 51,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767620437000,
+      "kind": "cycle",
+      "ema": 19.17,
+      "slope": -0.5,
+      "nb_point": 51,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767620687000,
+      "kind": "measure",
+      "ema": 19.13,
+      "slope": -0.38,
+      "nb_point": 52,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767620737000,
+      "kind": "cycle",
+      "ema": 19.13,
+      "slope": -0.38,
+      "nb_point": 52,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767621037000,
+      "kind": "cycle",
+      "ema": 19.13,
+      "slope": -0.38,
+      "nb_point": 52,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767621100000,
+      "kind": "measure",
+      "ema": 19.07,
+      "slope": -0.49,
+      "nb_point": 53,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767621337000,
+      "kind": "cycle",
+      "ema": 19.07,
+      "slope": -0.49,
+      "nb_point": 53,
+      "open": false,
+      "close": false
+    },
+    {
+      "t": 1767621513000,
+      "kind": "measure",
+      "ema": 19.03,
+      "slope": -0.38,
+      "nb_point": 54,
+      "open": false,
+      "close": false
+    }
+  ]
+}

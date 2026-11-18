@@ -23,6 +23,8 @@ import { narrowStyles } from "../components/narrow-styles.ts";
 import { diagramStyles, renderDiagram } from "../components/diagrams/index.ts";
 import { diagramFormat } from "../components/field-help.ts";
 import { diagramOfField, groupOfField, GROUP_DIAGRAMS } from "./field-diagrams.ts";
+import "./insight-panels.ts";
+import { NEW_THERMOSTAT } from "../router.ts";
 import { followLink } from "../components/events.ts";
 import { buildPath } from "../router.ts";
 
@@ -66,6 +68,7 @@ export class NativeTabElement extends LitElement {
     suggestion: { state: true },
     picked: { state: true },
     focused: { state: true },
+    insightOpen: { state: true },
   };
 
   static override styles = [
@@ -210,28 +213,36 @@ export class NativeTabElement extends LitElement {
         display: block;
       }
       ha-expansion-panel,
-      details.advanced {
+      details.advanced,
+      details.insights {
         margin: 12px 0;
       }
       .advanced .fields {
         margin: 12px 0 4px;
       }
       /* fallback: the panel of the advanced settings, when ha-expansion-panel is not defined. */
-      details.advanced summary {
+      .insight {
+        padding: 12px 0 4px;
+      }
+      details.advanced summary,
+      details.insights summary {
         min-height: 48px;
         display: flex;
         align-items: center;
         font-weight: 500;
         cursor: pointer;
       }
-      details.advanced summary::-webkit-details-marker {
+      details.advanced summary::-webkit-details-marker,
+      details.insights summary::-webkit-details-marker {
         display: none;
       }
-      details.advanced summary::before {
+      details.advanced summary::before,
+      details.insights summary::before {
         content: "▸";
         margin-inline-end: 8px;
       }
-      details.advanced[open] summary::before {
+      details.advanced[open] summary::before,
+      details.insights[open] summary::before {
         content: "▾";
       }
       .commands .row {
@@ -462,6 +473,8 @@ export class NativeTabElement extends LitElement {
   declare picked: WindowMethod | undefined;
   /** The key of the field that has the focus, which the diagrams highlight. */
   declare focused: string | undefined;
+  /** Whether the panel of estimation is open: its history is read only then. */
+  declare insightOpen: boolean;
   /** The values that the diagrams of the section show: the own values, and the central ones of a section that inherits. */
   private effective: ConfigValues = {};
   /** The fields of a group whose diagram is a tile of the grid: their own help does not repeat it. */
@@ -487,6 +500,7 @@ export class NativeTabElement extends LitElement {
     this.presetInvalid = {};
     this.picked = undefined;
     this.focused = undefined;
+    this.insightOpen = false;
   }
 
   private get statics(): typeof NativeTabElement {
@@ -1233,6 +1247,46 @@ export class NativeTabElement extends LitElement {
     return html`<div class="fields" @focusin=${this.onFocusIn}>${repeat(items, (item) => item.key, (item) => item.draw())}</div>`;
   }
 
+  /**
+   * The panel of estimation of the tab, for a thermostat: TPI, the window or the safety (advanced tab). It is closed at first, and its
+   * content, which reads the history, exists only while it is open.
+   */
+  private renderInsights(ha: boolean): TemplateResult | undefined {
+    const tag = { tpi: "vtherm-insight-tpi", window: "vtherm-insight-window", advanced: "vtherm-insight-safety" }[this.statics.definition.tab as string];
+    if (tag === undefined || this.statics.kind !== "thermostat") {
+      return undefined;
+    }
+    const content = this.insightOpen
+      ? html`<div class="insight">${this.renderInsightPanel(tag)}</div>`
+      : undefined;
+    const title = this.text("insight.title");
+    if (ha && isDefined("ha-expansion-panel")) {
+      return html`<ha-expansion-panel
+        class="insights"
+        outlined
+        .header=${title}
+        .expanded=${this.insightOpen}
+        @expanded-changed=${(event: CustomEvent<{ expanded: boolean }>) => (this.insightOpen = event.detail.expanded)}
+        >${content}</ha-expansion-panel
+      >`;
+    }
+    // fallback: a disclosure of HTML, when ha-expansion-panel is not defined.
+    return html`<details class="insights" ?open=${this.insightOpen} @toggle=${(event: Event) => (this.insightOpen = (event.target as HTMLDetailsElement).open)}>
+      <summary class="touch-target">${title}</summary>${content}
+    </details>`;
+  }
+
+  private renderInsightPanel(tag: string): TemplateResult {
+    const props = { hass: this.hass, values: this.values, centralValues: this.centralValues, thermostatId: this.thermostatId, creating: this.thermostatId === NEW_THERMOSTAT, text: this.text, narrow: this.narrow };
+    if (tag === "vtherm-insight-tpi") {
+      return html`<vtherm-insight-tpi .hass=${props.hass} .values=${props.values} .centralValues=${props.centralValues} .thermostatId=${props.thermostatId} .creating=${props.creating} .text=${props.text} .narrow=${props.narrow}></vtherm-insight-tpi>`;
+    }
+    if (tag === "vtherm-insight-window") {
+      return html`<vtherm-insight-window .hass=${props.hass} .values=${props.values} .centralValues=${props.centralValues} .thermostatId=${props.thermostatId} .creating=${props.creating} .text=${props.text} .narrow=${props.narrow}></vtherm-insight-window>`;
+    }
+    return html`<vtherm-insight-safety .hass=${props.hass} .values=${props.values} .centralValues=${props.centralValues} .thermostatId=${props.thermostatId} .creating=${props.creating} .text=${props.text} .narrow=${props.narrow}></vtherm-insight-safety>`;
+  }
+
   /** The diagrams of the groups of a section that inherits, after its central values. */
   private renderInheritedTiles(fields: readonly FieldSpec[]): TemplateResult | undefined {
     const groups = GROUP_DIAGRAMS.filter((group) => fields.some((field) => group.keys.includes(field.key)));
@@ -1295,7 +1349,7 @@ export class NativeTabElement extends LitElement {
             ? undefined
             : html`${this.renderInherited(specific)} ${this.renderInheritedTiles(specific)}`
           : this.renderFields([...specific, ...extra].filter(isCurrent), layout, ha, true)}`}
-    ${this.renderAdvanced(own.filter(isAdvanced), layout, ha)}
+    ${this.renderAdvanced(own.filter(isAdvanced), layout, ha)} ${this.renderInsights(ha)}
     ${extra.some((field) => field.key === "auto_tpi_learning_type") && typeof method === "string"
       ? html`<p class="note">${t("config.calculation_method", { method: t(method === "ema" ? "config.method.ema" : "config.method.average") })}</p>`
       : undefined}

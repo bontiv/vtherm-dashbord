@@ -1,0 +1,464 @@
+[
+  {
+    "input": {
+      "name": "detailed",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.5,
+      "room": 19.5,
+      "outdoor": 5.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 0.76,
+      "on_percent": 0.76,
+      "on_time_sec": 228,
+      "off_time_sec": 72,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "detailed_with_delays",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.5,
+      "room": 19.5,
+      "outdoor": 5.0,
+      "slope": 0.4,
+      "cycle_min": 10,
+      "min_on": 30,
+      "min_off": 30
+    },
+    "output": {
+      "calculated_on_percent": 0.76,
+      "on_percent": 0.76,
+      "on_time_sec": 456,
+      "off_time_sec": 144,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "no_outdoor",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.5,
+      "room": 19.5,
+      "outdoor": null,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 0.6,
+      "on_percent": 0.6,
+      "on_time_sec": 180,
+      "off_time_sec": 120,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "too_short",
+      "coef_int": 0.6,
+      "coef_ext": 0.0,
+      "target": 20.0,
+      "room": 19.9,
+      "outdoor": null,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 30,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 0.06,
+      "on_percent": 0.06,
+      "on_time_sec": 0,
+      "off_time_sec": 300,
+      "forced_by_timing": true
+    }
+  },
+  {
+    "input": {
+      "name": "off_too_short",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 21.0,
+      "room": 19.9,
+      "outdoor": 5.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 60,
+      "max_on": null
+    },
+    "output": {
+      "calculated_on_percent": 0.82,
+      "on_percent": 0.82,
+      "on_time_sec": 300,
+      "off_time_sec": 0,
+      "forced_by_timing": true
+    }
+  },
+  {
+    "input": {
+      "name": "capped_high",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 22.0,
+      "room": 19.0,
+      "outdoor": -5.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 1,
+      "on_percent": 1,
+      "on_time_sec": 300,
+      "off_time_sec": 0,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "capped_low",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 19.0,
+      "room": 21.0,
+      "outdoor": 10.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 0,
+      "on_percent": 0,
+      "on_time_sec": 0,
+      "off_time_sec": 300,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "max_on",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 21.0,
+      "room": 20.0,
+      "outdoor": 0.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "max_on": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0.5,
+      "on_percent": 0.5,
+      "on_time_sec": 150,
+      "off_time_sec": 150,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "max_on_after_rounding",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 21.0,
+      "room": 20.0,
+      "outdoor": 0.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "max_on": 0.555
+    },
+    "output": {
+      "calculated_on_percent": 0.56,
+      "on_percent": 0.555,
+      "on_time_sec": 166,
+      "off_time_sec": 133,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_stop",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.6,
+      "outdoor": -20.0,
+      "slope": 0.3,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0,
+      "on_percent": 0,
+      "on_time_sec": 0,
+      "off_time_sec": 300,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_rising_below_high",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.4,
+      "outdoor": 5.0,
+      "slope": 0.3,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0,
+      "on_percent": 0,
+      "on_time_sec": 0,
+      "off_time_sec": 300,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_hold",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.3,
+      "outdoor": 5.0,
+      "slope": -0.3,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0,
+      "on_percent": 0,
+      "on_time_sec": 0,
+      "off_time_sec": 300,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_resume",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.1,
+      "outdoor": 5.0,
+      "slope": -0.3,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0.09,
+      "on_percent": 0.09,
+      "on_time_sec": 27,
+      "off_time_sec": 273,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_flat",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.8,
+      "outdoor": -40.0,
+      "slope": 0.0,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0.12,
+      "on_percent": 0.12,
+      "on_time_sec": 36,
+      "off_time_sec": 264,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_unknown_slope",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.8,
+      "outdoor": -40.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0.12,
+      "on_percent": 0.12,
+      "on_time_sec": 36,
+      "off_time_sec": 264,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "threshold_one_zero",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.0,
+      "room": 20.6,
+      "outdoor": -20.0,
+      "slope": 0.3,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "low": 0.0,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0.04,
+      "on_percent": 0.04,
+      "on_time_sec": 12,
+      "off_time_sec": 288,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "cooling",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 24.0,
+      "room": 25.0,
+      "outdoor": 32.0,
+      "slope": 0.5,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "cooling": true
+    },
+    "output": {
+      "calculated_on_percent": 0.68,
+      "on_percent": 0.68,
+      "on_time_sec": 204,
+      "off_time_sec": 95,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "cooling_threshold",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 24.0,
+      "room": 23.0,
+      "outdoor": 32.0,
+      "slope": -0.5,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 0,
+      "cooling": true,
+      "low": 0.2,
+      "high": 0.5
+    },
+    "output": {
+      "calculated_on_percent": 0,
+      "on_percent": 0,
+      "on_time_sec": 0,
+      "off_time_sec": 300,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "rounding_tie",
+      "coef_int": 0.125,
+      "coef_ext": 0.0,
+      "target": 21.0,
+      "room": 20.0,
+      "outdoor": null,
+      "slope": null,
+      "cycle_min": 8,
+      "min_on": 0,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 0.12,
+      "on_percent": 0.12,
+      "on_time_sec": 57,
+      "off_time_sec": 422,
+      "forced_by_timing": false
+    }
+  },
+  {
+    "input": {
+      "name": "delays_longer_than_cycle",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 18.0,
+      "room": 21.0,
+      "outdoor": 10.0,
+      "slope": null,
+      "cycle_min": 5,
+      "min_on": 0,
+      "min_off": 400
+    },
+    "output": {
+      "calculated_on_percent": 0,
+      "on_percent": 0,
+      "on_time_sec": 300,
+      "off_time_sec": 0,
+      "forced_by_timing": true
+    }
+  },
+  {
+    "input": {
+      "name": "cycle_zero",
+      "coef_int": 0.6,
+      "coef_ext": 0.01,
+      "target": 20.5,
+      "room": 19.5,
+      "outdoor": 5.0,
+      "slope": null,
+      "cycle_min": 0,
+      "min_on": 0,
+      "min_off": 0
+    },
+    "output": {
+      "calculated_on_percent": 0.76,
+      "on_percent": 0.76,
+      "on_time_sec": 45,
+      "off_time_sec": 14,
+      "forced_by_timing": false
+    }
+  }
+]

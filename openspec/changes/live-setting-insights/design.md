@@ -3,7 +3,7 @@
 ## Context
 Voir proposal.md pour la motivation et specs/setting-insights pour les exigences. Points d'appui :
 - Les onglets natifs sont dessinés par `frontend/src/native/native-tab.ts`, qui connaît les valeurs du brouillon et les valeurs centrales héritées (`frontend/src/config/draft.ts`, `config-session.ts`).
-- Le code de Versatile Thermostat de référence est dans `external/versatile_thermostat` (commit fixé par `external-refs.txt`) : `prop_algo_tpi.py`, `cycle_scheduler.py`, `ema.py`, `open_window_algorithm.py`, `feature_window_manager.py`, `feature_safety_manager.py`. L'entité climate expose `power_percent` et `temperature_slope` en attributs.
+- Le code de Versatile Thermostat de référence est dans `external/versatile_thermostat` (commit fixé par `external-refs.txt`) : `prop_algo_tpi.py`, `cycle_scheduler.py`, `ema.py`, `open_window_algorithm.py`, `feature_window_manager.py`, `feature_safety_manager.py`. L'entité climate expose la consigne (attribut `temperature`) et la pente (`specific_states.temperature_slope`) ; la part de chauffe enregistrée est l'état du capteur `power_percent` de l'appareil du thermostat, et la pente a aussi son capteur `temperature_slope`. Le dashboard les trouve par l'appareil du thermostat (`device_id` de `vtherm_dashboard/get_thermostats`) et leur `translation_key` dans `hass.entities`.
 - Référence amont : `frontend/src/insights.ts` (fonctions pures) et `live.ts` (panneaux `vt-live-tpi`, `vt-live-window`, `vt-live-safety`) de `Liquidmasl/vtherm_dashboard`, et `dev/seed_history.py`.
 
 ## Goals / Non-Goals
@@ -25,7 +25,7 @@ Voir proposal.md pour la motivation et specs/setting-insights pour les exigences
 - Alternative écartée : calcul côté serveur en important le code de VT. Plus fidèle, mais couple l'intégration aux classes internes de VT (instables), ajoute une commande WebSocket et un aller-retour à chaque frappe.
 
 ### 2. Historique par `history/history_during_period`, cache de 5 minutes
-Appel WebSocket direct du recorder avec `minimal_response`/`no_attributes` sauf pour l'entité climate (attributs `power_percent`, `temperature`). Cache en mémoire par `(entité, période, attributs)`, invalidé après 5 minutes ou en cas d'erreur. Chargement déclenché à l'ouverture du panneau (`ha-expansion-panel` replié par défaut) et au changement de période.
+Appel WebSocket direct du recorder avec `minimal_response`/`no_attributes` sauf pour l'entité climate (attribut `temperature`) ; la part enregistrée est lue sur le capteur `power_percent`. Cache en mémoire par `(entité, période, attributs)`, invalidé après 5 minutes ou en cas d'erreur. Chargement déclenché à l'ouverture du panneau (`ha-expansion-panel` replié par défaut) et au changement de période.
 - Alternative écartée : statistiques à long terme (`recorder/statistics_during_period`). Moyennes horaires, trop grossières pour une pente ou un silence de capteur.
 
 ### 3. Graphiques SVG maison plutôt que `ha-chart-base`

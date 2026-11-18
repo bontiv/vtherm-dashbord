@@ -448,3 +448,43 @@ describe("the other native tabs", () => {
     await tpi.setLanguage("en");
   });
 });
+
+describe("the panel of estimation of a tab", () => {
+  type Insight = HTMLElement & { values: Record<string, unknown>; centralValues: Record<string, unknown>; creating: boolean; thermostatId: string };
+  const historyCalls = () => (host.hass.callWS as unknown as { mock?: { calls: unknown[][] } }).mock?.calls.filter(([message]) => (message as Record<string, unknown>)["type"] === "history/history_during_period") ?? [];
+
+  it("is closed under the fields of TPI, and has no content, so that it reads no history, until it is opened", async () => {
+    const { element, root } = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: false });
+    const details = find<HTMLDetailsElement>(root, "details.insights") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(details.querySelector("summary")?.textContent?.trim()).toBe("What VT would do with these settings");
+    expect(find(root, "vtherm-insight-tpi")).toBeNull();
+    expect(historyCalls()).toEqual([]);
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    await (element as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    const panel = find<Insight>(root, "vtherm-insight-tpi") as Insight;
+    expect(panel.values).toMatchObject({ use_tpi_central_config: false });
+    expect([panel.thermostatId, panel.creating]).toEqual(["entry-1", false]);
+  });
+
+  it("gives the panel the values of the draft and the central ones, again when a field changes", async () => {
+    const { element, root } = await render("core_tpi.tab.main", { ...SWITCH, use_tpi_central_config: true });
+    const details = find<HTMLDetailsElement>(root, "details.insights") as HTMLDetailsElement;
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    const tab = element as unknown as { updateComplete: Promise<unknown>; values: Record<string, unknown> };
+    await tab.updateComplete;
+    expect((find<Insight>(root, "vtherm-insight-tpi") as Insight).centralValues).toMatchObject({ tpi_coef_int: 0.6 });
+    tab.values = { ...SWITCH, use_tpi_central_config: false, tpi_coef_int: 0.8 };
+    await tab.updateComplete;
+    expect((find<Insight>(root, "vtherm-insight-tpi") as Insight).values).toMatchObject({ tpi_coef_int: 0.8 });
+  });
+
+  it("is in the tabs of the window and of the advanced settings of a thermostat, and not in the general configuration", async () => {
+    expect(find((await render("core_window.tab.main", { ...SWITCH, use_window_feature: true, use_window_central_config: false })).root, "details.insights")).not.toBeNull();
+    expect(find((await render("core_advanced.tab.main", { ...SWITCH, use_advanced_central_config: false })).root, "details.insights")).not.toBeNull();
+    expect(find((await render("core_motion.tab.main", { ...SWITCH, use_motion_feature: true, use_motion_central_config: false })).root, "details.insights")).toBeNull();
+    expect(find((await render("core_tpi.general.main", { thermostat_type: "thermostat_central_config" })).root, "details.insights")).toBeNull();
+  });
+});

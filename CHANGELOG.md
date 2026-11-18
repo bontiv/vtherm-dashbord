@@ -21,6 +21,12 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   the first other section in error.
 - The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, heating failure
   detection) stay in the menu, in retreat, with an explanation of the feature and a switch that turns it on in the draft.
+- Panels of estimation in the sections TPI, Window and Advanced of a thermostat, closed at first: what VT would do with the settings
+  of the page, before saving. TPI: the heating share now, decomposed into the room and outdoor parts with a setpoint to try, then a
+  replay over 24 h or 7 days of the share estimated against the one recorded by VT, with the time to reach the setpoint, the largest
+  overshoot and the time within ±0.5°. Window: the replay of the detection by the drop of the temperature with the thresholds of the
+  page. Advanced: the silences of the temperature sensors against the delay of the safety mode. The history is read from the recorder
+  only while a panel is open, and every computed value is marked as an estimation.
 - Help of the fields: each native field has a hint in plain language under its control, and a button (i) that opens, under the field,
   an explanation and a diagram of the setting, in English, French and German. The diagrams (cycle and formula of TPI, minimal delays,
   thresholds, curve of a valve, regulation, window, motion, safety, manual override, heating failure, spread of the switches) are drawn
