@@ -15,6 +15,15 @@ const UNIT_DEFAULTS: Readonly<Record<string, Readonly<Record<string, number>>>> 
 };
 
 /**
+ * The limits of the shares (0 to 1) that the schema of Versatile Thermostat leaves open. Without limits, `selectorOf` gives the step
+ * `any`, the one step that the other fractions of the forms (`heating_failure_threshold`) never use.
+ */
+const SHARE_LIMITS: Readonly<Record<string, { readonly min: number; readonly max: number; readonly step: number }>> = {
+  safety_min_on_percent: { min: 0, max: 1, step: 0.01 },
+  safety_default_on_percent: { min: 0, max: 1, step: 0.01 },
+};
+
+/**
  * Return the default value of a field, as the flow of Versatile Thermostat gives it.
  *
  * @param field - The field.
@@ -99,6 +108,7 @@ function optional<Key extends string, Value>(key: Key, value: Value | undefined)
  */
 export function definitionOf(field: FieldSpec, optionLabel: (option: string) => string = (option) => option, extraOptions: readonly string[] = []): FieldDefinition {
   const base = { key: field.key, required: field.required };
+  const limits = SHARE_LIMITS[field.key];
   switch (field.kind) {
     case "boolean":
       return { type: "boolean", ...base };
@@ -107,9 +117,9 @@ export function definitionOf(field: FieldSpec, optionLabel: (option: string) => 
       return {
         type: field.kind,
         ...base,
-        ...optional("min", field.min),
-        ...optional("max", field.max),
-        ...optional("step", field.step),
+        ...optional("min", field.min ?? limits?.min),
+        ...optional("max", field.max ?? limits?.max),
+        ...optional("step", field.step ?? limits?.step),
         ...optional("unit", field.unit_of_measurement ?? field.unit),
       };
     case "entity": {

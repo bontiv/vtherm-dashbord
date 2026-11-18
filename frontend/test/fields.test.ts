@@ -98,6 +98,14 @@ describe("the controls of Home Assistant", () => {
     expect(selectorOf(definitionOf(sensor))).toEqual({ entity: { filter: [{ domain: ["sensor"], device_class: ["temperature"] }, { domain: ["input_number", "number"] }] } });
   });
 
+  it("bounds the shares of the safety mode between 0 and 1, so that their number box has a step and a range", () => {
+    for (const key of ["safety_min_on_percent", "safety_default_on_percent"]) {
+      const share = field(key, "STEP_CENTRAL_ADVANCED_DATA_SCHEMA");
+      expect(selectorOf(definitionOf(share))).toEqual({ number: { min: 0, max: 1, step: 0.01, mode: "box" } });
+      expect(valueForSelector(share, shownValue(share, {}, "°C"))).toBe(share.default);
+    }
+  });
+
   it("describes the underlyings of a thermostat as an ordered list of the entities that its type accepts", () => {
     expect(selectorOf(definitionOf(field("underlying_entity_ids", "STEP_THERMOSTAT_CLIMATE")))).toEqual({ entity: { multiple: true, reorder: true, filter: [{ domain: ["climate"] }] } });
     expect(selectorOf(definitionOf(field("underlying_entity_ids", "STEP_THERMOSTAT_VALVE")))).toEqual({ entity: { multiple: true, reorder: true, filter: [{ domain: ["number", "input_number"] }] } });
