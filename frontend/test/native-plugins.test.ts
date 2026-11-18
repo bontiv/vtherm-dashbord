@@ -392,7 +392,7 @@ describe("the translations of the native plugins", () => {
     const expected = {
       en: ["Safety and manual override", "Advanced parameters"],
       fr: ["Sécurité et dérogation", "Paramètres avancés"],
-      de: ["Sicherheit und manuelle Übersteuerung", "Erweiterte Einstellungen"],
+      de: ["Sicherheit und Übersteuerung", "Erweiterte Einstellungen"],
     };
     for (const [language, [title, oldName]] of Object.entries(expected)) {
       await advanced.setLanguage(language);

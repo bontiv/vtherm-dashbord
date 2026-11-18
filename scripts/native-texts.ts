@@ -1235,7 +1235,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     "title.advanced": {
       en: "Safety and manual override",
       fr: "Sécurité et dérogation",
-      de: "Sicherheit und manuelle Übersteuerung",
+      de: "Sicherheit und Übersteuerung",
     },
     "description.advanced": {
       en: "Safety settings (maximum delay between two measurements, minimum power and power in safety mode), manual override duration and repair of an incorrect state. Versatile Thermostat calls this tab \"Advanced parameters\". Leave the default values if you don't know what you are doing. These parameters can lead to very poor temperature control or bad power regulation",

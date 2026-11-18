@@ -123,7 +123,7 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "title.advanced": "Sicherheit und manuelle Übersteuerung",
+  "title.advanced": "Sicherheit und Übersteuerung",
   "description.advanced": "Sicherheitseinstellungen (maximale Zeitspanne zwischen zwei Messungen, Mindestleistung und Leistung im Sicherheitsmodus), Dauer der manuellen Übersteuerung und Reparatur des fehlerhaften Zustands. Versatile Thermostat nennt diesen Tab „Erweiterte Einstellungen\". Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun. Diese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
   "field.manual_override_duration_min": "Dauer der manuellen Übersteuerung (min)",
   "help.manual_override_duration_min": "Nach einer manuellen Temperaturänderung kehrt das VTherm nach dieser Dauer (in Minuten) zur vorherigen Voreinstellung zurück. 0 deaktiviert die Funktion.",

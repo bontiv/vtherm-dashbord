@@ -62,7 +62,7 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   users nor the automations. A thermostat that uses a central lock that blocks nothing shows `Central (off)`.
 - The section Sync device internal temperature of a climate thermostat stays in the menu while the option is off, and turns it on in
   place, as the sections of the other features do.
-- The tab "Advanced parameters" is now "Safety and manual override" ("Sécurité et dérogation", "Sicherheit und manuelle Übersteuerung"):
+- The tab "Advanced parameters" is now "Safety and manual override" ("Sécurité et dérogation", "Sicherheit und Übersteuerung"):
   it holds the safety mode, the manual override and the repair of an incorrect state, and its name no longer repeats the closed panel
   "Advanced settings (N)" of each section. Its description keeps the old name, which Versatile Thermostat still uses. Identifiers and
   addresses do not change.

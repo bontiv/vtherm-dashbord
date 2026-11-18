@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Plugin `core_advanced`
-Le plugin `core_advanced` SHALL fournir l'onglet « Sécurité et dérogation » (« Safety and manual override » en anglais, « Sicherheit und manuelle Übersteuerung » en allemand) : délai de sécurité en minutes (60), pourcentage d'activation minimal et par défaut de sécurité (valeurs par défaut de Versatile Thermostat), réparation des états incorrects (non) et durée de dérogation manuelle en minutes (0). Le titre de l'onglet SHALL être celui du dashboard, pas celui de l'étape « advanced » de Versatile Thermostat, et SHALL s'afficher à l'identique dans le menu, le titre de la section et le fil d'Ariane. La description de l'onglet SHALL nommer ses cinq réglages et indiquer que Versatile Thermostat appelle l'onglet « Paramètres avancés » (« Advanced parameters », « Erweiterte Einstellungen »). L'identifiant du plugin, ceux de ses contributions, la clé de son titre et les clés de ses champs SHALL rester `core_advanced`, `core_advanced.tab.main`, `core_advanced.general.main`, `title.advanced` et celles de Versatile Thermostat.
+Le plugin `core_advanced` SHALL fournir l'onglet « Sécurité et dérogation » (« Safety and manual override » en anglais, « Sicherheit und Übersteuerung » en allemand) : délai de sécurité en minutes (60), pourcentage d'activation minimal et par défaut de sécurité (valeurs par défaut de Versatile Thermostat), réparation des états incorrects (non) et durée de dérogation manuelle en minutes (0). Le titre de l'onglet SHALL être celui du dashboard, pas celui de l'étape « advanced » de Versatile Thermostat, et SHALL s'afficher à l'identique dans le menu, le titre de la section et le fil d'Ariane. La description de l'onglet SHALL nommer ses cinq réglages et indiquer que Versatile Thermostat appelle l'onglet « Paramètres avancés » (« Advanced parameters », « Erweiterte Einstellungen »). L'identifiant du plugin, ceux de ses contributions, la clé de son titre et les clés de ses champs SHALL rester `core_advanced`, `core_advanced.tab.main`, `core_advanced.general.main`, `title.advanced` et celles de Versatile Thermostat.
 
 #### Scenario: Avancé hérité
 - **WHEN** un thermostat utilise la configuration avancée centrale
@@ -13,7 +13,7 @@ Le plugin `core_advanced` SHALL fournir l'onglet « Sécurité et dérogation »
 
 #### Scenario: Titre de l'onglet
 - **WHEN** l'administrateur ouvre la configuration d'un thermostat en français, en anglais ou en allemand
-- **THEN** le menu, le titre de la section et le fil d'Ariane affichent « Sécurité et dérogation », « Safety and manual override » ou « Sicherheit und manuelle Übersteuerung », et non « Paramètres avancés », « Advanced parameters » ou « Erweiterte Einstellungen »
+- **THEN** le menu, le titre de la section et le fil d'Ariane affichent « Sécurité et dérogation », « Safety and manual override » ou « Sicherheit und Übersteuerung », et non « Paramètres avancés », « Advanced parameters » ou « Erweiterte Einstellungen »
 
 #### Scenario: Description et ancien nom
 - **WHEN** l'administrateur lit la description de la section « Sécurité et dérogation »

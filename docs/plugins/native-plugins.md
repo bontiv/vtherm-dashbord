@@ -39,6 +39,8 @@ For example, `placement: { after: "core_tpi.tab.main" }` puts a tab right after 
 puts yours in place of the lock tab.
 
 The table is generated from the code by `frontend/test/native-docs.test.ts`. Do not edit it: run `UPDATE_NATIVE_DOCS=1 npx vitest run frontend/test/native-docs.test.ts`.
+The titles are those of the dashboard: the tab of `core_advanced`, "Safety and manual override", is the step that Versatile Thermostat
+calls "Advanced parameters".
 
 <!-- native-ids -->
 | Plugin | Contribution | Where | Title |
@@ -72,8 +74,8 @@ The table is generated from the code by `frontend/test/native-docs.test.ts`. Do 
 | `core_auto_start_stop` | `core_auto_start_stop.tab.main` | `thermostat_config` | Auto start and stop |
 | `core_valve_regulation` | `core_valve_regulation.tab.main` | `thermostat_config` | Valve regulation configuration |
 | `core_sync_temp` | `core_sync_temp.tab.main` | `thermostat_config` | Synchronize device temperature |
-| `core_advanced` | `core_advanced.tab.main` | `thermostat_config` | Safety and manual override (Versatile Thermostat: Advanced parameters) |
-| `core_advanced` | `core_advanced.general.main` | `general_config` | Safety and manual override (Versatile Thermostat: Advanced parameters) |
+| `core_advanced` | `core_advanced.tab.main` | `thermostat_config` | Safety and manual override |
+| `core_advanced` | `core_advanced.general.main` | `general_config` | Safety and manual override |
 | `core_lock` | `core_lock.tab.main` | `thermostat_config` | Lock |
 | `core_lock` | `core_lock.general.main` | `general_config` | Lock |
 | `core_humidity` | `core_humidity.tab.main` | `thermostat_config` | Humidity |
