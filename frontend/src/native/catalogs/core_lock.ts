@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.lock": "Lock",
   "description.lock": "The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.",
   "field.auto_relock_sec": "Auto-relock delay",
@@ -28,7 +27,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.lock": "Gestion du verrouilage",
   "description.lock": "La fonction de verrouillage empêche les modifications d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.",
   "field.auto_relock_sec": "Délai de re-verrouillage automatique",
@@ -47,7 +45,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.lock": "Sperrenverwaltung",
   "description.lock": "Die Sperrfunktion verhindert Änderungen an einem Thermostat über die Benutzeroberfläche oder Automatisierungen, während der Thermostat weiterhin funktioniert.",
   "field.auto_relock_sec": "Automatische Wiederverriegelung",

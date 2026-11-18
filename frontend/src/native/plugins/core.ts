@@ -1,6 +1,6 @@
 /** The native plugin `core`: the top tabs, the overview pages, the pages of the configuration, and the tabs main, features and type. */
 
-import { CORE_TOP_TABS, defineTranslations, registerUiPlugin } from "@vtherm/dashboard-sdk";
+import { CORE_MENU_GROUPS, CORE_TOP_TABS, defineTranslations, registerUiPlugin } from "@vtherm/dashboard-sdk";
 import type { UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";
 
 import { de, en, fr } from "../catalogs/core.ts";
@@ -34,7 +34,7 @@ export const definition: UiPluginDefinition = {
       {
         id: "core.general.create",
         title: "page.create_central",
-        group: "group.vtherm",
+        group: CORE_MENU_GROUPS.settings,
         component: "core-create-central-page",
         // The page edits nothing: it draws no save action, and the dashboard draws none under it.
         save_actions: "component",

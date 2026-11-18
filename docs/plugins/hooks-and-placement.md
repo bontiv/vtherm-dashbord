@@ -56,6 +56,20 @@ before the gear. A position is resolved inside the zone of the tab; a target in 
 An entry of a menu can have a `group`, a key of your catalogs. The menu shows the group as a heading above each run of consecutive
 entries of the same group. Two entries of one group that another group separates get a heading each. Entries without a group have no heading.
 
+### Groups of the menus
+The menus of a thermostat and of the general configuration put the native sections in two groups that the core shares, which the SDK
+exports as `CORE_MENU_GROUPS`:
+
+| Group | Value | Heading (en / fr / de) | Holds |
+| --- | --- | --- | --- |
+| `CORE_MENU_GROUPS.settings` | `core:settings` | General settings / Paramètres généraux / Allgemeine Einstellungen | The sections that cannot be turned off. The menu shows no check mark for them. |
+| `CORE_MENU_GROUPS.features` | `core:features` | Optional features / Fonctionnalités / Zusatzfunktionen | The sections that can be off. |
+
+A section of yours that declares one of these groups joins the heading of the native sections: placed between two native sections of
+that group, it does not cut the heading in two. The dashboard translates these headings, so your catalogs do not hold them. The prefix
+`core:` is reserved for the groups of the core: a key of your catalogs that starts with it is not used as a heading. The order of the
+native sections is in [Native plugins](native-plugins.md#order-and-groups-of-the-menus).
+
 ### Status of a configuration section
 Each entry of `thermostat_config` and `general_config` shows a status at the right of its title, in the menu and in the drawer of a
 phone. When several apply, the first of this list is shown:
@@ -63,10 +77,11 @@ phone. When several apply, the first of this list is shown:
 | Status | Shown as | Who knows it |
 | --- | --- | --- |
 | Refused | `Error` | The dashboard: the last save refused a value of the section. It goes away when the refused value changes or a save succeeds. |
-| Off | `Off`, and the entry in retreat | The dashboard: the contribution declares a `feature` whose value is false. |
+| Off | `Off`, and the entry in retreat | The dashboard: the contribution declares a `feature` whose value is false. The contribution: `status` returns `{ kind: "off" }`. |
+| Inherited off | `Central (off)`, and the entry in retreat | The contribution: `status` returns `{ kind: "inherited", off: true }`, when the central values that it uses turn it off. |
 | Incomplete | `N missing` | The contribution: `status` returns `{ kind: "incomplete", missing: N }`. |
 | Inherited | `Central` | The contribution: `status` returns `{ kind: "inherited" }`. |
-| Complete | a check mark | The contribution: `status` returns `{ kind: "complete" }`. |
+| Complete | a check mark, except in the group `CORE_MENU_GROUPS.settings` | The contribution: `status` returns `{ kind: "complete" }`. |
 
 - `status` is a pure function of the context that the visibility condition receives. It is called at each drawing of the menu, so it
   must be quick. It returns `undefined` when the section has nothing to say. A function that raises, or returns another value, shows no
@@ -74,6 +89,8 @@ phone. When several apply, the first of this list is shown:
 - `feature` is the key of the boolean value that turns the feature of the section on. While it is false, the section stays in the menu,
   and its page shows the explanation `feature_intro.<feature>` of your catalog with a switch drawn by the dashboard, instead of your
   component. The switch changes the value in the draft, as the native tab "features" does.
+- `{ kind: "off" }` returned by `status` is for a section without `feature` whose values make it do nothing: the entry is off, and its
+  page shows your component as usual, without the switch of the dashboard.
 - Without `status` nor `feature`, the entry only shows `Error` after a refused save.
 - In a test, `host.status(entry, context)` of the fake host gives the status as the menu reads it (see [Testing](testing.md)).
 
@@ -103,6 +120,47 @@ export const definition: UiPluginDefinition = {
   }),
   contributions: {
     thermostat_config: [{ id: "my_plugin.tab", title: "tab.title", component: "my-plugin-tab", feature: "use_my_plugin", status: myPluginStatus }],
+  },
+};
+```
+<!-- /example -->
+
+A section that joins the optional features of the core, and that its values can turn off:
+
+<!-- example: docs/examples/typescript/menu-groups.ts -->
+```typescript
+import { CORE_MENU_GROUPS, defineTranslations } from "@vtherm/dashboard-sdk";
+import type { SectionStatus, UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";
+
+/**
+ * The status of a section without a feature switch, whose values can turn it off: `Off` when it would do nothing, `Central (off)` when
+ * the central values that it uses turn it off. Its page stays as usual: only the switch of a `feature` replaces it.
+ */
+export function boostStatus(context: VisibilityContext<"thermostat_config">): SectionStatus {
+  const inherited = Object.keys(context.centralValues).length > 0 && context.values["boost_use_central"] !== false;
+  const minutes = inherited ? context.centralValues["boost_minutes"] : context.values["boost_minutes"];
+  if (minutes === 0) {
+    return inherited ? { kind: "inherited", off: true } : { kind: "off" };
+  }
+  return inherited ? { kind: "inherited" } : { kind: "complete" };
+}
+
+export const definition: UiPluginDefinition = {
+  id: "my_boost",
+  // The headings of the groups of the core are translated by the dashboard: the catalogs only hold the title.
+  translations: defineTranslations({ "tab.title": "Boost" }),
+  contributions: {
+    thermostat_config: [
+      {
+        id: "my_boost.tab",
+        title: "tab.title",
+        component: "my-boost-tab",
+        // Joins the heading "Optional features" of the native tabs, right after the presence detection.
+        group: CORE_MENU_GROUPS.features,
+        placement: { after: "core_presence.tab.main" },
+        status: boostStatus,
+      },
+    ],
   },
 };
 ```

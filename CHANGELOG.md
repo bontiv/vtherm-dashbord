@@ -53,6 +53,16 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   configuration is no longer created at `/vtherm/<thermostats tab>/new/central`: **Create the central configuration** opens its sections
   in the Configuration tab.
 
+- The menu of a thermostat and the sections of the central configuration are grouped under two headings, as the Configuration
+  already was: **General settings** (main attributes, underlyings, features, presets, TPI parameters, valve regulation, advanced),
+  then **Optional features** (central boiler, window, motion, power, presence, auto start and stop, synchronization of the
+  temperature, lock, humidity, heating failure detection). The heading "Versatile Thermostat" of the Configuration is gone. The
+  sections of the general settings no longer show a check mark when nothing is missing: they are always on.
+- The section Humidity is `Off` while **Use humidity sensor** is unchecked, and the section Lock is `Off` while it blocks neither the
+  users nor the automations. A thermostat that uses a central lock that blocks nothing shows `Central (off)`.
+- The section Sync device internal temperature of a climate thermostat stays in the menu while the option is off, and turns it on in
+  place, as the sections of the other features do.
+
 ### For contributors
 - `npm run test:docs` runs the checks of the documentation, which `npm test` now skips because they are long.
 - The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not
@@ -70,6 +80,11 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 - The help of a field is offered to the plugins: create the element `FIELD_HELP_ELEMENT` (`vtherm-field-help`) next to a field and
   give it `label`, `info`, and a diagram of the library (`diagram`, typed by `DiagramId`, with `values` and `highlight`) or your own SVG
   in its slot `diagram`. `defineFieldHelpMock()` of `@vtherm/dashboard-sdk/testing` simulates it in a test. The change is compatible.
+- The SDK exports `CORE_MENU_GROUPS`, the groups of the menus that the core shares (`core:settings`, `core:features`): a section that
+  declares one joins the heading of the native sections, which the dashboard translates. The prefix `core:` is reserved. `status` can
+  also return `{ kind: "off" }`, for a section without `feature` that its values turn off, and `{ kind: "inherited", off: true }`,
+  shown `Central (off)`. The native tabs follow a new order in the menus (see the page Native plugins): a tab placed `after` a native
+  tab keeps its target, but its neighbors may change. The change is compatible.
 
 ## [0.1.0-beta2]
 The second beta.

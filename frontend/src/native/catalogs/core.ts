@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.main": "Main attributes",
   "description.main": "Main mandatory attributes",
   "title.features": "Features",
@@ -161,7 +160,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.main": "Principaux Attributs",
   "description.main": "Principaux attributs obligatoires",
   "title.features": "Fonctions",
@@ -313,7 +311,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.main": "Wichtigste Eigenschaften",
   "description.main": "Wichtigste notwendige Eigenschaften",
   "title.features": "Funktionen",

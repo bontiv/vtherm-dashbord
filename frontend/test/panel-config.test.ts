@@ -671,4 +671,32 @@ describe("the sections of the features that are off", () => {
   });
 });
 
+describe("the synchronization of the temperature, off", () => {
+  const SYNC = `/vtherm/${THERMOSTATS}/climate.bureau/core_sync_temp.tab.main`;
+  const climate = (): FakeConfigs => ({
+    "climate.bureau": {
+      name: "Bureau",
+      type: "over_climate",
+      values: { thermostat_type: "thermostat_over_climate", name: "Bureau", temperature_sensor_entity_id: "sensor.indoor", underlying_entity_ids: ["climate.ac"], use_main_central_config: false },
+    },
+  });
+  const host = (panel: HTMLElement) => find(root(panel), "vtherm-contribution") as HTMLElement & { updateComplete: Promise<boolean> };
+  const featureSwitch = (panel: HTMLElement) => host(panel).shadowRoot?.querySelector<HTMLInputElement>(".switch input[type=checkbox]") as HTMLInputElement;
+
+  it("stays in the menu of a climate, off, and turns on in place the option of the tab of the underlyings", async () => {
+    const { panel } = await mount({ configs: climate(), path: SYNC });
+    await drawn(panel);
+    expect(host(panel).shadowRoot?.textContent).toContain("Gives the room temperature to the device");
+    const toggle = featureSwitch(panel);
+    expect(toggle.checked).toBe(false);
+    toggle.checked = true;
+    toggle.dispatchEvent(new Event("change"));
+    await drawn(panel);
+    await host(panel).updateComplete;
+    expect(find(root(panel), "vtherm-native-sync-device-internal-temp-thermostat")).not.toBeNull();
+    await openMenu(panel, "Underlyings");
+    expect(nativeTab(panel, "vtherm-native-type-thermostat").values["sync_device_internal_temp"]).toBe(true);
+  });
+});
+
 const texts = (nodes: readonly HTMLElement[]) => nodes.map((node) => node.textContent?.trim());

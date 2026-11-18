@@ -6,7 +6,8 @@ those screens: a value that the flow of Versatile Thermostat refuses is refused 
 
 ## Where to configure
 - **Thermostats tab**: open a thermostat, then one of the sections of its menu.
-- **Configuration gear, group "Versatile Thermostat"**: the sections of the central configuration, which the thermostats can share.
+- **Configuration gear, groups "General settings" and "Optional features"**: the sections of the central configuration, which the
+  thermostats can share.
 
 ## Change, save, discard
 A change is kept in a draft. As in the configuration pages of Home Assistant, the actions are at the foot of the card of each
@@ -96,27 +97,36 @@ thermostat its own values: it turns off the option "Use the central configuratio
 central configuration, the switch is on and cannot be turned off, and says why.
 
 ## The sections, one by one
-The sections follow the menu of the config flow of Versatile Thermostat. A section appears only when it applies to the thermostat.
+The menu groups the sections under two headings, for a thermostat as for the central configuration. A section appears only when it
+applies to the thermostat. The sections of the general settings show no check mark when nothing is missing: they are always on.
+
+**General settings**, the sections that cannot be turned off, from what the thermostat is to its expert settings:
 
 | Section | Appears when | What it configures |
 | --- | --- | --- |
 | Main attributes | always | Name, temperature sensors, cycle, and whether the thermostat uses the central configuration. |
-| Features | always | The features to turn on: window, motion, power, presence, and others. |
 | Underlyings | thermostat only | The devices that the thermostat controls. The form depends on the type. |
-| TPI parameters | the proportional function is TPI, or a valve regulates | The TPI coefficients, and Auto TPI with its learning type. |
+| Features | always | The features to turn on: window, motion, power, presence, and others. |
 | Presets | switch, climate and valve thermostats | The temperature of each preset, in a table. They are `number` entities, saved after the configuration. See [The presets table](#the-presets-table). |
-| Central boiler | central configuration, when the feature is on | The services that start and stop the central boiler. |
-| Window | the window feature is on | How to detect an open window, **Opening sensor** or **Temperature drop**, then the sensor or the thresholds of the detection, the delays and the action. See [The detection of a window](#the-detection-of-a-window). |
-| Motion | the motion feature is on | The motion sensor, the delays and the presets. |
-| Power | the power feature is on | The power sensors and the shedding. |
-| Presence | the presence feature is on | The presence sensor and the presets. |
-| Auto start and stop | climate thermostat, the feature is on | The automatic start and stop of the device. |
+| TPI parameters | the proportional function is TPI, or a valve regulates | The TPI coefficients, and Auto TPI with its learning type. |
 | Valve regulation | a climate that regulates with a valve | The valves, their offsets and their opening. |
-| Sync device internal temperature | the option is on | The synchronization of the internal temperature of the device. |
 | Advanced | always | The advanced parameters. |
-| Lock | always | The lock of the thermostat, with an optional code. |
-| Humidity | thermostat only | A humidity sensor. The dashboard suggests the one of the same device. |
-| Heating failure detection | the feature is on | The thresholds of the detection. |
+
+**Optional features**, the sections that can be off. A section whose feature is off stays in the menu with the status `Off`, and
+offers to turn it on:
+
+| Section | Appears when | Off when | What it configures |
+| --- | --- | --- | --- |
+| Central boiler | central configuration | the feature is off | The services that start and stop the central boiler. |
+| Window | always | the feature is off | How to detect an open window, **Opening sensor** or **Temperature drop**, then the sensor or the thresholds of the detection, the delays and the action. See [The detection of a window](#the-detection-of-a-window). |
+| Motion | always | the feature is off | The motion sensor, the delays and the presets. |
+| Power | always | the feature is off | The power sensors and the shedding. |
+| Presence | always | the feature is off | The presence sensor and the presets. |
+| Auto start and stop | climate thermostat without valve regulation | the feature is off | The automatic start and stop of the device. |
+| Sync device internal temperature | climate thermostat | the option of the section Underlyings is off | The synchronization of the internal temperature of the device. Turning it on in place checks the option of the section Underlyings. |
+| Lock | always | it blocks neither the commands of the users nor the ones of the automations | The lock of the thermostat, with an optional code. A thermostat that uses a central lock that blocks nothing shows `Central (off)`. |
+| Humidity | thermostat only | **Use humidity sensor** is unchecked | A humidity sensor. The dashboard suggests the one of the same device. |
+| Heating failure detection | the features of the type offer it | the feature is off | The thresholds of the detection. |
 
 The identifiers of these sections, which a plugin can use to place its own tab, are in [Native plugins](../plugins/native-plugins.md).
 

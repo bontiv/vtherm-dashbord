@@ -26,7 +26,9 @@ export function statusView(status: MenuStatus): StatusView {
     case "complete":
       return { text: undefined, tone: "success", spoken: t("status.spoken.complete") };
     case "inherited":
-      return { text: t("status.inherited"), tone: "secondary", spoken: t("status.spoken.inherited") };
+      return status.off === true
+        ? { text: t("status.inherited_off"), tone: "secondary", spoken: t("status.spoken.inherited_off") }
+        : { text: t("status.inherited"), tone: "secondary", spoken: t("status.spoken.inherited") };
     case "off":
       return { text: t("status.off"), tone: "secondary", spoken: t("status.spoken.off") };
     case "incomplete":
@@ -35,6 +37,9 @@ export function statusView(status: MenuStatus): StatusView {
       return { text: t("status.refused"), tone: "error", spoken: t("status.spoken.refused") };
   }
 }
+
+/** Whether a status turns the section off, by its own values or by the central values it uses: its entry is in retreat. */
+const isOff = (status: MenuStatus | undefined): boolean => status?.kind === "off" || (status?.kind === "inherited" && status.off === true);
 
 /** The event sent when the user chooses another thermostat in the selector. Its detail is the identifier of the thermostat. */
 export const THERMOSTAT_SELECTED_EVENT = "vtherm-thermostat-selected";
@@ -245,7 +250,7 @@ export class VThermSideMenu extends LitElement {
   }
 
   private itemClass(item: NavItem): string {
-    return [item.active ? "active" : "", item.status?.kind === "off" ? "off" : ""].filter(Boolean).join(" ");
+    return [item.active ? "active" : "", isOff(item.status) ? "off" : ""].filter(Boolean).join(" ");
   }
 
   protected override render(): TemplateResult {

@@ -15,8 +15,12 @@ export function isSectionStatus(value: unknown): value is SectionStatus {
     return false;
   }
   const kind = (value as { kind?: unknown }).kind;
-  if (kind === "complete" || kind === "inherited") {
+  if (kind === "complete" || kind === "off") {
     return true;
+  }
+  if (kind === "inherited") {
+    const off = (value as { off?: unknown }).off;
+    return off === undefined || typeof off === "boolean";
   }
   const missing = (value as { missing?: unknown }).missing;
   return kind === "incomplete" && typeof missing === "number" && Number.isInteger(missing) && missing >= 0;

@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.valve_regulation": "Valve regulation configuration",
   "description.valve_regulation": "Configuration for self-regulation with direct control of the valve",
   "field.closing_degree_entity_ids": "Closing degree entities",
@@ -42,7 +41,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.valve_regulation": "Configuration de la regulation par vanne",
   "description.valve_regulation": "Configuration de l'auto-régulation par controle direct de la vanne",
   "field.closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
@@ -75,7 +73,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.valve_regulation": "Konfiguration Ventilsteuerung",
   "description.valve_regulation": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung",
   "field.closing_degree_entity_ids": "Schließweite Entity-IDs",

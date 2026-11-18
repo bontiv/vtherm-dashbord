@@ -46,11 +46,14 @@ of your thermostats has an area, the list is simply ordered by name, without hea
 ## The menu and the breadcrumb
 
 Most tabs have a menu on the left. It lists the pages of the tab, and the page you are on is highlighted. Pages are grouped under
-headings, such as "Versatile Thermostat" and "Dashboard" in the Configuration. The menu scrolls on its own when it is longer than the
+headings, such as "General settings", "Optional features" and "Dashboard" in the Configuration. The menu scrolls on its own when it is longer than the
 screen, so the tabs and the page do not move. The Dashboard tab has no menu while it has a single page, its overview: the page takes
 the full width.
 
-In the Thermostats tab, the menu starts with a selector of thermostat, then the overview of the thermostat, then its pages. The
+In the Thermostats tab, the menu starts with a selector of thermostat, then the overview of the thermostat, then its pages under
+two headings: **General settings**, the sections that every thermostat has, and **Optional features**, the ones that can be off. The
+Configuration groups the sections of the central configuration the same way (see
+[Configuring thermostats](configuration.md#the-sections-one-by-one)). The
 selector orders the thermostats as the list does, and names each one with its area, for example `Living room · Sofa`.
 When you choose another thermostat, the page you are on stays open if the new thermostat has it. Otherwise its overview opens.
 
@@ -59,19 +62,22 @@ the menu and in the drawer of a phone, as soon as you change a value, before you
 
 | Status | Meaning |
 | --- | --- |
-| a check mark | Nothing required is missing. |
+| a check mark | Nothing required is missing, for a section of the optional features. A section of the general settings is always on: it shows nothing then. |
 | `Central` | The section uses the central configuration. |
 | `N missing` | N required values have no value. |
-| `Off` | The feature of the section is off. The entry is in retreat. |
+| `Off` | The section does nothing: its feature is off, the humidity sensor is not used, or the lock blocks neither the users nor the automations. The entry is in retreat. |
+| `Central (off)` | The section uses the central configuration, and the central values make it do nothing, such as a central lock that blocks nothing. The entry is in retreat. |
 | `Error` | The last save refused a value of the section. It goes away when you change the refused value, or when a save succeeds. |
 
-When several apply, the first of `Error`, `Off`, `N missing`, `Central`, the check mark is shown. A screen reader says the status after
+When several apply, the first of `Error`, `Off`, `Central (off)`, `N missing`, `Central`, the check mark is shown. A screen reader says the status after
 the title, for example "Window detection, off".
 
-The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, heating failure
-detection) stay in the menu, so that you can find them. Open one: it explains the feature and has a switch to turn it on. Turning it on
-shows its fields and changes the same value as the section Features; save to keep it. A feature that does not exist for the type of the
-thermostat, such as the auto start and stop of a thermostat over a switch, is not in the menu.
+The sections of the features that are off (window, motion, power, presence, auto start and stop, central boiler, synchronization of the
+temperature, heating failure detection) stay in the menu, so that you can find them. Open one: it explains the feature and has a switch
+to turn it on. Turning it on shows its fields and changes the same value as the section Features (the section Underlyings for the
+synchronization of the temperature); save to keep it. A feature that does not exist for the type of the thermostat, such as the auto
+start and stop of a thermostat over a switch, is not in the menu. The sections Humidity and Lock have no such switch: their page shows
+their options as usual, and checking one of them turns the section on.
 
 Under the tabs, the breadcrumb shows where you are, for example `Thermostats > Salon > TPI`. Click a part of it to go back to that level.
 

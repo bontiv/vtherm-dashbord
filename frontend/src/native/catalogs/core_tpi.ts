@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.tpi": "TPI parameters",
   "description.tpi": "Time Proportional Integral attributes",
   "field.auto_tpi_aggressiveness": "Aggressiveness",
@@ -137,7 +136,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.tpi": "Paramètres TPI",
   "description.tpi": "Attributs de l'algo Time Proportional Integral",
   "field.auto_tpi_aggressiveness": "Agressivité",
@@ -265,7 +263,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.tpi": "TPI-Parameter (Time Proportional Integral)",
   "description.tpi": "Attribute des zeitproportionalen Integral (Time Proportional Integral)",
   "field.auto_tpi_aggressiveness": "Aggressivität",

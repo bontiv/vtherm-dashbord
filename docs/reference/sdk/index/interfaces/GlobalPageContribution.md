@@ -30,7 +30,8 @@ The tag name of the custom element that the plugin defines, for example `smartpi
 
 > `readonly` `optional` **group?**: `string`
 
-The key of the group in the translation catalog of the plugin. A consecutive run of entries of one group shares one heading.
+The key of the group in the translation catalog of the plugin, or one of the groups shared by the core (`CORE_MENU_GROUPS`), whose
+heading the dashboard translates. A consecutive run of entries of one group shares one heading.
 
 #### Inherited from
 

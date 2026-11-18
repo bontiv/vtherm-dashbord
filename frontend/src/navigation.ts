@@ -5,10 +5,11 @@
  * does no drawing: it gives a model that the components show, which keeps the rules testable.
  */
 
-import { CORE_TOP_TABS, groupMenu, sectionStatusOf } from "@vtherm/dashboard-sdk";
+import { CORE_MENU_GROUPS, CORE_TOP_TABS, groupMenu, isCoreMenuGroup, sectionStatusOf } from "@vtherm/dashboard-sdk";
 import type { HookName, PlacedEntry, PlacementEngine, SectionStatus, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
 
 import { NEW_THERMOSTAT, buildPath } from "./router.ts";
+import { t } from "./shell-translations.ts";
 import type { Route } from "./router.ts";
 
 /** A thermostat of Versatile Thermostat, as the Thermostats tab lists it. */
@@ -62,8 +63,8 @@ export interface NavigationInput {
 }
 
 /**
- * The status of a configuration section in the menu: the ones that the dashboard knows (`refused`, `off`) and the ones that the
- * section declares (`complete`, `inherited`, `incomplete`).
+ * The status of a configuration section in the menu: the ones that the dashboard knows (`refused`, `off` of a feature) and the ones
+ * that the section declares (`complete`, `inherited`, `inherited` and `off`, `off`, `incomplete`).
  */
 export type MenuStatus = { readonly kind: "refused" } | { readonly kind: "off" } | SectionStatus;
 
@@ -131,8 +132,8 @@ export interface NavigationModel {
 }
 
 /**
- * The status of an entry of the menu, by priority: refused, off, then what the section declares. Only the configuration sections have
- * one.
+ * The status of an entry of the menu, by priority: refused, off by its feature, then what the section declares (off, inherited off,
+ * incomplete, inherited, complete). Only the configuration sections have one.
  */
 export function statusOf(input: NavigationInput, entry: PlacedEntry, thermostat: ThermostatInfo | undefined): MenuStatus | undefined {
   if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
@@ -147,6 +148,20 @@ export function statusOf(input: NavigationInput, entry: PlacedEntry, thermostat:
     return { kind: "off" };
   }
   return sectionStatusOf(entry, context, (error) => input.onStatusError?.(entry, error));
+}
+
+/** The status that the menu shows: a section of the general settings cannot be turned off, so it shows nothing when it is complete. */
+function shownStatus(entry: PlacedEntry, status: MenuStatus | undefined): MenuStatus | undefined {
+  const group = (entry.contribution as { group?: string }).group;
+  return status?.kind === "complete" && group === CORE_MENU_GROUPS.settings ? undefined : status;
+}
+
+/** The heading of a group: the dashboard translates the groups that the core shares, the plugin of the first entry the others. */
+function headingOf(input: NavigationInput, group: string | undefined, first: PlacedEntry | undefined): string | undefined {
+  if (group === undefined || first === undefined) {
+    return undefined;
+  }
+  return isCoreMenuGroup(group) ? t(group === CORE_MENU_GROUPS.settings ? "menu.group.settings" : "menu.group.features") : input.translate(first, group);
 }
 
 const titleOf = (input: NavigationInput, entry: PlacedEntry): string => input.translate(entry, (entry.contribution as { title?: string }).title ?? entry.id);
@@ -228,10 +243,10 @@ export function resolveNavigation(input: NavigationInput): NavigationModel {
     active: entry.id === currentEntry?.id,
     path: pathOf(entry),
     entry,
-    status: statusOf(input, entry, thermostat),
+    status: shownStatus(entry, statusOf(input, entry, thermostat)),
   });
   const sections = groupMenu(entries).map((section) => ({
-    heading: section.group === undefined || section.entries[0] === undefined ? undefined : input.translate(section.entries[0], section.group),
+    heading: headingOf(input, section.group, section.entries[0]),
     items: section.entries.map(toItem),
   }));
   const current = sections.flatMap((section) => section.items).find((item) => item.active);

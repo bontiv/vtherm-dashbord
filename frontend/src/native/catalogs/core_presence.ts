@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.presence": "Presence detection",
   "description.presence": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting",
   "field.presence_sensor_entity_id": "Presence sensor",
@@ -22,7 +21,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.presence": "Détection de présence",
   "description.presence": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
   "field.presence_sensor_entity_id": "Capteur de présence",
@@ -35,7 +33,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.presence": "Anwesenheitserkennung",
   "description.presence": "Geben Sie einen Präsenzsensor (Status true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
   "field.presence_sensor_entity_id": "Anwesenheitssensor",

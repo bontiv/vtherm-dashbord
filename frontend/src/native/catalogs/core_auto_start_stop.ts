@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.auto_start_stop": "Auto start and stop",
   "field.auto_start_stop_level": "Auto start and stop level",
   "option.auto_start_stop.auto_start_stop_none": "No auto start/stop",
@@ -24,7 +23,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.auto_start_stop": "Allumage/extinction automatique",
   "field.auto_start_stop_level": "Niveau d'allumage et d'extinction automatiques",
   "option.auto_start_stop.auto_start_stop_none": "Désactivé",
@@ -39,7 +37,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.auto_start_stop": "Auto Start und Stop",
   "field.auto_start_stop_level": "Stufe für automatisches Ein- und Ausschalten",
   "option.auto_start_stop.auto_start_stop_none": "Deaktiviert",

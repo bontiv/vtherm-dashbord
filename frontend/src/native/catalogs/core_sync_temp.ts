@@ -9,13 +9,13 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.sync_device_internal_temp": "Synchronize device temperature",
   "description.sync_device_internal_temp": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
   "field.sync_entity_ids": "Entities id used for synchronization",
   "help.sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities.",
   "field.sync_with_calibration": "Apply offset calibration",
   "help.sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+  "feature_intro.sync_device_internal_temp": "Gives the room temperature to the device, so that its own regulation works with the temperature of the room instead of the one it measures.",
   "hint.sync_with_calibration": "Corrects the device through its calibration offset instead of copying the room temperature.",
   "info.sync_with_calibration": "Checked, the thermostat computes the gap between the room and the sensor of the device and writes it into the calibration offset of the device: 19° in the room and 21° on the device give −2°. Unchecked, it copies the room temperature into the entity of the device that takes an outside temperature. The entities given below must match this choice.",
   "hint.sync_entity_ids": "One entity per device: its calibration offset, or its input for an outside temperature.",
@@ -24,13 +24,13 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.sync_device_internal_temp": "Synchronisation de la température de l'appareil",
   "description.sync_device_internal_temp": "Configuration de la synchronisation des températures internes des sous-jacents",
   "field.sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation",
   "help.sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`.",
   "field.sync_with_calibration": "Application d'un calibrage",
   "help.sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
+  "feature_intro.sync_device_internal_temp": "Transmet la température de la pièce à l'appareil, pour que sa propre régulation travaille avec la température de la pièce plutôt qu'avec celle qu'il mesure.",
   "hint.sync_with_calibration": "Corrige l'appareil par son décalage de calibration au lieu de copier la température de la pièce.",
   "info.sync_with_calibration": "Coché, le thermostat calcule l'écart entre la pièce et le capteur de l'appareil et l'écrit dans le décalage de calibration de l'appareil : 19° dans la pièce et 21° sur l'appareil donnent −2°. Décoché, il copie la température de la pièce dans l'entité de l'appareil qui reçoit une température externe. Les entités indiquées ci-dessous doivent correspondre à ce choix.",
   "hint.sync_entity_ids": "Une entité par appareil : son décalage de calibration, ou son entrée de température externe.",
@@ -39,13 +39,13 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
   "description.sync_device_internal_temp": "Konfiguration zur Synchronisierung der Innentemperatur der zugeordneten Geräte mit ausgewählten Entitäten",
   "field.sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs",
   "help.sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`.",
   "field.sync_with_calibration": "Offset-Kalibrierung anwenden",
   "help.sync_with_calibration": "Aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewenden. Deaktiviert, wird die Temperatur direkt aus den ausgewählten Entities kopiert.",
+  "feature_intro.sync_device_internal_temp": "Gibt die Raumtemperatur an das Gerät weiter, damit seine eigene Regelung mit der Temperatur des Raums arbeitet statt mit der, die es selbst misst.",
   "hint.sync_with_calibration": "Korrigiert das Gerät über seinen Kalibrierungsversatz, statt die Raumtemperatur zu kopieren.",
   "info.sync_with_calibration": "Aktiviert, berechnet das Thermostat die Abweichung zwischen Raum und Gerätesensor und schreibt sie in den Kalibrierungsversatz des Geräts: 19° im Raum und 21° am Gerät ergeben −2°. Deaktiviert, kopiert es die Raumtemperatur in die Entität des Geräts, die eine externe Temperatur entgegennimmt. Die unten angegebenen Entitäten müssen zu dieser Wahl passen.",
   "hint.sync_entity_ids": "Eine Entität pro Gerät: ihr Kalibrierungsversatz oder ihr Eingang für eine externe Temperatur.",

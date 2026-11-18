@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.motion": "Motion detection",
   "description.motion": "Motion sensor management. Preset can switch automatically depending on motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
   "field.motion_delay": "Activation delay",
@@ -41,7 +40,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.motion": "Détection de mouvement",
   "description.motion": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
   "field.motion_delay": "Délai d'activation",
@@ -73,7 +71,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.motion": "Bewegungserkennung",
   "description.motion": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung' müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
   "field.motion_delay": "Aktivierungsverzögerung",

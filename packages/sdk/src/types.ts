@@ -283,7 +283,10 @@ interface NavigationFields {
 
 /** The fields of a contribution that is an entry of a left menu. */
 interface MenuEntryFields extends NavigationFields {
-  /** The key of the group in the translation catalog of the plugin. A consecutive run of entries of one group shares one heading. */
+  /**
+   * The key of the group in the translation catalog of the plugin, or one of the groups shared by the core (`CORE_MENU_GROUPS`), whose
+   * heading the dashboard translates. A consecutive run of entries of one group shares one heading.
+   */
   readonly group?: string;
 }
 
@@ -313,10 +316,11 @@ export interface GlobalWidgetContribution extends ContributionBase<"global_widge
 
 /**
  * What a configuration section says about itself in the menu: nothing required is missing (`complete`), its values come from the
- * central configuration (`inherited`), or `missing` required values have no value (`incomplete`). The dashboard adds the statuses that
- * it knows itself: `off` when the feature of the section is off, `refused` when the last save refused a value of the section.
+ * central configuration (`inherited`, with `off` when those values turn the section off), its values turn it off (`off`), or `missing`
+ * required values have no value (`incomplete`). The dashboard adds the statuses that it knows itself: `off` when the feature of the
+ * section is off, `refused` when the last save refused a value of the section.
  */
-export type SectionStatus = CompleteStatus | InheritedStatus | IncompleteStatus;
+export type SectionStatus = CompleteStatus | InheritedStatus | OffStatus | IncompleteStatus;
 
 /** Nothing required is missing in the section: the menu shows a check mark. */
 export interface CompleteStatus {
@@ -324,10 +328,21 @@ export interface CompleteStatus {
   readonly kind: "complete";
 }
 
-/** The values of the section come from the central configuration: the menu shows `Central`. */
+/** The values of the section come from the central configuration: the menu shows `Central`, or `Central (off)` with `off`. */
 export interface InheritedStatus {
   /** The kind of status. */
   readonly kind: "inherited";
+  /** True when the central values that the section uses turn it off, while its own values do not. */
+  readonly off?: boolean;
+}
+
+/**
+ * The values of the section turn it off, for a section that has no feature switch: the menu shows `Off`, and the page of the section
+ * is shown as usual, without the switch that the dashboard draws for a feature.
+ */
+export interface OffStatus {
+  /** The kind of status. */
+  readonly kind: "off";
 }
 
 /** Required values of the section have no value: the menu shows how many. */

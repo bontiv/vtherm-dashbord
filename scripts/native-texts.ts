@@ -1210,6 +1210,11 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["use_presets_central_config"]),
   },
   core_sync_temp: {
+    "feature_intro.sync_device_internal_temp": {
+      en: "Gives the room temperature to the device, so that its own regulation works with the temperature of the room instead of the one it measures.",
+      fr: "Transmet la température de la pièce à l'appareil, pour que sa propre régulation travaille avec la température de la pièce plutôt qu'avec celle qu'il mesure.",
+      de: "Gibt die Raumtemperatur an das Gerät weiter, damit seine eigene Regelung mit der Temperatur des Raums arbeitet statt mit der, die es selbst misst.",
+    },
     ...helpOf(["sync_with_calibration", "sync_entity_ids"]),
   },
   core_advanced: {
@@ -1228,10 +1233,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
   },
 };
 
-/** The texts that every native plugin has. */
-export const COMMON_TEXTS: Readonly<Record<string, Text>> = {
-  "group.vtherm": { en: "Versatile Thermostat", fr: "Versatile Thermostat", de: "Versatile Thermostat" },
-};
+/** The texts that every native plugin has. The headings of the groups of the menus are texts of the dashboard, not of the plugins. */
+export const COMMON_TEXTS: Readonly<Record<string, Text>> = {};
 
 /** The messages of the error codes that the translations of Versatile Thermostat do not have, and the generic message. */
 export const ERROR_TEXTS: Readonly<Record<string, Text>> = {

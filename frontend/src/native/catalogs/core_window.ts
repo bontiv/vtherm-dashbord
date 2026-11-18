@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.window": "Window detection",
   "description.window": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
   "field.use_window_central_config": "Use central window configuration",
@@ -85,7 +84,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.window": "Détection d'ouverture",
   "description.window": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
   "field.use_window_central_config": "Utiliser la configuration centrale des ouvertures",
@@ -161,7 +159,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.window": "Fensteröffnugserkennung",
   "description.window": "Heizkörper ausschalten, sobald Fenster offen ist. Entity-ID leer lassen, um die automatische Erkennung zu verwenden.",
   "field.use_window_central_config": "Zentrale Fensteröffnungskonfiguration verwenden",

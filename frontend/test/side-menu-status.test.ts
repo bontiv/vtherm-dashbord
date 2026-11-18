@@ -29,6 +29,7 @@ const SECTIONS: NavSection[] = [
       item("Advanced", { kind: "inherited" }),
       item("Lock", { kind: "refused" }),
       item("Overview", undefined),
+      item("Humidity", { kind: "inherited", off: true }),
     ],
   },
 ];
@@ -46,6 +47,7 @@ describe("the statuses", () => {
     expect(statusView({ kind: "complete" })).toEqual({ text: undefined, tone: "success", spoken: "complete" });
     expect(statusView({ kind: "off" })).toEqual({ text: "Off", tone: "secondary", spoken: "off" });
     expect(statusView({ kind: "inherited" })).toEqual({ text: "Central", tone: "secondary", spoken: "uses the central configuration" });
+    expect(statusView({ kind: "inherited", off: true })).toEqual({ text: "Central (off)", tone: "secondary", spoken: "uses the central configuration, off" });
     expect(statusView({ kind: "incomplete", missing: 2 })).toEqual({ text: "2 missing", tone: "warning", spoken: "2 missing values" });
     expect(statusView({ kind: "refused" })).toEqual({ text: "Error", tone: "error", spoken: "refused" });
   });
@@ -55,15 +57,16 @@ describe("the menu without the components of Home Assistant", () => {
   it("shows the status at the right of each title, and says it with the title", async () => {
     const root = await mount();
     const links = [...root.querySelectorAll("a")];
-    expect(links.map((link) => link.querySelector(".status")?.textContent?.trim() ?? null)).toEqual(["1 missing", "", "Off", "Central", "Error", null]);
+    expect(links.map((link) => link.querySelector(".status")?.textContent?.trim() ?? null)).toEqual(["1 missing", "", "Off", "Central", "Error", null, "Central (off)"]);
     expect(links[1]?.querySelector(".status.success ha-icon")).not.toBeNull();
     expect(links[2]?.querySelector(".title")?.textContent?.replace(/\s+/g, " ").trim()).toBe("Window, off");
     expect(links[5]?.textContent?.trim()).toBe("Overview");
+    expect(links[6]?.querySelector(".title")?.textContent?.replace(/\s+/g, " ").trim()).toBe("Humidity, uses the central configuration, off");
   });
 
-  it("puts a section whose feature is off in retreat", async () => {
+  it("puts a section that is off, or whose central values turn it off, in retreat", async () => {
     const root = await mount();
-    expect([...root.querySelectorAll("a.off")].map((link) => link.getAttribute("href"))).toEqual(["/vtherm/x/Window"]);
+    expect([...root.querySelectorAll("a.off")].map((link) => link.getAttribute("href"))).toEqual(["/vtherm/x/Window", "/vtherm/x/Humidity"]);
   });
 });
 
@@ -73,7 +76,7 @@ describe("the menu with the components of Home Assistant", () => {
   it("puts the status in the slot end of the list item, and the spoken status in its headline", async () => {
     const root = await mount();
     const items = [...root.querySelectorAll("ha-md-list-item")];
-    expect(items.map((entry) => entry.querySelector('[slot="end"]')?.textContent?.trim() ?? null)).toEqual(["1 missing", "", "Off", "Central", "Error", null]);
+    expect(items.map((entry) => entry.querySelector('[slot="end"]')?.textContent?.trim() ?? null)).toEqual(["1 missing", "", "Off", "Central", "Error", null, "Central (off)"]);
     expect(items[0]?.querySelector('[slot="headline"]')?.textContent?.replace(/\s+/g, " ").trim()).toBe("Main, 1 missing value");
     expect(items[2]?.classList.contains("off")).toBe(true);
     expect(items[0]?.classList.contains("active")).toBe(true);

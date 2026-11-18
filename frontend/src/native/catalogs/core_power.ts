@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.power": "Power management",
   "description.power": "Power management attributes.\nSelect W or kW for each VTherm device power, and W, kW, or Auto for the central configuration.\nValues are normalized internally, so W and kW can be mixed safely.",
   "field.max_power_sensor_entity_id": "Max power",
@@ -36,7 +35,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.power": "Gestion de la puissance",
   "description.power": "Attributs de gestion de la puissance.\nSélectionnez W ou kW pour la puissance de chaque VTherm, et W, kW ou Auto pour la configuration centralisée.\nLes valeurs sont normalisées en interne : les valeurs en W et en kW peuvent donc être mélangées en toute sécurité.",
   "field.max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
@@ -63,7 +61,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.power": "Powermanagement",
   "description.power": "Attribute für das Powermanagement.\nWählen Sie W oder kW für die Leistung jedes VTherm sowie W, kW oder Automatisch für die zentrale Konfiguration.\nDie Werte werden intern normalisiert, daher können W und kW sicher gemischt werden.",
   "field.max_power_sensor_entity_id": "Sensor für maximale Leistung (Entity-ID)",

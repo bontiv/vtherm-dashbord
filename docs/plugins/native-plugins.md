@@ -15,7 +15,21 @@ The identifiers `core` and `core_*` are reserved: the server leaves out a third-
 
 ## Load order
 `core` loads first, and every other native plugin requires it. Each native plugin loads after the one that comes before it in the
-menu of the config flow, so the tabs come in that order.
+menu of the config flow.
+
+## Order and groups of the menus
+The menus of a thermostat and of the general configuration put the native tabs in two groups that the core shares
+(`CORE_MENU_GROUPS`, see [Groups of the menus](hooks-and-placement.md#groups-of-the-menus)), in the order of `MENU_ORDER`
+(`tab-definitions.ts`), which is not the order of the flow:
+
+- **General settings** (`core:settings`), the tabs that cannot be turned off: main attributes, underlyings, features, presets, TPI,
+  valve regulation, advanced. The page that creates the central configuration is in this group too.
+- **Optional features** (`core:features`), the tabs that can be off: central boiler, window, motion, power, presence, auto start and
+  stop, synchronization of the temperature, lock, humidity, heating failure detection.
+
+The overview of a thermostat stays first, without group; the group "Dashboard" of the Configuration comes after the two groups. Each
+tab is placed `after` the closest tab before it in `MENU_ORDER` whose plugin is already loaded, so the order does not depend on the
+load order. A tab of yours placed between two native tabs keeps the heading whole when it declares the same group.
 
 ## Identifiers of the contributions
 A plugin with one tab names it `main`: `core_tpi.tab.main`. `core` has three tabs, named after them: `core.tab.main`,
@@ -40,8 +54,8 @@ The table is generated from the code by `frontend/test/native-docs.test.ts`. Do 
 | `core` | `core.general.features` | `general_config` | Features |
 | `core` | `core.page.thermostat_overview` | `thermostat_config` | Overview |
 | `core` | `core.tab.main` | `thermostat_config` | Main attributes |
-| `core` | `core.tab.features` | `thermostat_config` | Features |
 | `core` | `core.tab.type` | `thermostat_config` | Underlyings |
+| `core` | `core.tab.features` | `thermostat_config` | Features |
 | `core_tpi` | `core_tpi.tab.main` | `thermostat_config` | TPI parameters |
 | `core_tpi` | `core_tpi.general.main` | `general_config` | TPI parameters |
 | `core_presets` | `core_presets.tab.main` | `thermostat_config` | Presets |
@@ -77,14 +91,20 @@ the keys of the flow of Versatile Thermostat. Which fields a tab shows, and when
 [Driving the config flow](../contributing/config-flow-driver.md).
 
 ### The tabs of the features
-The tabs of the features (window, motion, power, presence, auto start and stop, central boiler, heating failure detection) declare
-the value that turns their feature on (`feature`: `use_window_feature`, `use_motion_feature`, `use_power_feature`,
-`use_presence_feature`, `use_auto_start_stop_feature`, `use_central_boiler_feature`, `use_heating_failure_detection_feature`).
-While the feature is off, the tab stays in the menu with the status `Off`; its page shows the explanation of the feature and the
-switch of the dashboard instead of its fields, and turning the switch on changes the same value as the tab Features, in the draft.
+The tabs of the features (window, motion, power, presence, auto start and stop, central boiler, synchronization of the temperature,
+heating failure detection) declare the value that turns their feature on (`feature`: `use_window_feature`, `use_motion_feature`,
+`use_power_feature`, `use_presence_feature`, `use_auto_start_stop_feature`, `use_central_boiler_feature`,
+`sync_device_internal_temp`, `use_heating_failure_detection_feature`). While the feature is off, the tab stays in the menu with the
+status `Off`; its page shows the explanation of the feature and the switch of the dashboard instead of its fields, and turning the
+switch on changes, in the draft, the same value as the tab that holds it (`featureStepOf`): the tab Features, or the tab Underlyings
+for the synchronization of the temperature of a thermostat over a climate.
 A tab whose feature does not exist for the type of the thermostat is not in the menu: the auto start and stop for a thermostat over a
-switch, or the heating failure detection for a thermostat over a climate without valve regulation, as the form Features of
-Versatile Thermostat decides.
+switch, the heating failure detection for a thermostat over a climate without valve regulation, as the form Features of
+Versatile Thermostat decides, or the synchronization of the temperature for a thermostat that is not over a climate.
+
+The humidity and the lock have no feature switch, but their values can turn them off (`off` of their `TabDefinition`): the humidity
+while **Use humidity sensor** is unchecked, the lock while it blocks neither the users nor the automations. Their page stays as usual.
+A thermostat that uses a central lock that blocks nothing shows `Central (off)`.
 
 ### The layout of the tabs
 A native tab draws its fields on a grid that adds columns with the width (`repeat(auto-fill, minmax(min(240px, 100%), 1fr))`); a
@@ -114,8 +134,10 @@ a tile of the grid after the last field of the group, on two columns when the gr
 inherits. The fields of a group do not repeat it in their own panel, except a field of the group that is in the advanced settings.
 
 ### The status of the tabs
-Each native tab gives its status to the menu: the number of the required fields that it shows without a value (and the sensor of a
-window detected with a sensor), `Central` when it uses the central configuration, otherwise a check mark. The dashboard adds `Off` and `Error`. See
+Each native tab gives its status to the menu: `Off` or `Central (off)` when its values turn it off, the number of the required fields
+that it shows without a value (and the sensor of a window detected with a sensor), `Central` when it uses the central configuration,
+otherwise a check mark, which the menu does not show for the tabs of the general settings: they are always on. The dashboard adds
+`Off` for a feature that is off, and `Error`. See
 [Status of a configuration section](hooks-and-placement.md#status-of-a-configuration-section).
 
 ### The controls

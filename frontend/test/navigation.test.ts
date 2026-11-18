@@ -1,4 +1,4 @@
-import { CORE_TOP_TABS, createPlacementEngine, defineTranslations } from "@vtherm/dashboard-sdk";
+import { CORE_MENU_GROUPS, CORE_TOP_TABS, createPlacementEngine, defineTranslations } from "@vtherm/dashboard-sdk";
 import type { PlacedEntry, UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";
 import { describe, expect, it } from "vitest";
 
@@ -108,6 +108,14 @@ describe("the left menu", () => {
       ["Versatile Thermostat", ["core.general.main", "core.general.window"]],
       ["Dashboard", ["core.page.plugins"]],
     ]);
+  });
+
+  it("translates the headings of the groups that the core shares with the dashboard, whatever the plugin of the first entry", () => {
+    const shared = plugin("smartpi", {
+      thermostat_config: [page("smartpi.tab.a", { group: CORE_MENU_GROUPS.settings }), page("smartpi.tab.b", { group: CORE_MENU_GROUPS.features })],
+    });
+    const model = resolveNavigation(input(route(THERMOSTATS, "climate.salon"), {}, shared));
+    expect(model.sections.map((section) => section.heading)).toEqual([undefined, "General settings", "Optional features"]);
   });
 
   it("translates the titles and the headings with the plugin of the entry", () => {
@@ -316,6 +324,27 @@ describe("the status of the configuration sections", () => {
     const errors: string[] = [];
     expect(statusOf(model({}, { onStatusError: (entry) => errors.push(entry.id) }), "smartpi.tab.broken")).toBeUndefined();
     expect(errors).toEqual(["smartpi.tab.broken"]);
+  });
+
+  it("shows what a section without feature declares: off, inherited off", () => {
+    expect(statusOf(model({ status: { kind: "off" } }), "smartpi.tab.main")).toEqual({ kind: "off" });
+    expect(statusOf(model({ status: { kind: "inherited", off: true } }), "smartpi.tab.main")).toEqual({ kind: "inherited", off: true });
+  });
+
+  it("shows no check mark for a complete section of the general settings, and keeps its other statuses", () => {
+    const shared = plugin("shared", {
+      thermostat_config: [
+        page("shared.tab.settings", { group: CORE_MENU_GROUPS.settings, status: (context: VisibilityContext<"thermostat_config">) => context.values["status"] }),
+        page("shared.tab.feature", { group: CORE_MENU_GROUPS.features, status: () => ({ kind: "complete" }) }),
+      ],
+    });
+    const of = (values: Record<string, unknown>) =>
+      resolveNavigation(input(SALON, { contextOf: (_entry, thermostat) => ({ hass: {}, thermostatId: thermostat?.id ?? "", thermostatType: "over_switch", values, centralValues: {} }) as never }, shared));
+    expect(statusOf(of({ status: { kind: "complete" } }), "shared.tab.settings")).toBeUndefined();
+    expect(statusOf(of({ status: { kind: "inherited" } }), "shared.tab.settings")).toEqual({ kind: "inherited" });
+    expect(statusOf(of({ status: { kind: "incomplete", missing: 2 } }), "shared.tab.settings")).toEqual({ kind: "incomplete", missing: 2 });
+    expect(statusOf(of({ status: { kind: "complete" } }), "shared.tab.feature")).toEqual({ kind: "complete" });
+    expect(statusOf(of({ status: { kind: "complete" } }), "smartpi.tab.main")).toBeUndefined();
   });
 
   it("gives no status to an entry that is not a configuration section", () => {

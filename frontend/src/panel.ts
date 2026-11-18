@@ -8,7 +8,7 @@ import { createConfigApi } from "./config/api.ts";
 import { ConfigSession, creationKey, isCreationKey } from "./config/config-session.ts";
 import type { OpenConfig } from "./config/config-session.ts";
 import { PRESET_PREFIX } from "./config/draft.ts";
-import { creationContributionIds, creationMissing, creationValues, definitionOfContribution } from "./native/tab-definitions.ts";
+import { creationContributionIds, creationMissing, creationValues, definitionOfContribution, featureStepOf } from "./native/tab-definitions.ts";
 import type { ConfigKind } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
 import "./components/breadcrumb.ts";
@@ -968,8 +968,9 @@ export class VThermDashboardPanel extends LitElement {
   }
 
   /**
-   * The switch of the feature of a configuration section, when it declares one. It changes the value in the tab "features" of the draft,
-   * where the flow of Versatile Thermostat keeps it, as the native tab Features does.
+   * The switch of the feature of a configuration section, when it declares one. It changes the value in the tab of the draft where the
+   * flow of Versatile Thermostat keeps it: the tab "features" for a plugin, and for a native tab the one that offers the value (the
+   * underlyings for the synchronization of the temperature).
    */
   private featureOf(entry: PlacedEntry, entryId: string | null, title: string): FeatureControl | undefined {
     const key = (entry.contribution as { feature?: unknown }).feature;
@@ -982,8 +983,14 @@ export class VThermDashboardPanel extends LitElement {
       title,
       intro: registry.translate(entry.pluginId, `feature_intro.${key}`),
       on: draft.values()[key] === true,
-      toggle: (on) => draft.propose("features", { [key]: on }),
+      toggle: (on) => draft.propose(this.featureStep(entry, key, draft.values()), { [key]: on }),
     };
+  }
+
+  /** The tab of the draft that holds the value of the feature of a section. */
+  private featureStep(entry: PlacedEntry, key: string, values: Readonly<Record<string, unknown>>): string {
+    const native = definitionOfContribution(entry.id);
+    return native === undefined ? "features" : featureStepOf(key, values, native.kind);
   }
 
   private renderMenu(model: NavigationModel): TemplateResult {

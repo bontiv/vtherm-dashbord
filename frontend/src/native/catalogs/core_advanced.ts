@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.advanced": "Advanced parameters",
   "description.advanced": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation",
   "field.manual_override_duration_min": "Manual override duration (min)",
@@ -63,7 +62,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.advanced": "Paramètres avancés",
   "description.advanced": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
   "field.manual_override_duration_min": "Durée de la dérogation manuelle (min)",
@@ -117,7 +115,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.advanced": "Erweiterte Einstellungen",
   "description.advanced": "Konfiguration der erweiterten Einstellungen. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
   "field.manual_override_duration_min": "Dauer der manuellen Übersteuerung (min)",

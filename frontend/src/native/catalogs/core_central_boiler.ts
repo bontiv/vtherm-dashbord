@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.central_boiler": "Central boiler",
   "description.central_boiler": "Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
   "field.central_boiler_activation_delay_sec": "Activation delay (seconds)",
@@ -32,7 +31,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.central_boiler": "Chauffage central",
   "description.central_boiler": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
   "field.central_boiler_activation_delay_sec": "Délai d'activation (en secondes)",
@@ -55,7 +53,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.central_boiler": "Zentralheizung",
   "description.central_boiler": "Geben Sie die Dienste an, die zum Ein- und Ausschalten des Zentralheizungskessels aufgerufen werden sollen. Der aufzurufende Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribut:wert]` (/attribut:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.kesselsteuerung/switch.turn_on`\n- zum Ausschalten eines Schalters: `switch.kesselsteuerung/switch. turn_off`\n- Um den Heizkessel auf 25 °C zu programmieren und somit sein Einschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:25`\n- Um 10 °C an den Heizkessel zu senden und somit sein Ausschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:10`",
   "field.central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)",

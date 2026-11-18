@@ -71,7 +71,31 @@ export interface TabDefinition {
    * menu of the dashboard keeps it, off, so that the feature can be found and turned on there (see `isAvailable`).
    */
   readonly feature?: string;
+  /**
+   * Whether the values of the tab turn it off, for a tab without a feature switch: `off` when its own values do, `inherited_off` when
+   * only the central values that it uses do. Undefined when the tab is on.
+   */
+  readonly off?: (values: Values, centralValues: Values, kind: ConfigKind) => OffState | undefined;
 }
+
+/** Why a tab is off: by its own values, or by the central values that it uses. */
+export type OffState = "off" | "inherited_off";
+
+/** A value of a form of Versatile Thermostat, or its default when the configuration does not hold it. */
+const valueOf = (values: Values, schema: SchemaName, key: string): unknown => {
+  if (values[key] !== undefined && values[key] !== null) {
+    return values[key];
+  }
+  const field = fieldsOf(schema).find((candidate) => candidate.key === key);
+  return field === undefined ? undefined : defaultOf(field, undefined);
+};
+
+/** Whether a configuration that is a thermostat uses the central configuration through an option, as the page of the tab shows it. */
+const inheritsCentral = (values: Values, centralValues: Values, option: string): boolean => Object.keys(centralValues).length > 0 && values[option] !== false;
+
+/** The lock blocks nothing when it blocks neither the commands of the users nor the ones of the automations. */
+const lockBlocksNothing = (values: Values): boolean =>
+  valueOf(values, "STEP_CENTRAL_LOCK_DATA_SCHEMA", "lock_users") === false && valueOf(values, "STEP_CENTRAL_LOCK_DATA_SCHEMA", "lock_automations") === false;
 
 const SWITCH = "thermostat_over_switch";
 const CLIMATE = "thermostat_over_climate";
@@ -307,6 +331,8 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   {
     plugin: "core_sync_temp",
     tab: "sync_device_internal_temp",
+    // The option is in the tab of the underlyings of a climate, not in the tab of the features.
+    feature: "sync_device_internal_temp",
     thermostat: fixed({ base: ["STEP_SYNC_DEVICE_INTERNAL_TEMP"] }),
     applies: (values, kind) => kind === "thermostat" && isOn(values, "sync_device_internal_temp"),
   },
@@ -323,12 +349,20 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
     thermostat: fixed({ base: ["STEP_LOCK_DATA_SCHEMA"], inherit: "use_lock_central_config", specific: ["STEP_CENTRAL_LOCK_DATA_SCHEMA"] }),
     central: fixed({ base: ["STEP_CENTRAL_LOCK_DATA_SCHEMA"] }),
     applies: () => true,
+    // Versatile Thermostat takes the values of the lock from the central configuration when the thermostat uses it.
+    off: (values, centralValues, kind) => {
+      if (kind === "thermostat" && inheritsCentral(values, centralValues, "use_lock_central_config")) {
+        return lockBlocksNothing(centralValues) ? "inherited_off" : undefined;
+      }
+      return lockBlocksNothing(values) ? "off" : undefined;
+    },
   },
   {
     plugin: "core_humidity",
     tab: "humidity",
     thermostat: fixed({ base: ["STEP_HUMIDITY_DATA_SCHEMA"] }),
     applies: (_values, kind) => kind === "thermostat",
+    off: (values) => (valueOf(values, "STEP_HUMIDITY_DATA_SCHEMA", "use_humidity_feature") === true ? undefined : "off"),
   },
   {
     plugin: "core_heating_failure",
@@ -340,10 +374,32 @@ export const TAB_DEFINITIONS: readonly TabDefinition[] = [
   },
 ];
 
+/** The tabs of the flow that hold the switches of the features: the features, and the underlyings for the synchronization. */
+const FEATURE_STEPS: readonly FlowTab[] = ["features", "type"];
+
+/** Whether a tab of the flow offers a value in its forms, for these values. */
+function offers(tab: FlowTab, key: string, values: Values, kind: ConfigKind): boolean {
+  const definition = TAB_DEFINITIONS.find((candidate) => candidate.tab === tab);
+  const layout = kind === "thermostat" ? definition?.thermostat?.(values) : definition?.central?.(values);
+  return (layout?.base ?? []).flatMap((name) => fieldsOf(name)).some((field) => field.key === key);
+}
+
+/**
+ * The tab of the flow that holds the switch of a feature, where the draft saves it: the features, or the underlyings for a value that
+ * only they offer, such as the synchronization of the temperature of a climate.
+ *
+ * @param key - The value that turns the feature on.
+ * @param values - The values of the configuration, draft included.
+ * @param kind - A thermostat or the central configuration.
+ */
+export function featureStepOf(key: string, values: Values, kind: ConfigKind): FlowTab {
+  return FEATURE_STEPS.find((tab) => offers(tab, key, values, kind)) ?? "features";
+}
+
 /**
  * Whether a tab exists for this type of configuration, its feature aside: a tab of a feature exists when the form "features" of
- * Versatile Thermostat offers the feature for this type, and the other rules of the tab hold. The other tabs exist when the flow offers
- * them.
+ * Versatile Thermostat, or the form of the underlyings, offers the feature for this type, and the other rules of the tab hold. The other
+ * tabs exist when the flow offers them.
  *
  * @param definition - The tab.
  * @param values - The values of the configuration, draft included.
@@ -354,9 +410,7 @@ export function isAvailable(definition: TabDefinition, values: Values, kind: Con
   if (feature === undefined) {
     return definition.applies(values, kind);
   }
-  const features = TAB_DEFINITIONS.find((candidate) => candidate.tab === "features");
-  const layout = kind === "thermostat" ? features?.thermostat?.(values) : features?.central?.(values);
-  const offered = (layout?.base ?? []).flatMap((name) => fieldsOf(name)).some((field) => field.key === feature);
+  const offered = FEATURE_STEPS.some((tab) => offers(tab, feature, values, kind));
   return offered && definition.applies({ ...values, [feature]: true }, kind);
 }
 
@@ -374,8 +428,40 @@ export const thermostatContributionId = (definition: TabDefinition): string => `
 /** The identifier of the contribution of a tab in the general configuration. */
 export const centralContributionId = (definition: TabDefinition): string => `${definition.plugin}.general.${tabKey(definition)}`;
 
-/** The native plugins that hold the tabs, in the order of the menu. */
+/** The native plugins that hold the tabs, in their load order, which is the order of the menu of the flow. */
 export const NATIVE_TAB_PLUGINS: readonly string[] = [...new Set(TAB_DEFINITIONS.map((definition) => definition.plugin))];
+
+/** The group of a tab in the menus: the general settings cannot be turned off, the features can. */
+export type MenuGroup = "settings" | "features";
+
+/**
+ * The tabs in the order of the menus of a thermostat and of the general configuration, with their group. The general settings go from
+ * what the thermostat is (main attributes) and what it drives (underlyings), through what it does (features, which depend on the type),
+ * to the settings of every day (presets), the tuning of the regulation (TPI, valve) and the expert settings. The features keep the
+ * order of the flow. `TAB_DEFINITIONS` keeps the order of the flow, which the saves and the checks of drift follow.
+ */
+export const MENU_ORDER: readonly { readonly tab: FlowTab; readonly group: MenuGroup }[] = [
+  { tab: "main", group: "settings" },
+  { tab: "type", group: "settings" },
+  { tab: "features", group: "settings" },
+  { tab: "presets", group: "settings" },
+  { tab: "tpi", group: "settings" },
+  { tab: "valve_regulation", group: "settings" },
+  { tab: "advanced", group: "settings" },
+  { tab: "central_boiler", group: "features" },
+  { tab: "window", group: "features" },
+  { tab: "motion", group: "features" },
+  { tab: "power", group: "features" },
+  { tab: "presence", group: "features" },
+  { tab: "auto_start_stop", group: "features" },
+  { tab: "sync_device_internal_temp", group: "features" },
+  { tab: "lock", group: "features" },
+  { tab: "humidity", group: "features" },
+  { tab: "heating_failure_detection", group: "features" },
+];
+
+/** The group of a tab in the menus. */
+export const menuGroupOf = (tab: FlowTab): MenuGroup => MENU_ORDER.find((candidate) => candidate.tab === tab)?.group ?? "features";
 
 /** Find the definition of the tab of a contribution, by the identifier of the contribution. */
 export function definitionOfContribution(contributionId: string): { definition: TabDefinition; kind: ConfigKind } | undefined {

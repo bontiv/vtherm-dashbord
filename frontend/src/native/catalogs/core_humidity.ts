@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.humidity": "Humidity",
   "description.humidity": "Use an external humidity sensor. Detected sensor: {humidity_detected}",
   "field.humidity_sensor_entity_id": "Humidity sensor",
@@ -22,7 +21,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.humidity": "Humidité",
   "description.humidity": "Utilisez un capteur d'humidité externe. Capteur détecté : {humidity_detected}",
   "field.humidity_sensor_entity_id": "Capteur d'humidité",
@@ -35,7 +33,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.humidity": "Luftfeuchtigkeit",
   "description.humidity": "Externen Luftfeuchtigkeitssensor verwenden. Erkannter Sensor: {humidity_detected}",
   "field.humidity_sensor_entity_id": "Luftfeuchtigkeitssensor",

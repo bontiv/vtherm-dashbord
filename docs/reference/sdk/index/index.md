@@ -18,6 +18,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [CompleteStatus](interfaces/CompleteStatus.md)
 - [ConfigProps](interfaces/ConfigProps.md)
 - [ContributionMap](interfaces/ContributionMap.md)
+- [CoreMenuGroups](interfaces/CoreMenuGroups.md)
 - [CoreTopTabs](interfaces/CoreTopTabs.md)
 - [DisplayProps](interfaces/DisplayProps.md)
 - [DraftControls](interfaces/DraftControls.md)
@@ -50,6 +51,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [InheritedStatus](interfaces/InheritedStatus.md)
 - [MenuSection](interfaces/MenuSection.md)
 - [NumberField](interfaces/NumberField.md)
+- [OffStatus](interfaces/OffStatus.md)
 - [PlacedEntry](interfaces/PlacedEntry.md)
 - [PlacementEngine](interfaces/PlacementEngine.md)
 - [PlacementForms](interfaces/PlacementForms.md)
@@ -115,6 +117,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 
 ## Variables
 
+- [CORE\_MENU\_GROUPS](variables/CORE_MENU_GROUPS.md)
 - [CORE\_TOP\_TABS](variables/CORE_TOP_TABS.md)
 - [DIAGRAM\_IDS](variables/DIAGRAM_IDS.md)
 - [FIELD\_HELP\_ELEMENT](variables/FIELD_HELP_ELEMENT.md)
@@ -131,6 +134,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [getDashboardVersion](functions/getDashboardVersion.md)
 - [groupMenu](functions/groupMenu.md)
 - [haControlsStatus](functions/haControlsStatus.md)
+- [isCoreMenuGroup](functions/isCoreMenuGroup.md)
 - [isDiagramId](functions/isDiagramId.md)
 - [isSectionStatus](functions/isSectionStatus.md)
 - [languageChain](functions/languageChain.md)

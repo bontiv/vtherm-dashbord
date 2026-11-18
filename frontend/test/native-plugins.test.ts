@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
-import { CORE_TOP_TABS, defineTranslations } from "@vtherm/dashboard-sdk";
+import { CORE_MENU_GROUPS, CORE_TOP_TABS, defineTranslations, groupMenu } from "@vtherm/dashboard-sdk";
 import type { PlacedEntry, UiPluginDefinition } from "@vtherm/dashboard-sdk";
 import { assertCompleteTranslations, createFakeHost, findTranslationProblems } from "@vtherm/dashboard-sdk/testing";
 import type { FakeHost } from "@vtherm/dashboard-sdk/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { FLOW_TABS, TAB_DEFINITIONS, centralContributionId, definitionOfContribution, fieldsOfPlugin, thermostatContributionId } from "../src/native/tab-definitions.ts";
+import { CREATION_TABS, MENU_ORDER, definitionOfContribution, featureStepOf, fieldsOfPlugin, menuGroupOf } from "../src/native/tab-definitions.ts";
 import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
 let host: FakeHost;
@@ -24,6 +24,10 @@ const visibleTabs = (values: Record<string, unknown>) =>
     .map((entry) => entry.id)
     .map((id) => definitionOfContribution(id)?.definition.tab)
     .filter((tab) => tab !== undefined);
+
+/** The runs of a menu by group, each entry named by its tab, or by the end of its identifier for a page. */
+const groupsOf = (entries: readonly PlacedEntry[]) =>
+  groupMenu(entries).map((section) => [section.group, section.entries.map((entry) => definitionOfContribution(entry.id)?.definition.tab ?? entry.id.split(".").pop())]);
 
 const everything = {
   thermostat_type: "thermostat_over_climate",
@@ -52,25 +56,51 @@ describe("the native plugins", () => {
     expect(order).toContain("core_tpi.tab.main");
     expect(order).toContain("core_lock.tab.main");
     expect(order).toContain("core_sync_temp.tab.main");
-    expect(order.filter((id) => id.startsWith("core.tab."))).toEqual(["core.tab.main", "core.tab.features", "core.tab.type"]);
+    expect(order.filter((id) => id.startsWith("core.tab."))).toEqual(["core.tab.main", "core.tab.type", "core.tab.features"]);
   });
 
-  it("put the tabs of a thermostat in the order of the menu of the flow, after the overview", () => {
+  it("put the tabs of a thermostat in the order of the menu, after the overview, under the groups of the core", () => {
     const order = ids(host.resolved("thermostat_config"));
     expect(order[0]).toBe("core.page.thermostat_overview");
-    const expected = TAB_DEFINITIONS.filter((definition) => definition.thermostat !== undefined).map(thermostatContributionId);
-    expect(order.slice(1)).toEqual(expected);
-    expect(expected.map((id) => definitionOfContribution(id)?.definition.tab)).toEqual(FLOW_TABS.filter((tab) => tab !== "central_boiler"));
+    expect(order.slice(1).map((id) => definitionOfContribution(id)?.definition.tab)).toEqual(MENU_ORDER.map((item) => item.tab).filter((tab) => tab !== "central_boiler"));
+    expect(groupsOf(host.resolved("thermostat_config"))).toEqual([
+      [undefined, ["thermostat_overview"]],
+      [CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "valve_regulation", "advanced"]],
+      [CORE_MENU_GROUPS.features, ["window", "motion", "power", "presence", "auto_start_stop", "sync_device_internal_temp", "lock", "humidity", "heating_failure_detection"]],
+    ]);
   });
 
-  it("put the sections of the general configuration under the group Versatile Thermostat, before the pages of the dashboard", () => {
+  it("keep the order and the groups for each type of thermostat", () => {
+    const menuOf = (values: Record<string, unknown>) => groupsOf(host.visible(host.resolved("thermostat_config"), thermostat(values)));
+    expect(menuOf({ thermostat_type: "thermostat_over_switch", proportional_function: "tpi" })).toEqual([
+      [undefined, ["thermostat_overview"]],
+      [CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "advanced"]],
+      [CORE_MENU_GROUPS.features, ["window", "motion", "power", "presence", "lock", "humidity", "heating_failure_detection"]],
+    ]);
+    expect(menuOf({ thermostat_type: "thermostat_over_valve", proportional_function: "tpi" })[1]).toEqual([CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "advanced"]]);
+    expect(menuOf({ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" })).toEqual([
+      [undefined, ["thermostat_overview"]],
+      [CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "advanced"]],
+      [CORE_MENU_GROUPS.features, ["window", "motion", "power", "presence", "auto_start_stop", "sync_device_internal_temp", "lock", "humidity"]],
+    ]);
+    expect(menuOf(everything)[1]).toEqual([CORE_MENU_GROUPS.settings, ["main", "type", "features", "presets", "tpi", "valve_regulation", "advanced"]]);
+  });
+
+  it("put the sections of the general configuration under the groups of the core, before the pages of the dashboard", () => {
     const menu = host.menu(CORE_TOP_TABS.configuration);
     const sections = menu.filter((entry) => entry.hook === "general_config");
-    expect(ids(sections)[0]).toBe("core.general.create");
     expect(ids(menu).slice(-2)).toEqual(["core.page.plugins", "core.page.dev_plugins"]);
-    expect(sections.every((entry) => (entry.contribution as { group?: string }).group === "group.vtherm")).toBe(true);
-    expect(ids(sections).slice(1)).toEqual(TAB_DEFINITIONS.filter((definition) => definition.central !== undefined).map(centralContributionId));
-    expect(ids(sections).slice(1).map((id) => definitionOfContribution(id)?.definition.tab)).toEqual(FLOW_TABS.filter((tab) => !["type", "auto_start_stop", "valve_regulation", "sync_device_internal_temp", "humidity"].includes(tab)));
+    expect(groupMenu(menu).map((section) => section.group)).toEqual([CORE_MENU_GROUPS.settings, CORE_MENU_GROUPS.features, "group.dashboard"]);
+    expect(groupsOf(sections)).toEqual([
+      [CORE_MENU_GROUPS.settings, ["create", "main", "features", "presets", "tpi", "advanced"]],
+      [CORE_MENU_GROUPS.features, ["central_boiler", "window", "motion", "power", "presence", "lock", "heating_failure_detection"]],
+    ]);
+  });
+
+  it("put the sections of a creation under the general settings", () => {
+    for (const kind of ["thermostat", "central"] as const) {
+      expect(CREATION_TABS[kind].map(menuGroupOf).every((group) => group === "settings"), kind).toBe(true);
+    }
   });
 
   it("let a third-party tab placed after TPI come just after it", () => {
@@ -78,6 +108,17 @@ describe("the native plugins", () => {
     third.registerPlugin({ id: "smartpi", translations: defineTranslations({ t: "Smart" }), contributions: { thermostat_config: [{ id: "smartpi.tab", title: "t", component: "x-el", placement: { after: "core_tpi.tab.main" } }] } });
     const order = ids(third.resolved("thermostat_config"));
     expect(order[order.indexOf("core_tpi.tab.main") + 1]).toBe("smartpi.tab");
+    // Without a group, the tab cuts the general settings in two runs; with the shared group, it joins them.
+    expect(groupMenu(third.resolved("thermostat_config")).filter((section) => section.group === CORE_MENU_GROUPS.settings)).toHaveLength(2);
+    const joined = createThirdParty();
+    joined.registerPlugin({
+      id: "smartpi",
+      translations: defineTranslations({ t: "Smart" }),
+      contributions: { thermostat_config: [{ id: "smartpi.tab", title: "t", component: "x-el", group: CORE_MENU_GROUPS.settings, placement: { after: "core_tpi.tab.main" } }] },
+    });
+    const sections = groupMenu(joined.resolved("thermostat_config"));
+    expect(sections.filter((section) => section.group === CORE_MENU_GROUPS.settings)).toHaveLength(1);
+    expect(ids(sections[1]?.entries ?? [])).toContain("smartpi.tab");
   });
 
   it("let a third-party plugin replace and remove native tabs", () => {
@@ -108,21 +149,21 @@ function createThirdParty(): FakeHost {
 
 describe("the tabs that apply to a thermostat", () => {
   it("show every tab of a thermostat that uses everything", () => {
-    expect(visibleTabs(everything)).toEqual(["main", "features", "type", "tpi", "presets", "window", "motion", "power", "presence", "valve_regulation", "sync_device_internal_temp", "advanced", "lock", "humidity", "heating_failure_detection"]);
+    expect(visibleTabs(everything)).toEqual(["main", "type", "features", "presets", "tpi", "valve_regulation", "advanced", "window", "motion", "power", "presence", "sync_device_internal_temp", "lock", "humidity", "heating_failure_detection"]);
   });
 
   it("keep the tabs of the features of a thermostat over a switch in the menu while the features are off", () => {
     expect(visibleTabs({ thermostat_type: "thermostat_over_switch", proportional_function: "tpi" })).toEqual([
       "main",
-      "features",
       "type",
-      "tpi",
+      "features",
       "presets",
+      "tpi",
+      "advanced",
       "window",
       "motion",
       "power",
       "presence",
-      "advanced",
       "lock",
       "humidity",
       "heating_failure_detection",
@@ -140,6 +181,7 @@ describe("the tabs that apply to a thermostat", () => {
       ["power", "use_power_feature"],
       ["presence", "use_presence_feature"],
       ["auto_start_stop", "use_auto_start_stop_feature"],
+      ["sync_device_internal_temp", "sync_device_internal_temp"],
       ["heating_failure_detection", "use_heating_failure_detection_feature"],
     ]);
   });
@@ -165,6 +207,19 @@ describe("the tabs that apply to a thermostat", () => {
 
   it("keep the auto start and stop of a climate without valve regulation in the menu while it is off", () => {
     expect(visibleTabs({ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" })).toContain("auto_start_stop");
+  });
+
+  it("keep the synchronization of the temperature of a climate in the menu while it is off, and never show it for another type", () => {
+    expect(visibleTabs({ thermostat_type: "thermostat_over_climate", auto_regulation_mode: "auto_regulation_none" })).toContain("sync_device_internal_temp");
+    expect(visibleTabs({ thermostat_type: "thermostat_over_switch", sync_device_internal_temp: true })).not.toContain("sync_device_internal_temp");
+    expect(visibleTabs({ thermostat_type: "thermostat_over_valve" })).not.toContain("sync_device_internal_temp");
+  });
+
+  it("keep the switch of each feature in the tab of the flow that offers it", () => {
+    const climate = { thermostat_type: "thermostat_over_climate" };
+    expect(featureStepOf("sync_device_internal_temp", climate, "thermostat")).toBe("type");
+    expect(featureStepOf("use_window_feature", climate, "thermostat")).toBe("features");
+    expect(featureStepOf("use_central_boiler_feature", { thermostat_type: "thermostat_central_config" }, "central")).toBe("features");
   });
 
   it("never show the heating failure detection for a climate without valve regulation, whose features do not offer it", () => {
@@ -222,6 +277,48 @@ describe("the status of the native tabs", () => {
     expect(status("core_window.tab.main", { ...window, window_auto_open_threshold: 3 })).toEqual({ kind: "complete" });
     const central = { thermostat_type: "thermostat_central_config", window_auto_open_threshold: 3 };
     expect(status("core_window.tab.main", { ...window, use_window_central_config: true }, central)).toEqual({ kind: "inherited" });
+  });
+});
+
+describe("the tabs that their values turn off", () => {
+  const thermostatEntry = (id: string) => host.resolved("thermostat_config").find((candidate) => candidate.id === id) as PlacedEntry;
+  const centralEntry = (id: string) => host.resolved("general_config").find((candidate) => candidate.id === id) as PlacedEntry;
+  const switchType = { thermostat_type: "thermostat_over_switch" };
+  const central = { thermostat_type: "thermostat_central_config" };
+  const status = (entry: PlacedEntry, values: Record<string, unknown>, centralValues: Record<string, unknown> = {}) =>
+    host.status(entry, { hass: host.hass, thermostatId: "t", thermostatType: "over_switch", values, centralValues } as never);
+
+  it("is off for the humidity while the humidity sensor is not used, and complete once it is", () => {
+    expect(status(thermostatEntry("core_humidity.tab.main"), switchType)).toEqual({ kind: "off" });
+    expect(status(thermostatEntry("core_humidity.tab.main"), { ...switchType, use_humidity_feature: false })).toEqual({ kind: "off" });
+    expect(status(thermostatEntry("core_humidity.tab.main"), { ...switchType, use_humidity_feature: true })).toEqual({ kind: "complete" });
+  });
+
+  it("is off for a lock that blocks neither the users nor the automations, with the defaults of Versatile Thermostat", () => {
+    const own = { ...switchType, use_lock_central_config: false };
+    expect(status(thermostatEntry("core_lock.tab.main"), { ...own, lock_users: false, lock_automations: false })).toEqual({ kind: "off" });
+    expect(status(thermostatEntry("core_lock.tab.main"), { ...own, lock_users: true, lock_automations: false })).toEqual({ kind: "complete" });
+    expect(status(thermostatEntry("core_lock.tab.main"), { ...own, lock_users: false })).toEqual({ kind: "complete" });
+    expect(status(centralEntry("core_lock.general.main"), { ...central, lock_users: false, lock_automations: false })).toEqual({ kind: "off" });
+    expect(status(centralEntry("core_lock.general.main"), central)).toEqual({ kind: "complete" });
+  });
+
+  it("is central and off for a thermostat that uses a central lock that blocks nothing, whatever its own values", () => {
+    const blocksNothing = { ...central, lock_users: false, lock_automations: false };
+    expect(status(thermostatEntry("core_lock.tab.main"), switchType, blocksNothing)).toEqual({ kind: "inherited", off: true });
+    expect(status(thermostatEntry("core_lock.tab.main"), { ...switchType, lock_users: true }, blocksNothing)).toEqual({ kind: "inherited", off: true });
+    expect(status(thermostatEntry("core_lock.tab.main"), switchType, central)).toEqual({ kind: "inherited" });
+  });
+
+  it("is off, not central, for a window whose feature the thermostat turned off, and central for a central without window", () => {
+    const navigationStatus = (values: Record<string, unknown>, centralValues: Record<string, unknown>) => {
+      const entry = thermostatEntry("core_window.tab.main");
+      const feature = (entry.contribution as { feature?: string }).feature as string;
+      return values[feature] === true ? status(entry, values, centralValues) : { kind: "off" };
+    };
+    const centralWithoutWindow = { ...central, use_window_feature: false, window_auto_open_threshold: 3 };
+    expect(navigationStatus({ ...switchType, use_window_central_config: true }, centralWithoutWindow)).toEqual({ kind: "off" });
+    expect(navigationStatus({ ...switchType, use_window_feature: true, use_window_central_config: true }, centralWithoutWindow)).toEqual({ kind: "inherited" });
   });
 });
 

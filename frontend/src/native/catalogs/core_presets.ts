@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.presets": "Presets",
   "description.presets": "Select if the thermostat will use central preset - deselect for the thermostat to have its own presets",
   "field.use_presets_central_config": "Use central presets configuration",
@@ -33,7 +32,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.presets": "Pre-réglages",
   "description.presets": "Cochez pour que ce thermostat utilise les pré-réglages de la configuration centrale. Décochez pour utiliser des entités de température spécifiques",
   "field.use_presets_central_config": "Utiliser la configuration des pré-réglages centrale",
@@ -57,7 +55,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.presets": "Temperaturvoreinstellungen",
   "description.presets": "Zentralen Temperaturvoreinstellungen für dieses Thermostat aktivieren. Für eigene Voreinstellungen des Thermostats, diese Option deaktivieren.",
   "field.use_presets_central_config": "Zentralen Temperaturvoreinstellungen verwenden",

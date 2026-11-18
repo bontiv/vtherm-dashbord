@@ -28,6 +28,26 @@ export const CORE_TOP_TABS: CoreTopTabs = {
   configuration: "core.top.configuration",
 };
 
+/** The groups of the menus that the core shares with every plugin. */
+export interface CoreMenuGroups {
+  /** "General settings": the sections that cannot be turned off, such as the main attributes or the presets. */
+  readonly settings: "core:settings";
+  /** "Optional features": the sections that can be turned off, such as the detection of an open window. */
+  readonly features: "core:features";
+}
+
+/**
+ * The groups of the menus that the core shares: a contribution that declares one as its `group` joins the heading of the native
+ * sections, which the dashboard translates. The prefix `core:` is reserved for these groups.
+ */
+export const CORE_MENU_GROUPS: CoreMenuGroups = {
+  settings: "core:settings",
+  features: "core:features",
+};
+
+/** Whether a group is one of the groups that the core shares. */
+export const isCoreMenuGroup = (group: string | undefined): group is CoreMenuGroups[keyof CoreMenuGroups] => group === CORE_MENU_GROUPS.settings || group === CORE_MENU_GROUPS.features;
+
 /** A contribution that shows something, whatever its hook. */
 export type ShownContribution = ContributionMap[HookName];
 

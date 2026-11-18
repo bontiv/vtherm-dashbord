@@ -9,7 +9,6 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
-  "group.vtherm": "Versatile Thermostat",
   "title.heating_failure_detection": "Heating failure detection",
   "description.heating_failure_detection": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
   "field.cooling_failure_threshold": "Cooling failure threshold",
@@ -39,7 +38,6 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
-  "group.vtherm": "Versatile Thermostat",
   "title.heating_failure_detection": "Détection de panne de chauffage",
   "description.heating_failure_detection": "Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
   "field.cooling_failure_threshold": "Seuil de panne de refroidissement",
@@ -69,7 +67,6 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
-  "group.vtherm": "Versatile Thermostat",
   "title.heating_failure_detection": "Heizungsausfallerkennung",
   "description.heating_failure_detection": "Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
   "field.cooling_failure_threshold": "Kühlungsausfallschwellwert",
