@@ -23,7 +23,7 @@
 ## 5. Vérification
 
 - [x] 5.1 `npm run check`, `npm test`, `npm run test:docs` et `pytest -n auto`, chaque commande avec un délai maximal (`timeout`) ; noter les durées avant et après dans le compte rendu — avant la reconstruction du conteneur : `npm run check` passe ; pytest 297 tests en 19 à 22 s (194 s avant), 40 s avec le mode debug comme en CI ; `check-doc-completeness.test.ts` 0,17 s (28,7 s avant) ; `npm test` reste à environ 80 s tant que `node_modules` est sur le montage de l'hôte, avec `complements-sanitize` qui ne démarre pas et `native-docs` dont le `beforeAll` dépasse 10 s sous charge (passe seul et dans `npm run test:docs`), et un échec de `complements-docs.test.ts` qui vient des modifications en cours du change `improve-complements-ux`
-- [ ] 5.2 Après la reconstruction du devcontainer par l'utilisateur : `node_modules` sur les volumes (`mount`), durée de `npm test`, `complements-sanitize.test.ts` qui démarre dans le pool par défaut, serveur Vite et HA de développement toujours fonctionnels (`start-ha.sh --dev-frontend`)
+- [x] 5.2 Après la reconstruction du devcontainer par l'utilisateur : `node_modules` sur les volumes (`mount`), durée de `npm test`, `complements-sanitize.test.ts` qui démarre dans le pool par défaut, serveur Vite et HA de développement toujours fonctionnels (`start-ha.sh --dev-frontend`) — après reconstruction : `node_modules` et `frontend/node_modules` sur des volumes ext4 appartenant à `vscode` ; `npm test` 74 fichiers et 1 115 tests verts en 18 s (environ 80 s avant), `complements-sanitize` et `native-docs` passent dans le pool par défaut ; `pytest -n auto` 321 tests en 20 s ; Vite et le HA de développement démarrent, le panneau charge 123 modules depuis Vite
 
 ## Workflow follow-up
 
