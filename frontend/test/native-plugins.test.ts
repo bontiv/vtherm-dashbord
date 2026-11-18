@@ -5,7 +5,8 @@ import { assertCompleteTranslations, createFakeHost, findTranslationProblems } f
 import type { FakeHost } from "@vtherm/dashboard-sdk/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { CREATION_TABS, MENU_ORDER, definitionOfContribution, featureStepOf, fieldsOfPlugin, menuGroupOf } from "../src/native/tab-definitions.ts";
+import { LABEL_MAX_LENGTH, fieldLabelKey, isWideField } from "../src/native/fields.ts";
+import { CREATION_TABS, MENU_ORDER, NATIVE_TAB_PLUGINS, definitionOfContribution, featureStepOf, fieldsOfPlugin, menuGroupOf } from "../src/native/tab-definitions.ts";
 import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
 let host: FakeHost;
@@ -319,6 +320,30 @@ describe("the tabs that their values turn off", () => {
     const centralWithoutWindow = { ...central, use_window_feature: false, window_auto_open_threshold: 3 };
     expect(navigationStatus({ ...switchType, use_window_central_config: true }, centralWithoutWindow)).toEqual({ kind: "off" });
     expect(navigationStatus({ ...switchType, use_window_feature: true, use_window_central_config: true }, centralWithoutWindow)).toEqual({ kind: "inherited" });
+  });
+});
+
+describe("the names of the fields", () => {
+  it("prefer the short name of the dashboard to the name of Versatile Thermostat", () => {
+    expect(fieldLabelKey("safety_delay_min", { "label.safety_delay_min": "Safety delay (min)", "field.safety_delay_min": "Safety delay (in minutes)" })).toBe("label.safety_delay_min");
+    expect(fieldLabelKey("name", { "field.name": "Name" })).toBe("field.name");
+  });
+
+  it("fit on one line of a tile, required asterisk included, in English, French and German", async () => {
+    const tooLong: string[] = [];
+    for (const plugin of NATIVE_TAB_PLUGINS) {
+      const catalogs = (await import(`../src/native/catalogs/${plugin}.ts`)) as Record<"en" | "fr" | "de", Record<string, string>>;
+      for (const field of fieldsOfPlugin(plugin).filter((candidate) => !isWideField(candidate) && candidate.kind !== "boolean")) {
+        const key = fieldLabelKey(field.key, catalogs.en);
+        for (const language of ["en", "fr", "de"] as const) {
+          const name = `${catalogs[language][key] ?? ""}${field.required ? "*" : ""}`;
+          if (name.length > LABEL_MAX_LENGTH) {
+            tooLong.push(`${plugin} ${field.key} (${language}, ${name.length}): ${name}`);
+          }
+        }
+      }
+    }
+    expect(tooLong).toEqual([]);
   });
 });
 

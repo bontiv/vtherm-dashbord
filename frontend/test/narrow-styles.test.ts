@@ -90,7 +90,7 @@ describe("the fields of a native section on a phone", () => {
     const css = flatten(NativeTabElement.styles)
       .map((style) => (style as { cssText?: string }).cssText ?? "")
       .join("\n");
-    expect(css).toMatch(/\.fields\s*\{[^}]*minmax\(min\(240px, 100%\), 1fr\)/);
+    expect(css).toMatch(/\.fields\s*\{[^}]*minmax\(min\(300px, 100%\), 1fr\)/);
     expect(css).toMatch(/\.field\s*\{[^}]*min-width: 0/);
     expect(css).toMatch(/\.chip\s*\{[^}]*overflow-wrap: anywhere/);
   });

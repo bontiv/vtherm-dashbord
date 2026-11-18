@@ -44,6 +44,8 @@ describe("the help of a field", () => {
     const help = await mount({ info: "A longer cycle switches less often." });
     const toggle = button(help) as HTMLButtonElement;
     expect([toggle.getAttribute("aria-label"), toggle.getAttribute("aria-expanded")]).toEqual(["Help: Cycle", "false"]);
+    // The grid of a field moves the button to the height of its input through this part.
+    expect(toggle.getAttribute("part")).toBe("toggle");
     expect(toggle.getAttribute("aria-controls")).toBe(panel(help).id);
     expect(panel(help).hidden).toBe(true);
     toggle.click();

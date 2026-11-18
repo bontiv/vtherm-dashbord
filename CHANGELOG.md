@@ -67,6 +67,12 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   "Advanced settings (N)" of each section. Its description keeps the old name, which Versatile Thermostat still uses. Identifiers and
   addresses do not change.
 
+- The inputs of a row of fields start at the same height: the fields and the switches of a row that holds an entity picker, whose
+  name is above its input, move down to its input. A row without an entity picker keeps its height.
+- The names of the fields fit on one line of their tile in English, French and German: the names of Versatile Thermostat that were
+  too long, and whose second line covered the value (the safety delay, the thresholds of the window detection, the delays of the
+  window, the power sensors, among others), have a short name in the dashboard; their hint keeps the details.
+
 ### For contributors
 - `npm run test:docs` runs the checks of the documentation, which `npm test` now skips because they are long.
 - The sample plugin (`examples/vtherm_sample_plugin/ui`) is no longer a workspace of the root `package.json`, so an SDK version that is not

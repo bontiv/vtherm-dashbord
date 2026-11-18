@@ -150,6 +150,14 @@ describe("the tab main", () => {
     const choices = findAll(root, "#field-temperature_sensor_entity_id-choices option").map((option) => option.getAttribute("value"));
     expect(choices).toEqual(["sensor.indoor", "sensor.outdoor"]);
   });
+
+  it("gives every field its band and its body, and no band height: every plain control has its label above", async () => {
+    const { root } = await render("core.tab.main", SWITCH);
+    const tiles = findAll<HTMLElement>(root, ".field[data-key]");
+    expect(tiles.length).toBeGreaterThan(0);
+    expect(tiles.every((tile) => tile.querySelector(":scope > .label-band") !== null && tile.querySelector(":scope > .field-body") !== null)).toBe(true);
+    expect(findAll(root, ".field.label-above")).toEqual([]);
+  });
 });
 
 describe("the required fields that a creation misses", () => {

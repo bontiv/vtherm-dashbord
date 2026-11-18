@@ -1093,6 +1093,7 @@ function helpOf(keys: readonly string[], own: Readonly<Record<string, FieldHelp>
 /** The texts of each plugin, by key. They come before the texts of Versatile Thermostat, so they can replace one. */
 export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>>>> = {
   core: {
+    "label.power_unit": { en: "Power unit", fr: "Unité de puissance", de: "Leistungseinheit" },
     "top.dashboard": { en: "Dashboard", fr: "Tableau de bord", de: "Dashboard" },
     "top.thermostats": { en: "Thermostats", fr: "Thermostats", de: "Thermostate" },
     "top.configuration": { en: "Configuration", fr: "Configuration", de: "Konfiguration" },
@@ -1136,6 +1137,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ]),
   },
   core_auto_start_stop: {
+    "label.auto_start_stop_level": { en: "Auto start and stop level", fr: "Niveau d'allumage/extinction auto", de: "Stufe für Auto-Ein/Aus" },
     "feature_intro.use_auto_start_stop_feature": {
       en: "Turns the device off when the room is warm enough and on again when it needs heat, to save energy.",
       fr: "Éteint l'appareil quand la pièce est assez chaude et le rallume quand elle a besoin de chaleur, pour économiser de l'énergie.",
@@ -1145,6 +1147,11 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["auto_start_stop_level"]),
   },
   core_window: {
+    "label.window_delay": { en: "Delay on opening (seconds)", fr: "Délai à l'ouverture (secondes)", de: "Verzögerung beim Öffnen (Sek.)" },
+    "label.window_off_delay": { en: "Delay on closing (seconds)", fr: "Délai à la fermeture (secondes)", de: "Verzögerung beim Schliessen (Sek.)" },
+    "label.window_auto_open_threshold": { en: "Opening threshold (°/h)", fr: "Seuil de détection (°/h)", de: "Erkennungsschwelle (°/h)" },
+    "label.window_auto_close_threshold": { en: "Closing threshold (°/h)", fr: "Seuil de fin de détection (°/h)", de: "Endschwelle der Erkennung (°/h)" },
+    "label.window_auto_max_duration": { en: "Maximum detection duration (min)", fr: "Durée maximale d'extinction (min)", de: "Maximale Abschaltdauer (min)" },
     "feature_intro.use_window_feature": {
       en: "Turns the heating off, or lowers it, while a window is open: with a window sensor, or by detecting the fast drop of the temperature.",
       fr: "Coupe ou réduit le chauffage pendant qu'une fenêtre est ouverte : avec un capteur d'ouverture, ou en détectant la baisse rapide de la température.",
@@ -1169,6 +1176,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["use_motion_central_config", "motion_sensor_entity_id", "motion_delay", "motion_off_delay", "motion_preset", "no_motion_preset"]),
   },
   core_power: {
+    "label.power_sensor_entity_id": { en: "Total power sensor", fr: "Capteur de puissance totale", de: "Gesamtleistungssensor" },
+    "label.max_power_sensor_entity_id": { en: "Max power sensor", fr: "Capteur de puissance max", de: "Sensor der maximalen Leistung" },
     "feature_intro.use_power_feature": {
       en: "Sheds the heating when the power of the home would go above its limit, so that the main switch does not trip.",
       fr: "Déleste le chauffage quand la puissance du logement dépasserait sa limite, pour éviter que le disjoncteur ne saute.",
@@ -1185,6 +1194,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["use_presence_central_config", "presence_sensor_entity_id"]),
   },
   core_central_boiler: {
+    "label.central_boiler_activation_delay_sec": { en: "Activation delay (seconds)", fr: "Délai d'activation (secondes)", de: "Aktivierungsverzögerung (Sekunden)" },
     "feature_intro.use_central_boiler_feature": {
       en: "Starts the central boiler when a thermostat needs heat and stops it when none does.",
       fr: "Démarre la chaudière centrale quand un thermostat a besoin de chauffer et l'arrête quand aucun n'en a besoin.",
@@ -1218,6 +1228,10 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["sync_with_calibration", "sync_entity_ids"]),
   },
   core_advanced: {
+    "label.safety_delay_min": { en: "Safety delay (min)", fr: "Délai max. sans mesure (min)", de: "Max. Zeit ohne Messung (min)" },
+    "label.safety_min_on_percent": { en: "Minimum power for safety mode", fr: "Puissance minimale (mode sécurité)", de: "Mindestleistung (Sicherheitsmodus)" },
+    "label.safety_default_on_percent": { en: "Power in safety mode", fr: "Puissance en mode sécurité", de: "Leistung im Sicherheitsmodus" },
+    "label.manual_override_duration_min": { en: "Manual override duration (min)", fr: "Durée de la dérogation manuelle (min)", de: "Dauer der Übersteuerung (min)" },
     "title.advanced": {
       en: "Safety and manual override",
       fr: "Sécurité et dérogation",

@@ -42,7 +42,8 @@ export function diagramFormat(value: number, options?: Intl.NumberFormatOptions)
  *
  * With the attribute `in-field`, it takes no box of its own (`display: contents`): its button goes at the right of the control and its
  * panel under it, in the grid of the field (see the styles of the native tabs). Without it, it lays out its hint, its button and its panel
- * by itself, for a plugin that puts it next to its field.
+ * by itself, for a plugin that puts it next to its field. The button is the part `toggle`, so that the grid of a field can move it to the
+ * height of its input.
  */
 export class VThermFieldHelp extends LitElement {
   static override properties = {
@@ -222,6 +223,7 @@ export class VThermFieldHelp extends LitElement {
     return html`${hint}
       <button
         class="toggle"
+        part="toggle"
         type="button"
         aria-label=${name}
         title=${name}

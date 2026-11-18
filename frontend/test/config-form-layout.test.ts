@@ -7,7 +7,7 @@ import type { FakeHost, MockHaElement } from "@vtherm/dashboard-sdk/testing";
 import type { CSSResultGroup } from "lit";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { isWideField } from "../src/native/fields.ts";
+import { LABEL_ABOVE_HEIGHT, isWideField, labelAbove } from "../src/native/fields.ts";
 import { NativeTabElement } from "../src/native/native-tab.ts";
 import { allForms } from "../src/native/schemas.ts";
 import type { FieldSpec } from "../src/native/schemas.ts";
@@ -64,7 +64,7 @@ const field = (key: string, extra: Partial<FieldSpec> = {}): FieldSpec => ({ key
 
 describe("the grid of the fields", () => {
   it("adds columns with the width, keeps a readable width for each field, and gives the whole width to the wide fields", () => {
-    expect(css()).toMatch(/\.fields\s*\{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(min\(240px, 100%\), 1fr\)\)/);
+    expect(css()).toMatch(/\.fields\s*\{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(min\(300px, 100%\), 1fr\)\)/);
     expect(css()).toMatch(/\.wide\s*\{[^}]*grid-column: 1 \/ -1/);
     expect(css()).not.toContain("max-width: 760px");
   });
@@ -89,6 +89,39 @@ describe("the grid of the fields", () => {
     expect(isWideField(field("note", { kind: "text", multiline: true }))).toBe(true);
     expect(isWideField(field("central_boiler_activation_service"))).toBe(true);
     expect(isWideField(field("name"))).toBe(false);
+  });
+
+  it("knows the controls that show their name above their input: an entity picker of one entity", () => {
+    expect(labelAbove(field("temperature_sensor_entity_id", { kind: "entity" }))).toBe(true);
+    expect(labelAbove(field("underlying_entity_ids", { kind: "entity", multiple: true }))).toBe(false);
+    expect(labelAbove(field("name"))).toBe(false);
+    expect(labelAbove(field("cycle_min", { kind: "integer" }))).toBe(false);
+    expect(labelAbove(field("use_central_mode", { kind: "boolean" }))).toBe(false);
+  });
+});
+
+describe("the alignment of the inputs of a row", () => {
+  it("gives each tile a band for the name above the input, then its body, on two rows of the grid", () => {
+    expect(css()).toMatch(/\.fields > \*\s*\{[^}]*grid-row: span 2/);
+    expect(css()).toMatch(/\.field\s*\{[^}]*grid-template-rows: subgrid/);
+    expect(css()).toMatch(new RegExp(`\\.field\\.label-above > \\.label-band\\s*\\{[^}]*height: ${LABEL_ABOVE_HEIGHT}px`));
+    expect(css()).toMatch(new RegExp(`\\.field\\.label-above > \\.field-body\\s*\\{[^}]*margin-top: -${LABEL_ABOVE_HEIGHT}px`));
+    expect(css()).toMatch(new RegExp(`\\.field\\.label-above vtherm-field-help::part\\(toggle\\)\\s*\\{[^}]*margin-top: ${LABEL_ABOVE_HEIGHT}px`));
+    expect(css()).toMatch(/\.fields\s*\{[^}]*column-gap: 16px/);
+    expect(css()).not.toMatch(/\.fields\s*\{[^}]*gap: 12px 16px/);
+  });
+
+  it("puts the name of the temperature sensor in the band, and not the name of the other fields", async () => {
+    const { root } = await render("core.tab.main", { ...SWITCH, use_main_central_config: false });
+    for (const tile of findAll<HTMLElement>(root, ".field[data-key]")) {
+      expect(tile.firstElementChild?.classList.contains("label-band"), tile.dataset["key"]).toBe(true);
+      expect(tile.children[1]?.classList.contains("field-body"), tile.dataset["key"]).toBe(true);
+      expect(tile.children).toHaveLength(2);
+    }
+    const above = (key: string) => find(root, `.field[data-key="${key}"]`)?.classList.contains("label-above");
+    expect(above("temperature_sensor_entity_id")).toBe(true);
+    expect(above("name")).toBe(false);
+    expect(above("cycle_min")).toBe(false);
   });
 });
 

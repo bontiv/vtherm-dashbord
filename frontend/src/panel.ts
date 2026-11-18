@@ -8,6 +8,7 @@ import { createConfigApi } from "./config/api.ts";
 import { ConfigSession, creationKey, isCreationKey } from "./config/config-session.ts";
 import type { OpenConfig } from "./config/config-session.ts";
 import { PRESET_PREFIX } from "./config/draft.ts";
+import { fieldLabelKey } from "./native/fields.ts";
 import { creationContributionIds, creationMissing, creationValues, definitionOfContribution, featureStepOf } from "./native/tab-definitions.ts";
 import type { ConfigKind } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
@@ -599,7 +600,11 @@ export class VThermDashboardPanel extends LitElement {
   private missingText(kind: ConfigKind, draft: { values(): Readonly<Record<string, unknown>> }): string {
     const registry = (this.loaded as BootstrapResult).registry;
     return creationMissing(kind, draft.values(), this.session?.centralId !== null)
-      .map(({ definition, fields }) => `${registry.translate(definition.plugin, `title.${definition.tab}`)}: ${fields.map((field) => registry.translate(definition.plugin, `field.${field.key}`)).join(", ")}`)
+      .map(({ definition, fields }) => {
+        // The fields are named as their tile names them: the short name of the dashboard when the name of Versatile Thermostat is too long.
+        const english = (registry.definitions().find((candidate) => candidate.id === definition.plugin)?.translations.english ?? {}) as Readonly<Record<string, unknown>>;
+        return `${registry.translate(definition.plugin, `title.${definition.tab}`)}: ${fields.map((field) => registry.translate(definition.plugin, fieldLabelKey(field.key, english))).join(", ")}`;
+      })
       .join("; ");
   }
 

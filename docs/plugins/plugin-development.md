@@ -316,7 +316,8 @@ button (i) that opens a panel under the field, with a diagram, then an explanati
   of the library. Color it with the variables of the theme of Home Assistant.
 
 The button appears only when there is an explanation or a diagram. Its panel stays open while the user changes the field, and closes
-with Escape.
+with Escape. The button is the part `toggle` of the element: style it with `vtherm-field-help::part(toggle)`, for example to move it
+down to the input of a control that shows its name above it, as the native tabs do for an entity picker.
 
 <!-- example: docs/examples/typescript/field-help.ts -->
 ```typescript

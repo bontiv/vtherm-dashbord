@@ -107,7 +107,7 @@ while **Use humidity sensor** is unchecked, the lock while it blocks neither the
 A thermostat that uses a central lock that blocks nothing shows `Central (off)`.
 
 ### The layout of the tabs
-A native tab draws its fields on a grid that adds columns with the width (`repeat(auto-fill, minmax(min(240px, 100%), 1fr))`); a
+A native tab draws its fields on a grid that adds columns with the width (`repeat(auto-fill, minmax(min(300px, 100%), 1fr))`: a tile of at least 300 px, so that the name of a field fits on one line); a
 list, a template, a text of several lines and the blocks of commands take the whole width (`isWideField`). Its card uses the width of
 the page, up to 1240 px. The fields of `ADVANCED_FIELDS` (`tab-definitions.ts`) are in the panel **Advanced settings (N)**, closed,
 open when one of them is refused or required without a value; a field that the list does not know, added by a new version of
@@ -115,6 +115,21 @@ Versatile Thermostat, stays out of the panel. The option of inheritance of a tab
 **Customize for this thermostat**, which writes its opposite, and the central values as chips with a link to the same section of the
 general configuration. The tab of the window of a thermostat adds the choice of the method of detection (`windowMethod`), and shows
 only the fields of the method that is chosen.
+
+The inputs of a row of the grid start at the same height. The entity picker of Home Assistant shows its name above its input, the
+other controls inside it: each tile takes two rows of the grid, a band for that name then the tile (`.label-band`, `.field-body`). A
+tile whose control shows its name above (`labelAbove` in `fields.ts`: an entity picker of one entity) has a band of
+`LABEL_ABOVE_HEIGHT` px (25, measured on the Home Assistant of the devcontainer) and moves its body up into it; the other tiles have
+an empty band. So the band takes height only in a row that holds an entity picker, and the other inputs and switches of that row move
+down to the inputs of the pickers. The button (i) of such a tile moves down by the same height (`::part(toggle)` of the help), so
+that it stays at the height of its input.
+
+The name of a field that is not wide fits on one line of a tile at its narrowest: at most `LABEL_MAX_LENGTH` characters (38), the
+asterisk of a required field included. A longer name wraps inside the input of Home Assistant and covers the value. When the name of
+Versatile Thermostat is longer, the catalog of the plugin gives a short name, `label.<key>`, which the tab and the list of the missing
+fields of a creation show instead of `field.<key>` (`fieldLabelKey`); the hint and the explanation of the field keep the details. A
+test of `frontend/test/native-plugins.test.ts` checks the names of every native field in English, French and German, and names the
+field and the language that are too long.
 
 ### The help of the fields
 Each field of a native tab has up to three levels of help, from the catalog of its plugin:

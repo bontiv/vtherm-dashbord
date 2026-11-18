@@ -162,7 +162,7 @@ describe("the diagram of a group of fields", () => {
     const flatten = (styles: CSSResultGroup | undefined): string[] => (Array.isArray(styles) ? styles.flatMap((style) => flatten(style as CSSResultGroup)) : [(styles as { cssText?: string } | undefined)?.cssText ?? ""]);
     const css = flatten(NativeTabElement.styles).join("\n");
     expect(css).toMatch(/\.section-body\s*\{[^}]*container-type: inline-size/);
-    expect(css).toMatch(/@container \(min-width: 752px\)\s*\{\s*\.diagram-tile\s*\{[^}]*grid-column: span 2/);
+    expect(css).toMatch(/@container \(min-width: 932px\)\s*\{\s*\.diagram-tile\s*\{[^}]*grid-column: span 2/);
   });
 
   it("follows the central values of a section of TPI that inherits, drawn with them", async () => {

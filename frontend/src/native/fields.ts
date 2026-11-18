@@ -229,6 +229,40 @@ export function isWideField(field: FieldSpec): boolean {
   return field.multiple === true || field.multiline === true || field.kind === "template" || COMMAND_BLOCKS.has(field.key);
 }
 
+/**
+ * The height, in px, of the name that a control of Home Assistant shows above its input, as the entity picker does: the band that the
+ * grid of a section reserves above the other controls of a row that holds such a control. Measured on the Home Assistant of the
+ * devcontainer.
+ */
+export const LABEL_ABOVE_HEIGHT = 25;
+
+/**
+ * Whether the control of a field shows its name above its input instead of inside it: an entity picker of one entity. A wide field
+ * takes a row of its own, so its name never shifts another field.
+ *
+ * @param field - The field.
+ */
+export function labelAbove(field: FieldSpec): boolean {
+  return field.kind === "entity" && !isWideField(field);
+}
+
+/**
+ * The longest name of a field that a tile shows on one line at its narrowest, required asterisk included. A longer name wraps, and its
+ * second line covers the value of the field.
+ */
+export const LABEL_MAX_LENGTH = 38;
+
+/**
+ * The key of the name of a field in the catalog of its plugin: the short name of the dashboard (`label.<key>`) when the name of
+ * Versatile Thermostat (`field.<key>`) is too long for a tile.
+ *
+ * @param key - The key of the field.
+ * @param english - The English catalog of the plugin, which holds every key.
+ */
+export function fieldLabelKey(key: string, english: Readonly<Record<string, unknown>>): string {
+  return `label.${key}` in english ? `label.${key}` : `field.${key}`;
+}
+
 export function missingRequired(fields: readonly FieldSpec[], values: Readonly<Record<string, unknown>>): FieldSpec[] {
   return fields.filter((field) => {
     if (!field.required || (field.default !== null && field.default !== undefined && field.default !== "")) {

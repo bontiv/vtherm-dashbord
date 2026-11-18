@@ -1,6 +1,6 @@
 import { CORE_TOP_TABS, selectorOf } from "@vtherm/dashboard-sdk";
 import type { AnyTranslations, ConfigErrors, ConfigValues, DiagramId, Hass } from "@vtherm/dashboard-sdk";
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, unsafeCSS } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 
@@ -8,7 +8,23 @@ import type { PresetData, ThermostatList } from "../config/api.ts";
 import { PRESET_PREFIX } from "../config/draft.ts";
 import { translateErrorCode } from "../i18n.ts";
 import { shell, t } from "../shell-translations.ts";
-import { autoTpiDefaults, defaultOf, definitionOf, entityChoices, formatInput, isFieldShown, isWideField, missingRequired, parseInput, shownValue, valueForSelector, valueFromSelector } from "./fields.ts";
+import {
+  LABEL_ABOVE_HEIGHT,
+  autoTpiDefaults,
+  defaultOf,
+  definitionOf,
+  entityChoices,
+  fieldLabelKey,
+  formatInput,
+  isFieldShown,
+  isWideField,
+  labelAbove,
+  missingRequired,
+  parseInput,
+  shownValue,
+  valueForSelector,
+  valueFromSelector,
+} from "./fields.ts";
 import type { FieldSpec, SchemaName } from "./schemas.ts";
 import { fieldsOf } from "./schemas.ts";
 import { buildPresetGrid, parseTemperature, presetOrderWarnings } from "./preset-table.ts";
@@ -116,31 +132,62 @@ export class NativeTabElement extends LitElement {
         margin: 0 0 16px;
       }
       /* The fields of a section are tiles: the grid adds columns with the width, and a list, a template or a block of commands takes
-         the whole width. */
+         the whole width. A tile is at least 300 px wide, so that the name of a field fits on one line next to the button (i) and the
+         unit of its input: a name that wraps covers the value. */
       .fields {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
-        gap: 12px 16px;
+        grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+        column-gap: 16px;
         align-items: start;
-        margin: 12px 0;
+        margin: 12px 0 0;
+      }
+      /* Each tile takes two rows of the grid: a band for the name that a control shows above its input, then the tile. The space
+         between the tiles is their bottom margin, so that the band of a row without such a control has no height. */
+      .fields > * {
+        grid-row: span 2;
+        margin-bottom: 12px;
       }
       .field {
         display: grid;
+        grid-template-rows: subgrid;
+        align-self: stretch;
+        min-width: 0;
+      }
+      .label-band {
+        grid-row: 1;
+      }
+      .field-body {
+        grid-row: 2;
+        display: grid;
+        align-content: start;
         gap: 4px;
         min-width: 0;
+      }
+      /* A control that shows its name above its input, as the entity picker: its name moves up into the band, and its input starts
+         where the inputs of the other tiles of the row start. The body stays in the second row, so that its height never makes the band
+         taller. */
+      .field.label-above > .label-band {
+        height: ${unsafeCSS(`${LABEL_ABOVE_HEIGHT}px`)};
+      }
+      .field.label-above > .field-body {
+        margin-top: ${unsafeCSS(`-${LABEL_ABOVE_HEIGHT}px`)};
+      }
+      /* Its button (i) moves down by the height of the name, to stay at the height of its input, as in the other tiles. */
+      .field.label-above vtherm-field-help::part(toggle) {
+        margin-top: ${unsafeCSS(`${LABEL_ABOVE_HEIGHT}px`)};
       }
       .wide {
         grid-column: 1 / -1;
       }
       /* A field with a help: the button (i) at the right of its control, the panel and the other lines under it, on the whole width. */
-      .field.has-help {
+      .field.has-help > .field-body {
         grid-template-columns: minmax(0, 1fr) auto;
         column-gap: 4px;
       }
-      .field.has-help:not(.boolean) > :not(:first-child) {
+      .field.has-help:not(.boolean) > .field-body > :not(:first-child) {
         grid-column: 1 / -1;
       }
-      .field.boolean.has-help {
+      .field.boolean.has-help > .field-body {
         grid-template-columns: auto minmax(0, 1fr) auto;
       }
       /* The diagram of a group of fields: a tile of the grid, on two columns when the grid has three. */
@@ -154,7 +201,8 @@ export class NativeTabElement extends LitElement {
       .diagram-tile .diagram {
         max-width: 440px;
       }
-      @container (min-width: 752px) {
+      /* Three columns of 300 px and their gaps. */
+      @container (min-width: 932px) {
         .diagram-tile {
           grid-column: span 2;
         }
@@ -218,7 +266,7 @@ export class NativeTabElement extends LitElement {
         margin: 12px 0;
       }
       .advanced .fields {
-        margin: 12px 0 4px;
+        margin: 12px 0 -8px;
       }
       /* fallback: the panel of the advanced settings, when ha-expansion-panel is not defined. */
       .insight {
@@ -273,7 +321,7 @@ export class NativeTabElement extends LitElement {
         color: var(--secondary-text-color);
       }
       /* fallback: the controls and the messages of the fallback, when the components of Home Assistant are not defined. */
-      .field.boolean {
+      .field.boolean > .field-body {
         grid-template-columns: auto minmax(0, 1fr);
         align-items: start;
         column-gap: 8px;
@@ -621,7 +669,7 @@ export class NativeTabElement extends LitElement {
   }
 
   private label(field: FieldSpec): string {
-    return this.text(`field.${field.key}`);
+    return this.text(fieldLabelKey(field.key, this.statics.translations.english));
   }
 
   /** A text of the catalog for a field, such as `hint.cycle_min`, if the catalog has it. */
@@ -796,7 +844,7 @@ export class NativeTabElement extends LitElement {
     const extra = field.kind === "select" && typeof value === "string" && value !== "" && !(field.options ?? []).includes(value) ? [value] : [];
     const selector = selectorOf(definitionOf(field, (option) => this.optionLabel(field, option), extra));
     const missing = this.isMissing(field);
-    return html`<div class=${this.fieldClass(field, missing ? "missing" : "")} data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, [missing ? "missing" : "", labelAbove(field) ? "label-above" : ""].filter(Boolean).join(" "))} data-key=${field.key}><div class="label-band"></div><div class="field-body">
       <ha-selector
         aria-invalid=${missing ? "true" : "false"}
         aria-describedby=${missing ? `required-${field.key}` : ""}
@@ -812,7 +860,7 @@ export class NativeTabElement extends LitElement {
       ${missing ? this.renderRequiredNote(field) : undefined}
       ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${this.renderSuggestion(field)}
       ${error === undefined ? undefined : renderAlert("error", error, "field-error")} ${this.renderFieldHelp(field)}
-    </div>`;
+    </div></div>`;
   }
 
   /** Whether Home Assistant has a service, so that its picker can show it. */
@@ -883,11 +931,11 @@ export class NativeTabElement extends LitElement {
         ${control}
       </div>`;
     });
-    return html`<div class=${this.fieldClass(field, "commands")} data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, "commands")} data-key=${field.key}><div class="label-band"></div><div class="field-body">
       ${ha ? html`<div class="label"><strong>${this.label(field)}</strong></div>` : html`<label for=${id(0)}>${this.label(field)}</label>`} ${this.help(field)}
       ${underlyings.length === 0 && commands.length === 0 ? html`<div class="note">${t("config.command.no_underlying")}</div>` : rows}
       ${error === undefined ? undefined : renderAlert("error", error, "field-error")} ${this.renderFieldHelp(field)}
-    </div>`;
+    </div></div>`;
   }
 
   /** A service of the central boiler: the entity, the service and the attribute, stored as `entity_id/service[/attribute:value]`. */
@@ -916,10 +964,10 @@ export class NativeTabElement extends LitElement {
                   const next = command === "" ? { service: "", attribute: "" } : (parseCommand(command) ?? { service: command, attribute: "" });
                   store(formatBoilerService({ entity: parsed.entity, ...next }));
                 })}`;
-    return html`<div class=${this.fieldClass(field, "boiler-service")} data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, "boiler-service")} data-key=${field.key}><div class="label-band"></div><div class="field-body">
       ${parsed === undefined ? undefined : html`<div class="label"><strong>${this.label(field)}</strong></div>`} ${this.help(field)} ${controls}
       ${error === undefined ? undefined : renderAlert("error", error, "field-error")} ${this.renderFieldHelp(field)}
-    </div>`;
+    </div></div>`;
   }
 
   /** A field drawn with the plain HTML controls, when the components of Home Assistant are not defined. */
@@ -934,7 +982,7 @@ export class NativeTabElement extends LitElement {
     const errorLine = error === undefined ? undefined : html`<div class="error" id="error-${field.key}" role="alert">${error}</div>`;
     // fallback: the controls below replace ha-selector when it is not defined (an old version of Home Assistant, or out of it).
     if (field.kind === "boolean") {
-      return html`<div class=${this.fieldClass(field, "boolean")} data-key=${field.key}>
+      return html`<div class=${this.fieldClass(field, "boolean")} data-key=${field.key}><div class="label-band"></div><div class="field-body">
         <input
           type="checkbox"
           id=${id}
@@ -946,7 +994,7 @@ export class NativeTabElement extends LitElement {
         />
         <label class=${missing ? "touch-target missing" : "touch-target"} for=${id}>${this.label(field)}</label>
         ${this.help(field)} ${disabled ? html`<div class="note">${t("config.no_central")}</div>` : undefined} ${errorLine} ${this.renderFieldHelp(field)}
-      </div>`;
+      </div></div>`;
     }
     let control: TemplateResult;
     const onInput = (event: Event) => this.onFieldChange(field, (event.target as HTMLInputElement).value);
@@ -981,11 +1029,11 @@ export class NativeTabElement extends LitElement {
         />
         ${listId === undefined ? undefined : html`<datalist id=${listId}>${entityChoices(field, Object.keys(this.hass?.states ?? {})).map((entity) => html`<option value=${entity}></option>`)}</datalist>`}`;
     }
-    return html`<div class=${this.fieldClass(field, "")} data-key=${field.key}>
+    return html`<div class=${this.fieldClass(field, "")} data-key=${field.key}><div class="label-band"></div><div class="field-body">
       <label for=${id} class=${missing ? "missing" : ""}>${this.label(field)}</label>
       ${control} ${missing ? this.renderRequiredNote(field) : undefined} ${this.help(field)} ${this.renderSuggestion(field)} ${errorLine}
       ${this.renderFieldHelp(field)}
-    </div>`;
+    </div></div>`;
   }
 
   /** The address of the same section in the general configuration. */
