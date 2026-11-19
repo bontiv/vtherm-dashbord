@@ -1,0 +1,38 @@
+# Tasks
+
+## 1. Entités et contexte dans le SDK
+
+- [x] 1.1 Vérifier dans le devcontainer, sur la version de Home Assistant du projet, que `hass.devices[...]` a `identifiers` et `hass.entities[...]` a `device_id`, `platform` et `translation_key`, que `hass.entities` n'a pas `config_entry_id`, et que le `select` du mode central est le seul `select` sans clé de traduction de l'appareil central ; noter le résultat et la version dans `design.md`
+- [x] 1.2 Ajouter à `packages/sdk/src/types.ts` les types facultatifs `Hass.entities`, `Hass.devices`, `formatEntityState` et `formatEntityAttributeValue` (lecture seule), et exporter `getEntryEntities` (TypeScript, fonction pure sans appel réseau, valeurs vides si un registre ou l'entrée manque) ; vérifier par des tests Vitest les scénarios « Thermostat connu », « Configuration centrale », « Identifiant qui n'est pas une entrée », « Registre absent », « Aucun appel réseau » et « Plugin existant » (registres)
+- [x] 1.3 Ajouter `central` (`{ entryId, values }`) aux propriétés et au contexte de visibilité de `global_widget` (types du SDK), le remplir dans `frontend/src/panel.ts` avec `session.centralId` et `valuesOf`, et le transmettre par `frontend/src/components/widgets-page.ts` ; vérifier par des tests les scénarios « Configuration centrale présente », « Sans configuration centrale » et « Plugin existant » (widget global)
+- [x] 1.4 Faire utiliser `getEntryEntities` par `thermostatEntities` de `frontend/src/native/insight-panels.ts` et supprimer son appel `get_thermostats` pour les entités ; vérifier `frontend/test/insight-panels.test.ts` (mêmes entités trouvées)
+- [x] 1.5 Documenter `getEntryEntities`, `central` et les formateurs dans `docs/plugins/plugin-development.md` (corriger l'exemple qui traite `thermostatId` comme une entité `climate`) et `docs/plugins/hooks-and-placement.md`, régénérer `docs/reference/sdk`, ajouter l'entrée de `CHANGELOG.md` sous « For plugin authors » ; vérifier `npm run check:docs` et `npm run check:reference`
+
+## 2. Historique
+
+- [x] 2.1 Documenter dans `docs/plugins/plugin-development.md` la recette de lecture de l'historique par `hass.callWS` (`history/history_during_period`, requête minimale), les entités et attributs dont l'historique existe et ceux qui ne le sont pas, avec son exemple dans `docs/examples/typescript/` (synchronisé par `scripts/sync-doc-examples.ts`) ; vérifier `npm run check:docs`
+- [x] 2.2 Ajouter à `frontend/src/native/history.ts` seulement ce que les widgets natifs demandent (partage du client entre widgets, annulation quand la carte disparaît) ; vérifier `frontend/test/history.test.ts` (cache de 5 minutes, erreur, aucune requête avant l'appel)
+
+## 3. Taille d'un widget
+
+- [x] 3.1 Ajouter à `packages/sdk/src/types.ts` le type `WidgetSize` et la propriété facultative `size` des seules contributions `global_widget` et `thermostat_widget` ; ajouter les tests de type (`columns: 4`, `rows: 5`, `size` sur `thermostat_config` : compilation en échec ; `size` absent ou partiel : compilation réussie)
+- [x] 3.2 Valider `size` dans `packages/sdk/src/validation.ts` (objet, `columns` parmi 1, 2, 3 et `"full"`, `rows` parmi 1, 2, 3, clé inconnue refusée, refus sur un autre hook, chemin de l'élément fautif) ; vérifier par des tests les scénarios « Taille valide », « Colonnes invalides », « Clé inconnue », « Autre hook » et « Plugin existant » (taille)
+- [x] 3.3 Normaliser la taille (défaut `{ columns: 1, rows: 1 }`, `rows` à 1 pour une taille partielle) dans les contributions résolues du registre du dashboard et du faux hôte de `packages/sdk/src/testing.ts`, et accepter `entities` et `devices` dans le faux `hass` ; vérifier par des tests les scénarios « Taille partielle », « Taille résolue », « Mêmes règles de validation », « Test d'un widget » et « Entrée non déclarée »
+- [x] 3.4 Écrire dans `frontend/src/components/widgets.ts` les fonctions pures `gridColumns(largeur, écart)` et `spanOf(size, colonnes)`, la mesure par `ResizeObserver`, l'application de `grid-column` et de la hauteur minimale `rows` (variable `--vtherm-widget-row` de 140 px), le repli à une colonne sur écran étroit et l'absence de `grid-auto-flow: dense` ; vérifier par des tests les scénarios « Calcul du nombre de colonnes », « Largeur limitée à la grille », « Toute la rangée », « Widget sans taille », « Écran étroit » et « Pas de remplissage dense »
+- [x] 3.5 Vérifier par un test que l'ordre du DOM suit l'ordre résolu des placements quelle que soit la taille (scénario « Tabulation ») et ajouter la grille au test des styles étroits (`frontend/test/narrow-styles.test.ts`) à 360 px
+- [x] 3.6 Documenter `size`, la grille (nombre de colonnes, ordre sans remplissage dense, repli à une colonne, unité de ligne de 140 px) dans `docs/plugins/hooks-and-placement.md` et `docs/plugins/testing.md`, avec un exemple dans `docs/examples/typescript/` et son test, et ajouter l'entrée de `CHANGELOG.md` sous « For plugin authors » ; vérifier `npm run check:docs`, `npm run check:reference` et `npm run check:completeness`
+
+## 4. Composants de présentation et conteneur
+
+- [x] 4.1 Vérifier si `narrow` arrive aujourd'hui aux widgets (`frontend/src/components/widgets.ts` ne transmet que `hass` et `thermostatId`) et le transmettre ; remplacer `div.widget` par `ha-card` avec repli de même apparence ; vérifier par des tests les scénarios « Carte absente de Home Assistant » et « Widget tiers existant »
+- [x] 4.2 Créer sous `frontend/src/components/overview/` la carte de widget (titre, états chargement, vide, indisponible), la jauge, la barre simple et segmentée, l'icône d'état, la ligne de valeur et l'âge relatif, en TypeScript et Lit, avec le composant de Home Assistant quand il est défini (chargeur existant) et un repli, des noms accessibles et les couleurs du thème ; vérifier par des tests les scénarios « Jauge avec repère », « Barre segmentée », « Composant de Home Assistant absent », « Titre traduit » et « Chargement »
+- [x] 4.3 Ajouter les fonctions de formatage (formateurs de `hass` quand ils existent, repli `Intl` selon `hass.locale`, âge relatif, valeur indisponible « — ») ; vérifier par des tests en en/fr/de les scénarios « Formateur de Home Assistant », « Repli sans formateur », « Séparateur décimal », « Unité Fahrenheit », « Âge d'une mesure », « Capteur indisponible » et « Attribut absent »
+- [x] 4.4 Ajouter le déclencheur de chargement par visibilité (`IntersectionObserver`) et le filtre de redessin par entités lues ; vérifier par des tests les scénarios « Changement d'une entité étrangère » et « Carte hors de l'écran »
+- [x] 4.5 Vérifier l'absence de couleur figée des composants (`frontend/test/theme.test.ts`) et leur largeur à 360 px (`frontend/test/narrow-styles.test.ts`)
+- [x] 4.6 Ajouter les textes communs (indisponible, aucune donnée, chargement) en en/fr/de dans `scripts/native-texts.ts` et régénérer les catalogues ; vérifier `npm run check:catalogs`
+- [x] 4.7 Documenter les conventions des widgets (identifiants, titres, masquage, états, unités, affichage seul) dans `docs/plugins/hooks-and-placement.md` et `docs/user/dashboard.md`, avec l'entrée de `CHANGELOG.md` ; vérifier `npm run check:docs`
+
+## 5. Vérification d'ensemble
+
+- [x] 5.1 Exécuter `npm run check`, `npm test` et `npm run test:python` sans erreur
+- [x] 5.2 À faire par l'utilisateur : dans Home Assistant, ouvrir des widgets d'essai de tailles 1, 2, 3 et `full` à 1440 px et à 375 px, en thème sombre, et vérifier le nombre de colonnes, l'absence de débordement, l'ordre de tabulation, la bordure du conteneur, l'état « indisponible » et que les widgets d'un plugin tiers existant ne changent pas d'apparence

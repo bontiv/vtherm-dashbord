@@ -398,3 +398,51 @@ Chaque fonctionnalité que Versatile Thermostat propose pour le type de la confi
 #### Scenario: Fonctionnalité non applicable
 - **WHEN** un thermostat `over_switch` est ouvert
 - **THEN** aucun onglet ne propose le démarrage et l'arrêt automatiques
+
+### Requirement: Widgets de base des plugins natifs
+Les plugins natifs SHALL déclarer chacun leurs widgets de la vue d'ensemble d'un thermostat dans une liste `thermostat_widget` : `core` les widgets `core.widget.temperature`, `core.widget.mode` et `core.widget.alerts`, `core_tpi` `core_tpi.widget.heating`, `core_valve_regulation` `core_valve_regulation.widget.valve`, `core_presets` `core_presets.widget.preset` et `core_advanced` `core_advanced.widget.safety`. Ils SHALL utiliser les mêmes mécanismes que les plugins tiers.
+
+#### Scenario: Plugin à plusieurs widgets
+- **WHEN** le dashboard charge le plugin `core`
+- **THEN** il enregistre trois contributions `thermostat_widget`, chacune avec son placement et sa condition de visibilité
+
+#### Scenario: Retrait par un plugin tiers
+- **WHEN** un plugin tiers déclare `remove: core.widget.alerts` sur `thermostat_widget`
+- **THEN** le widget Alertes n'apparaît plus et les autres gardent leur place
+
+#### Scenario: Plugin sans widget
+- **WHEN** le plugin `core_complements` est chargé
+- **THEN** il ne déclare aucun widget
+
+### Requirement: Widgets globaux des plugins natifs
+Les plugins natifs SHALL déclarer chacun leurs widgets de la page Overview dans une liste `global_widget` : `core` les widgets `core.widget.central_mode`, `core.widget.summary` et `core.widget.outdoor`, `core_central_boiler` les widgets `core_central_boiler.widget.boiler` et `core_central_boiler.widget.boiler_power`, `core_power` le widget `core_power.widget.house_power` et `core_presence` le widget `core_presence.widget.presence`.
+
+#### Scenario: Plugin à deux widgets globaux
+- **WHEN** le dashboard charge le plugin `core_central_boiler`
+- **THEN** il enregistre deux contributions `global_widget`, chacune avec son placement et sa condition de visibilité
+
+#### Scenario: Remplacement par un plugin tiers
+- **WHEN** un plugin tiers déclare `replace: core_central_boiler.widget.boiler`
+- **THEN** son widget prend la place de la carte de la chaudière et `core_central_boiler.widget.boiler_power` garde son ordre
+
+### Requirement: Widgets de fonctions des plugins natifs
+Les plugins `core_window`, `core_motion`, `core_power`, `core_auto_start_stop`, `core_lock` et `core_heating_failure` SHALL déclarer chacun un widget de la vue d'ensemble d'un thermostat dans leur liste `thermostat_widget`, d'identifiant `<plugin>.widget.window`, `.motion`, `.overpowering`, `.auto_start_stop`, `.lock` et `.failure`.
+
+#### Scenario: Plugin à plusieurs widgets
+- **WHEN** le dashboard charge le plugin `core_power`
+- **THEN** il enregistre le widget `core_power.widget.overpowering` du thermostat, sans retirer ses widgets globaux ou d'énergie déclarés par d'autres changes
+
+#### Scenario: Plugin retiré
+- **WHEN** le plugin `core_motion` est désactivé
+- **THEN** le widget Mouvement n'apparaît plus et les autres gardent leur place
+
+### Requirement: Widgets de détail des plugins natifs
+Les plugins natifs SHALL déclarer chacun leurs widgets de détail de la vue d'ensemble d'un thermostat dans une liste `thermostat_widget` : `core` les widgets `core.widget.history` et `core.widget.devices`, `core_tpi` le widget `core_tpi.widget.auto_tpi`, `core_humidity` le widget `core_humidity.widget.humidity`, `core_sync_temp` le widget `core_sync_temp.widget.sync`, `core_central_boiler` le widget `core_central_boiler.widget.thermostat` et `core_power` le widget `core_power.widget.energy`.
+
+#### Scenario: Plugin à deux widgets
+- **WHEN** le dashboard charge le plugin `core`
+- **THEN** il enregistre aussi `core.widget.history` et `core.widget.devices`, chacun avec son placement et sa condition de visibilité
+
+#### Scenario: Remplacement de l'historique
+- **WHEN** un plugin tiers déclare `replace: core.widget.history`
+- **THEN** son widget prend la place de la carte d'historique, en dernière position
