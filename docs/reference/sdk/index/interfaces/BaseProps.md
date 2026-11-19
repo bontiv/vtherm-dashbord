@@ -8,6 +8,7 @@ The properties of every component of a contribution.
 
 ## Extended by
 
+- [`GlobalWidgetProps`](GlobalWidgetProps.md)
 - [`ThermostatProps`](ThermostatProps.md)
 - [`GeneralConfigProps`](GeneralConfigProps.md)
 - [`GeneralConfigVisibilityContext`](GeneralConfigVisibilityContext.md)

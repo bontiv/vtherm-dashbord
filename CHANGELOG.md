@@ -35,6 +35,32 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   thresholds, curve of a valve, regulation, window, motion, safety, manual override, heating failure, spread of the switches) are drawn
   with the values of the draft and highlight the setting of the field that has the focus; the fields that share a diagram show it next
   to them.
+- The overview of a thermostat shows seven cards, in display only: **Temperature** (gauge with the setpoint, outdoor temperature,
+  requested → applied setpoint, regulated setpoint), **Mode and action** (with the reason, the sleep mode and the central mode),
+  **Alerts** (messages, equipment unavailable, age of the measures against the safety delay, inhibition), **Heating** (TPI share and cycle),
+  **Valve** (opening, and each valve), **Preset** (timed preset and manual override) and **Safety**. A card whose feature the thermostat
+  does not have is hidden. The cards are in English, French and German, and none changes the thermostat.
+- The overview of a thermostat shows six more cards, one for each feature that acts on it, in display only, after the base cards:
+  **Window** (sensor, detection by the drop of temperature, bypass, and the effect now: off, eco, frost protection, fan only or none),
+  **Motion** (with the preset of activity), **Load shedding**, **Auto start and stop** (automatic stop, feature enabled, accumulated
+  error against its threshold, last switch), **Lock** and **Heating failure** (failures, probable cause with a link to the entity, check
+  in progress, detection paused by its template). A feature that is off leaves no card.
+- The overview of a thermostat shows seven cards of details, in display only, after the cards of the features: **Equipment** (state of
+  each equipment, expected active but off, fan mode), **Auto TPI learning** (state, cycles, coefficients, confidence in percent, time
+  constant, heating capacity, last status, start), **Central boiler** (whether the thermostat calls it), **Energy** (mean power with
+  its curve over 24 h, energy used), **Humidity**, **Tracking of the equipment** (temperature sent, suspended tracking with its gaps)
+  and, last, **Last 24 hours** on two columns (temperatures and heating share, read once the card is visible).
+- The Overview page of the Dashboard tab shows seven cards, in display only: **Central mode**, **Presence**, **Thermostats** (how many
+  heat, are idle, are off or are unavailable, and the thermostats in alert with a link to their overview), **Central boiler** (on or
+  off, active devices against the threshold, the thermostats that call it, delayed activation, not ready), **Power asked of the boiler**
+  (gauge with the threshold and curve over 24 h), **Power of the home** (power against the maximum, margin, total energy) and **Outdoor
+  temperature** (value and curve over 24 h). A card whose feature is off or whose entity does not exist is hidden; with
+  no thermostat and no central configuration, the page says that there is nothing to show yet. None changes the central mode or the
+  presence.
+- The grid of the widgets of the overview pages uses the width of the screen: a widget can take several columns or the whole row,
+  and a minimal height; on a phone every card takes the whole width. Each widget is drawn in a card of Home Assistant. The common
+  components of the native widgets (card, gauge, bars, icon of a state, row of a value, age of a measure) are ready; no widget is
+  shown yet.
 
 ### Changed
 - The add-ons pages are easier to read and to act on. The status of an add-on is an icon and a text with a contrast of at least 4.5:1,
@@ -128,6 +154,30 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   or a saved address keeps working. The change is compatible.
 - **BREAKING**: the contributions `core.tab.features` and `core.general.features` no longer exist. A plugin placed `after:` or
   `before:` one of them gets the warning `target_missing` and goes last: place it relative to `core.tab.type` or `core.tab.main`.
+- The SDK exports `getEntryEntities(hass, entryId)`, a pure and synchronous function that finds the entities of a configuration entry
+  of Versatile Thermostat (a thermostat, or the central configuration) in the registries of `hass`: its `climate` entity, its entities
+  by translation key (`byKey`) and every entity of its device. It calls nothing on the server and gives empty values when the entry or a
+  registry is missing. `thermostatId` is the configuration entry, not the `climate` entity: a widget that read
+  `hass.states[thermostatId]` read nothing, use `getEntryEntities(hass, thermostatId).climate`. The change is compatible.
+- The type `Hass` describes, as optional and read-only, the registries `entities` and `devices` and the formatters
+  `formatEntityState` and `formatEntityAttributeValue` of Home Assistant; `HassState` has the optional `entity_id`, `last_changed` and
+  `last_updated`. The fake `hass` of `@vtherm/dashboard-sdk/testing` accepts `devices` and `entities`, and `setDevice` and `setEntity`
+  fill them. The change is compatible.
+- A `global_widget` receives `central`, the entry of the central configuration and its values (`{ entryId, values }`), in its
+  properties and in the context of its visibility condition; it is absent when there is no central configuration. The change is
+  compatible.
+- The guide [Developing a plugin](docs/plugins/plugin-development.md#read-the-history) gives the recipe to read the history of an
+  entity with `hass.callWS` and `history/history_during_period`, and the attributes of a thermostat whose history the recorder keeps.
+- A `global_widget` or `thermostat_widget` can declare `size: { columns?: 1 | 2 | 3 | "full"; rows?: 1 | 2 | 3 }`. The grid of the
+  widgets has as many columns of at least 280 px as its width holds, reduces a width to that number, gives `"full"` the whole row,
+  gives a minimal height of `rows` × 140 px plus the gaps, has one column on a phone, and keeps the order of the placements (no dense
+  filling). A wrong value, an unknown key or `size` on another hook is refused at registration with its path. The resolved entries
+  carry `size` with its defaults (`resolveWidgetSize`). Each widget is drawn in a `ha-card`, and receives `narrow`. The change is
+  compatible: a widget without `size` keeps one column and the height of its content.
+- The page [Hooks and placement](docs/plugins/hooks-and-placement.md#conventions-of-the-widgets) gives the conventions of the
+  widgets that the native widgets follow: identifier `<plugin>.widget.<name>`, title `widget.<name>.title`, hidden rather than empty,
+  states of loading, empty and unavailable ("—", never 0), units and formats of Home Assistant, accessibility, theme, cost, and display
+  only.
 
 ## [0.1.0-beta2]
 The second beta.

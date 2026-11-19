@@ -17,12 +17,9 @@ const MINUTE = 60_000;
 /** A text that names its key and its parameters, so that the tests read what the panel says. */
 const text = (key: string, params?: Readonly<Record<string, string | number>>) => (params === undefined ? key : `${key}${JSON.stringify(params)}`);
 
-/** A fake hass: states, the list of the thermostats, the registry of the entities and a recorder that answers with rows, or fails. */
+/** A fake hass: states, the registries of the devices and of the entities, and a recorder that answers with rows, or fails. */
 function fakeHass(states: Record<string, { state: string; attributes?: Record<string, unknown> }>, history: Rows | (() => never) = {}) {
   const callWS = vi.fn(async (message: Record<string, unknown>) => {
-    if (message["type"] === "vtherm_dashboard/get_thermostats") {
-      return { thermostats: [{ id: "entry", climate_entity_id: "climate.salon", device_id: "device" }], has_central_config: true, central_config_id: "central", supported_config_version: [2, 4] };
-    }
     if (typeof history === "function") {
       return history();
     }
@@ -31,9 +28,15 @@ function fakeHass(states: Record<string, { state: string; attributes?: Record<st
   });
   const hass = {
     states: Object.fromEntries(Object.entries(states).map(([id, value]) => [id, { entity_id: id, state: value.state, attributes: value.attributes ?? {} }])),
+    devices: {
+      device: { id: "device", identifiers: [["versatile_thermostat", "entry"]] },
+      "other-device": { id: "other-device", identifiers: [["versatile_thermostat", "other"]] },
+    },
     entities: {
+      "climate.salon": { entity_id: "climate.salon", device_id: "device", platform: "versatile_thermostat" },
       "sensor.salon_power_percent": { entity_id: "sensor.salon_power_percent", device_id: "device", translation_key: "power_percent" },
       "sensor.salon_temperature_slope": { entity_id: "sensor.salon_temperature_slope", device_id: "device", translation_key: "temperature_slope" },
+      "climate.chambre": { entity_id: "climate.chambre", device_id: "other-device", platform: "versatile_thermostat" },
     },
     locale: { language: "en" },
     language: "en",
@@ -199,24 +202,21 @@ describe("the replay of TPI", () => {
 
   it("forgets the entities and the history of a thermostat when it is given another one", async () => {
     const { hass, callWS } = fakeHass(STATES, replay("d"));
-    const answer = async (message: Record<string, unknown>): Promise<unknown> => {
-      if (message["type"] === "vtherm_dashboard/get_thermostats") {
-        return {
-          thermostats: [
-            { id: "entry", climate_entity_id: "climate.salon", device_id: "device" },
-            { id: "other", climate_entity_id: "climate.chambre", device_id: "other-device" },
-          ],
-        };
-      }
-      const entity = (message["entity_ids"] as string[])[0] as string;
-      return { [entity]: replay("d")[entity] ?? [] };
-    };
-    callWS.mockImplementation(answer as never);
     const { panel, root } = await mount("vtherm-insight-tpi", { hass, values: values("d") });
     panel.period = "day";
     await vi.waitFor(() => expect(find(root, "vtherm-time-chart")).not.toBeNull());
     (panel as Panel & { thermostatId: string }).thermostatId = "other";
     await vi.waitFor(() => expect(historyCalls(callWS).some((message) => (message["entity_ids"] as string[])[0] === "climate.chambre")).toBe(true));
+  });
+
+  it("finds the entities of the thermostat in the registries of hass, without asking the list of the thermostats", async () => {
+    const { hass, callWS } = fakeHass(STATES, replay("e"));
+    const { panel, root } = await mount("vtherm-insight-tpi", { hass, values: values("e") });
+    panel.period = "day";
+    await vi.waitFor(() => expect(find(root, "vtherm-time-chart")).not.toBeNull());
+    // The same entities as the list of the thermostats gave: the climate entity of the entry, and the sensors of its device.
+    expect((panel as Panel & { entities: unknown }).entities).toEqual({ climate: "climate.salon", powerPercent: "sensor.salon_power_percent", slope: "sensor.salon_temperature_slope" });
+    expect(callWS.mock.calls.some(([message]) => (message as Record<string, unknown>)["type"] === "vtherm_dashboard/get_thermostats")).toBe(false);
   });
 
   it("says that the history could not be read, and keeps working", async () => {

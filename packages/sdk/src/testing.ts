@@ -16,7 +16,17 @@ import type { UiPluginRegistry } from "./registry.js";
 import { sectionStatusOf } from "./status.js";
 import { FIELD_HELP_ELEMENT } from "./field-help.js";
 import type { FieldHelpProps } from "./field-help.js";
-import type { ComponentHookName, Hass, HookName, HookProps, SectionStatus, UiPluginDefinition, VisibilityContext } from "./types.js";
+import type {
+  ComponentHookName,
+  Hass,
+  HassDeviceRegistryEntry,
+  HassEntityRegistryEntry,
+  HookName,
+  HookProps,
+  SectionStatus,
+  UiPluginDefinition,
+  VisibilityContext,
+} from "./types.js";
 import { assertValidDefinition } from "./validation.js";
 
 /** A service that a component called on the fake `hass`. */
@@ -35,6 +45,13 @@ export interface FakeHass extends Hass {
   language: string;
   /** Set the state of an entity, and its attributes. */
   setState(entityId: string, state: string, attributes?: Readonly<Record<string, unknown>>): void;
+  /**
+   * Add a device to `devices`, or replace the one with the same `id`. The registry is created by the first device: until then
+   * `devices` is undefined, as in a version of Home Assistant that does not give it.
+   */
+  setDevice(device: HassDeviceRegistryEntry): void;
+  /** Add an entity to `entities`, or replace the one with the same `entity_id`. The registry is created by the first entity. */
+  setEntity(entity: HassEntityRegistryEntry): void;
   /** Set the language of the user. */
   setLanguage(language: string): void;
   /** The services that the component called, in order. */
@@ -51,6 +68,10 @@ export interface FakeHassOptions {
   readonly states?: Readonly<Record<string, string>>;
   /** Whether the user is an administrator. `true` by default. */
   readonly isAdmin?: boolean;
+  /** The registry of the devices, by device id. Undefined by default. */
+  readonly devices?: Readonly<Record<string, HassDeviceRegistryEntry>>;
+  /** The registry of the entities, by entity id. Undefined by default. */
+  readonly entities?: Readonly<Record<string, HassEntityRegistryEntry>>;
 }
 
 /**
@@ -59,10 +80,17 @@ export interface FakeHassOptions {
  * @param options - The language, the states of some entities and the rights of the user.
  */
 export function createFakeHass(options: FakeHassOptions = {}): FakeHass {
-  const states: Record<string, { state: string; attributes: Readonly<Record<string, unknown>> }> = {};
+  const states: Record<string, { entity_id: string; state: string; attributes: Readonly<Record<string, unknown>>; last_changed: string; last_updated: string }> = {};
+  const stateOf = (entityId: string, state: string, attributes: Readonly<Record<string, unknown>>) => {
+    const now = new Date().toISOString();
+    return { entity_id: entityId, state, attributes, last_changed: now, last_updated: now };
+  };
   for (const [entityId, state] of Object.entries(options.states ?? {})) {
-    states[entityId] = { state, attributes: {} };
+    states[entityId] = stateOf(entityId, state, {});
   }
+  // The registries stay undefined until a test gives them, as in a version of Home Assistant that does not have them.
+  let devices: Record<string, HassDeviceRegistryEntry> | undefined = options.devices === undefined ? undefined : { ...options.devices };
+  let entities: Record<string, HassEntityRegistryEntry> | undefined = options.entities === undefined ? undefined : { ...options.entities };
   const serviceCalls: ServiceCall[] = [];
   let handler: (message: Readonly<Record<string, unknown>>) => unknown = (message) => {
     throw new Error(`The fake hass has no answer for the WebSocket message ${JSON.stringify(message)}. Use setWebSocketHandler.`);
@@ -72,9 +100,22 @@ export function createFakeHass(options: FakeHassOptions = {}): FakeHass {
     locale: { language: options.language ?? "en" },
     states,
     user: { is_admin: options.isAdmin ?? true },
+    get devices() {
+      return devices;
+    },
+    get entities() {
+      return entities;
+    },
     serviceCalls,
     setState(entityId, state, attributes = {}) {
-      states[entityId] = { state, attributes };
+      states[entityId] = stateOf(entityId, state, attributes);
+    },
+    setDevice(device) {
+      // A new object, as Home Assistant gives a new registry when it changes.
+      devices = { ...devices, [device.id]: device };
+    },
+    setEntity(entity) {
+      entities = { ...entities, [entity.entity_id]: entity };
     },
     setLanguage(language) {
       hass.language = language;

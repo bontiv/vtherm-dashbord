@@ -189,6 +189,46 @@ describe("fields of the hooks", () => {
   });
 });
 
+describe("size of a widget", () => {
+  const widgets = (hook: string, size: unknown) => ({ id: "smartpi", translations, contributions: { [hook]: [{ id: "smartpi.widget", component: "smartpi-widget", size }] } });
+
+  it("accepts a valid size on both widget hooks, whole or partial", () => {
+    for (const hook of ["thermostat_widget", "global_widget"]) {
+      expect(issuesOf(widgets(hook, { columns: 2, rows: 2 }))).toEqual([]);
+      expect(issuesOf(widgets(hook, { columns: "full" }))).toEqual([]);
+      expect(issuesOf(widgets(hook, { rows: 3 }))).toEqual([]);
+      expect(issuesOf(widgets(hook, {}))).toEqual([]);
+    }
+  });
+
+  it("accepts a widget without size, as a plugin published before it", () => {
+    expect(validateDefinition({ id: "smartpi", translations, contributions: { thermostat_widget: [{ id: "smartpi.widget", component: "smartpi-widget" }] } })).toEqual([]);
+  });
+
+  it("refuses columns out of 1, 2, 3 and full, with the path of the value", () => {
+    expect(paths(widgets("thermostat_widget", { columns: 4 }))).toEqual(["contributions.thermostat_widget[0].size.columns"]);
+    expect(paths(widgets("global_widget", { columns: "2" }))).toEqual(["contributions.global_widget[0].size.columns"]);
+    expect(paths(widgets("global_widget", { columns: 0 }))).toEqual(["contributions.global_widget[0].size.columns"]);
+    expect(() => assertValidDefinition(widgets("thermostat_widget", { columns: 4 }))).toThrow(/size\.columns: 'columns' must be 1, 2, 3 or "full", got 4/);
+  });
+
+  it("refuses rows out of 1, 2 and 3", () => {
+    expect(paths(widgets("thermostat_widget", { rows: 5 }))).toEqual(["contributions.thermostat_widget[0].size.rows"]);
+    expect(paths(widgets("thermostat_widget", { rows: 1.5 }))).toEqual(["contributions.thermostat_widget[0].size.rows"]);
+  });
+
+  it("refuses an unknown key of the size, and a size that is not an object", () => {
+    expect(issuesOf(widgets("thermostat_widget", { width: 2 }))).toEqual(["contributions.thermostat_widget[0].size.width: Unknown key 'width' of 'size', expected columns or rows"]);
+    expect(paths(widgets("thermostat_widget", "large"))).toEqual(["contributions.thermostat_widget[0].size"]);
+    expect(paths(widgets("thermostat_widget", [2, 1]))).toEqual(["contributions.thermostat_widget[0].size"]);
+  });
+
+  it("refuses a size on a hook that is not a widget", () => {
+    const section = { id: "smartpi", translations, contributions: { thermostat_config: [{ ...tab, size: { columns: 2 } }] } };
+    expect(issuesOf(section)).toEqual(["contributions.thermostat_config[0].size: 'size' is only accepted by the contributions of global_widget and thermostat_widget"]);
+  });
+});
+
 describe("the definition itself", () => {
   it("refuses a value that is not an object", () => {
     for (const value of [undefined, null, "plugin", 3, []]) {

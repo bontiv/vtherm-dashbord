@@ -10,6 +10,7 @@ A widget of the Overview page.
 
 - `ContributionBase`\<`"global_widget"`\>
 - `ComponentFields`
+- `WidgetFields`
 
 ## Properties
 
@@ -61,6 +62,18 @@ Where the contribution goes. Without it, the contribution goes `last`.
 
 ***
 
+### size?
+
+> `readonly` `optional` **size?**: [`WidgetSize`](WidgetSize.md)
+
+The size of the widget in the grid. Without it, the widget takes one column and the height of its content.
+
+#### Inherited from
+
+`WidgetFields.size`
+
+***
+
 ### visible?
 
 > `readonly` `optional` **visible?**: (`context`) => `boolean`
@@ -72,7 +85,7 @@ A hidden contribution keeps its place, so the placements of the other contributi
 
 ##### context
 
-[`BaseProps`](BaseProps.md)
+[`GlobalWidgetProps`](GlobalWidgetProps.md)
 
 #### Returns
 

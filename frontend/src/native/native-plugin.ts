@@ -29,6 +29,9 @@ import type { ConfigKind, TabDefinition } from "./tab-definitions.ts";
 /** The first entry of the menu of a thermostat, which the native tabs follow. */
 export const THERMOSTAT_OVERVIEW_ID = "core.page.thermostat_overview";
 
+/** The identifier of the Overview page of the Dashboard tab, which shows the widgets of the plugins. */
+export const CORE_OVERVIEW_ID = "core.page.overview";
+
 /** The first page of the group "Dashboard" of the menu of the configuration, which the sections of the central configuration come before. */
 export const PLUGINS_PAGE_ID = "core.page.plugins";
 

@@ -9,36 +9,66 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
+  "widget.loading": "Loading…",
+  "widget.no_data": "No data",
+  "widget.unavailable": "unavailable",
+  "widget.value_unavailable": "{label}: unavailable",
+  "widget.gauge.range": "{value} on a range of {min} to {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "History unavailable",
+  "widget.curve.summary": "Over the last 24 hours: from {min} to {max}, last value {last}.",
   "title.humidity": "Humidity",
   "description.humidity": "Use an external humidity sensor. Detected sensor: {humidity_detected}",
   "field.humidity_sensor_entity_id": "Humidity sensor",
   "help.humidity_sensor_entity_id": "Leave empty to automatically use the detected sensor.",
   "field.use_humidity_feature": "Use humidity sensor",
   "help.use_humidity_feature": "Disable this option to use the underlying climate humidity only.",
+  "widget.humidity.title": "Humidity",
+  "widget.humidity.room": "Humidity of the room",
   "hint.use_humidity_feature": "Shows the humidity of a sensor on the thermostat; it does not change the heating.",
   "hint.humidity_sensor_entity_id": "Sensor of the humidity; leave empty to use the one of the device of the room sensor.",
 } as const;
 
 /** The French catalog. */
 export const fr = {
+  "widget.loading": "Chargement…",
+  "widget.no_data": "Aucune donnée",
+  "widget.unavailable": "indisponible",
+  "widget.value_unavailable": "{label} : indisponible",
+  "widget.gauge.range": "{value} sur une plage de {min} à {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Historique indisponible",
+  "widget.curve.summary": "Sur les dernières 24 heures : de {min} à {max}, dernière valeur {last}.",
   "title.humidity": "Humidité",
   "description.humidity": "Utilisez un capteur d'humidité externe. Capteur détecté : {humidity_detected}",
   "field.humidity_sensor_entity_id": "Capteur d'humidité",
   "help.humidity_sensor_entity_id": "Laissez vide pour utiliser automatiquement le capteur détecté.",
   "field.use_humidity_feature": "Utiliser un capteur d'humidité",
   "help.use_humidity_feature": "Désactivez cette option pour utiliser uniquement l'humidité du climate sous-jacent.",
+  "widget.humidity.title": "Humidité",
+  "widget.humidity.room": "Humidité de la pièce",
   "hint.use_humidity_feature": "Affiche l'humidité d'un capteur sur le thermostat ; elle ne change pas le chauffage.",
   "hint.humidity_sensor_entity_id": "Capteur d'humidité ; laissez vide pour utiliser celui de l'appareil du capteur de la pièce.",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
 export const de = {
+  "widget.loading": "Wird geladen…",
+  "widget.no_data": "Keine Daten",
+  "widget.unavailable": "nicht verfügbar",
+  "widget.value_unavailable": "{label}: nicht verfügbar",
+  "widget.gauge.range": "{value} in einem Bereich von {min} bis {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Verlauf nicht verfügbar",
+  "widget.curve.summary": "In den letzten 24 Stunden: von {min} bis {max}, letzter Wert {last}.",
   "title.humidity": "Luftfeuchtigkeit",
   "description.humidity": "Externen Luftfeuchtigkeitssensor verwenden. Erkannter Sensor: {humidity_detected}",
   "field.humidity_sensor_entity_id": "Luftfeuchtigkeitssensor",
   "help.humidity_sensor_entity_id": "Leer lassen, um den erkannten Sensor automatisch zu verwenden.",
   "field.use_humidity_feature": "Luftfeuchtigkeitssensor verwenden",
   "help.use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugeordneten Klimaanlage zu verwenden.",
+  "widget.humidity.title": "Luftfeuchtigkeit",
+  "widget.humidity.room": "Raumluftfeuchtigkeit",
   "hint.use_humidity_feature": "Zeigt die Feuchtigkeit eines Sensors am Thermostat an; sie ändert das Heizen nicht.",
   "hint.humidity_sensor_entity_id": "Feuchtigkeitssensor; leer lassen, um den des Geräts des Raumsensors zu verwenden.",
 } satisfies CompleteCatalog<typeof en>;

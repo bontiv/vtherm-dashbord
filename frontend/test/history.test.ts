@@ -1,7 +1,7 @@
 /** The history of the entities of a thermostat: the request to the recorder, the samples, the cache and the errors. */
 import { describe, expect, it, vi } from "vitest";
 
-import { CACHE_MS, HistoryClient, PERIOD_MS, toHistory } from "../src/native/history.ts";
+import { CACHE_MS, HistoryClient, PERIOD_MS, isAbortError, sharedHistory, toHistory } from "../src/native/history.ts";
 
 const NOW = Date.UTC(2026, 10, 18, 12, 0, 0);
 
@@ -88,5 +88,39 @@ describe("the history of an entity", () => {
     const { hass, callWS } = fakeHass(() => ({}));
     new HistoryClient(() => hass, () => NOW);
     expect(callWS).not.toHaveBeenCalled();
+  });
+
+  it("cancels the read of a reader that went away, and keeps the request for the others", async () => {
+    let release: (rows: Record<string, unknown>) => void = () => undefined;
+    const callWS = vi.fn(() => new Promise<Record<string, unknown>>((resolve) => (release = resolve)));
+    const client = new HistoryClient(() => ({ callWS }) as never, () => NOW);
+    const gone = new AbortController();
+    const first = client.read("sensor.room", "day", [], gone.signal);
+    const second = client.read("sensor.room", "day");
+    gone.abort();
+    await expect(first).rejects.toSatisfy(isAbortError);
+    release({ "sensor.room": [{ s: "19", lu: NOW / 1000 }] });
+    await expect(second).resolves.toMatchObject({ state: [{ t: NOW, v: 19 }] });
+    // The history is in the cache: a reader that comes back gets it without a new request.
+    await expect(client.read("sensor.room", "day", [], new AbortController().signal)).resolves.toMatchObject({ state: [{ v: 19 }] });
+    expect(callWS).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks nothing for a reader that is already cancelled", async () => {
+    const { hass, callWS } = fakeHass(() => ({}));
+    const client = new HistoryClient(() => hass, () => NOW);
+    const gone = new AbortController();
+    gone.abort();
+    await expect(client.read("sensor.room", "day", [], gone.signal)).rejects.toSatisfy(isAbortError);
+    expect(callWS).not.toHaveBeenCalled();
+    expect(isAbortError(new Error("recorder unavailable"))).toBe(false);
+  });
+
+  it("shares one client between the readers, which reads with the last state of Home Assistant given", async () => {
+    const { hass, callWS } = fakeHass(() => ({ "sensor.shared": [] }));
+    const client = sharedHistory(hass);
+    expect(sharedHistory(undefined)).toBe(client);
+    await Promise.all([sharedHistory(hass).read("sensor.shared", "day"), sharedHistory(hass).read("sensor.shared", "day")]);
+    expect(callWS).toHaveBeenCalledTimes(1);
   });
 });

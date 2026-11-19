@@ -5,6 +5,29 @@
  */
 
 import { INSIGHT_COMMON, INSIGHT_SAFETY, INSIGHT_TPI, INSIGHT_WINDOW } from "./insight-texts.ts";
+import {
+  AUTO_START_STOP_WIDGET_TEXTS,
+  AUTO_TPI_WIDGET_TEXTS,
+  BOILER_DEMAND_WIDGET_TEXTS,
+  BOILER_WIDGET_TEXTS,
+  CORE_DETAIL_WIDGET_TEXTS,
+  CORE_GLOBAL_WIDGET_TEXTS,
+  CORE_WIDGET_TEXTS,
+  ENERGY_WIDGET_TEXTS,
+  FAILURE_WIDGET_TEXTS,
+  HUMIDITY_WIDGET_TEXTS,
+  LOCK_WIDGET_TEXTS,
+  MOTION_WIDGET_TEXTS,
+  OVERPOWERING_WIDGET_TEXTS,
+  POWER_WIDGET_TEXTS,
+  PRESENCE_WIDGET_TEXTS,
+  PRESET_WIDGET_TEXTS,
+  SAFETY_WIDGET_TEXTS,
+  SYNC_WIDGET_TEXTS,
+  TPI_WIDGET_TEXTS,
+  VALVE_WIDGET_TEXTS,
+  WINDOW_WIDGET_TEXTS,
+} from "./widget-texts.ts";
 
 /** A text in the three languages. */
 export interface Text {
@@ -1103,6 +1126,9 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     "page.dev_plugins": { en: "Development", fr: "Développement", de: "Entwicklung" },
     "page.create_central": { en: "Central configuration", fr: "Configuration centrale", de: "Zentrale Konfiguration" },
     "group.dashboard": { en: "Dashboard", fr: "Tableau de bord", de: "Dashboard" },
+    ...CORE_WIDGET_TEXTS,
+    ...CORE_GLOBAL_WIDGET_TEXTS,
+    ...CORE_DETAIL_WIDGET_TEXTS,
     "option.proportional_function.tpi": { en: "TPI", fr: "TPI", de: "TPI" },
     "option.thermostat_type.thermostat_over_switch": { en: "Over a switch", fr: "Sur un interrupteur", de: "Über einen Schalter" },
     "option.thermostat_type.thermostat_over_climate": { en: "Over a climate", fr: "Sur un climate", de: "Über ein Climate" },
@@ -1120,6 +1146,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
   },
   core_tpi: {
     "option.proportional_function.tpi": { en: "TPI", fr: "TPI", de: "TPI" },
+    ...TPI_WIDGET_TEXTS,
+    ...AUTO_TPI_WIDGET_TEXTS,
     ...helpOf([
       "use_tpi_central_config", "tpi_coef_int", "tpi_coef_ext", "minimal_activation_delay", "minimal_deactivation_delay", "tpi_threshold_low",
       "tpi_threshold_high", "auto_tpi_mode", "auto_tpi_learning_type", "auto_tpi_aggressiveness", "heater_heating_time", "heater_cooling_time",
@@ -1131,12 +1159,14 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
   },
   core_valve_regulation: {
     "option.proportional_function.tpi": { en: "TPI", fr: "TPI", de: "TPI" },
+    ...VALVE_WIDGET_TEXTS,
     ...helpOf([
       "opening_degree_entity_ids", "closing_degree_entity_ids", "proportional_function", "opening_threshold_degree", "min_opening_degrees",
       "max_opening_degrees", "max_closing_degree",
     ]),
   },
   core_auto_start_stop: {
+    ...AUTO_START_STOP_WIDGET_TEXTS,
     "label.auto_start_stop_level": { en: "Auto start and stop level", fr: "Niveau d'allumage/extinction auto", de: "Stufe für Auto-Ein/Aus" },
     "feature_intro.use_auto_start_stop_feature": {
       en: "Turns the device off when the room is warm enough and on again when it needs heat, to save energy.",
@@ -1147,6 +1177,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["auto_start_stop_level"]),
   },
   core_window: {
+    ...WINDOW_WIDGET_TEXTS,
     "label.window_delay": { en: "Delay on opening (seconds)", fr: "Délai à l'ouverture (secondes)", de: "Verzögerung beim Öffnen (Sek.)" },
     "label.window_off_delay": { en: "Delay on closing (seconds)", fr: "Délai à la fermeture (secondes)", de: "Verzögerung beim Schliessen (Sek.)" },
     "label.window_auto_open_threshold": { en: "Opening threshold (°/h)", fr: "Seuil de détection (°/h)", de: "Erkennungsschwelle (°/h)" },
@@ -1168,6 +1199,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...INSIGHT_WINDOW,
   },
   core_motion: {
+    ...MOTION_WIDGET_TEXTS,
     "feature_intro.use_motion_feature": {
       en: "Changes the preset when someone moves in the room: comfort while there is activity, eco after a while without it.",
       fr: "Change de pré-réglage selon les mouvements dans la pièce : confort tant qu'il y a de l'activité, éco après un moment sans.",
@@ -1176,6 +1208,8 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["use_motion_central_config", "motion_sensor_entity_id", "motion_delay", "motion_off_delay", "motion_preset", "no_motion_preset"]),
   },
   core_power: {
+    ...OVERPOWERING_WIDGET_TEXTS,
+    ...ENERGY_WIDGET_TEXTS,
     "label.power_sensor_entity_id": { en: "Total power sensor", fr: "Capteur de puissance totale", de: "Gesamtleistungssensor" },
     "label.max_power_sensor_entity_id": { en: "Max power sensor", fr: "Capteur de puissance max", de: "Sensor der maximalen Leistung" },
     "feature_intro.use_power_feature": {
@@ -1184,6 +1218,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       de: "Wirft die Heizung ab, wenn die Leistung des Hauses ihre Grenze überschreiten würde, damit die Hauptsicherung nicht auslöst.",
     },
     ...helpOf(["use_power_central_config", "power_temp", "power_sensor_entity_id", "max_power_sensor_entity_id", "power_unit"], { power_unit: CENTRAL_POWER_UNIT }),
+    ...POWER_WIDGET_TEXTS,
   },
   core_presence: {
     "feature_intro.use_presence_feature": {
@@ -1192,6 +1227,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       de: "Verwendet die Abwesenheitstemperaturen der Voreinstellungen, wenn niemand zu Hause ist.",
     },
     ...helpOf(["use_presence_central_config", "presence_sensor_entity_id"]),
+    ...PRESENCE_WIDGET_TEXTS,
   },
   core_central_boiler: {
     "label.central_boiler_activation_delay_sec": { en: "Activation delay (seconds)", fr: "Délai d'activation (secondes)", de: "Aktivierungsverzögerung (Sekunden)" },
@@ -1204,8 +1240,11 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
       "central_boiler_activation_delay_sec", "central_boiler_activation_service", "central_boiler_deactivation_service",
       "keep_alive_boiler_delay_sec",
     ]),
+    ...BOILER_WIDGET_TEXTS,
+    ...BOILER_DEMAND_WIDGET_TEXTS,
   },
   core_heating_failure: {
+    ...FAILURE_WIDGET_TEXTS,
     "feature_intro.use_heating_failure_detection_feature": {
       en: "Warns when the temperature does not rise while the thermostat heats, or rises while it does not, as a broken heater would.",
       fr: "Prévient quand la température ne monte pas alors que le thermostat chauffe, ou monte alors qu'il ne chauffe pas, comme le ferait un radiateur en panne.",
@@ -1218,8 +1257,10 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
   },
   core_presets: {
     ...helpOf(["use_presets_central_config"]),
+    ...PRESET_WIDGET_TEXTS,
   },
   core_sync_temp: {
+    ...SYNC_WIDGET_TEXTS,
     "feature_intro.sync_device_internal_temp": {
       en: "Gives the room temperature to the device, so that its own regulation works with the temperature of the room instead of the one it measures.",
       fr: "Transmet la température de la pièce à l'appareil, pour que sa propre régulation travaille avec la température de la pièce plutôt qu'avec celle qu'il mesure.",
@@ -1228,6 +1269,7 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...helpOf(["sync_with_calibration", "sync_entity_ids"]),
   },
   core_advanced: {
+    ...SAFETY_WIDGET_TEXTS,
     "label.safety_delay_min": { en: "Safety delay (min)", fr: "Délai max. sans mesure (min)", de: "Max. Zeit ohne Messung (min)" },
     "label.safety_min_on_percent": { en: "Minimum power for safety mode", fr: "Puissance minimale (mode sécurité)", de: "Mindestleistung (Sicherheitsmodus)" },
     "label.safety_default_on_percent": { en: "Power in safety mode", fr: "Puissance en mode sécurité", de: "Leistung im Sicherheitsmodus" },
@@ -1250,15 +1292,33 @@ export const PLUGIN_TEXTS: Readonly<Record<string, Readonly<Record<string, Text>
     ...INSIGHT_SAFETY,
   },
   core_lock: {
+    ...LOCK_WIDGET_TEXTS,
     ...helpOf(["use_lock_central_config", "lock_code", "lock_users", "lock_automations", "auto_relock_sec"]),
   },
   core_humidity: {
+    ...HUMIDITY_WIDGET_TEXTS,
     ...helpOf(["use_humidity_feature", "humidity_sensor_entity_id"]),
   },
 };
 
-/** The texts that every native plugin has. The headings of the groups of the menus are texts of the dashboard, not of the plugins. */
-export const COMMON_TEXTS: Readonly<Record<string, Text>> = {};
+/**
+ * The texts that every native plugin has: the states and the accessible names of the cards of the widgets and of their components. The
+ * headings of the groups of the menus are texts of the dashboard, not of the plugins.
+ */
+export const COMMON_TEXTS: Readonly<Record<string, Text>> = {
+  "widget.loading": { en: "Loading…", fr: "Chargement…", de: "Wird geladen…" },
+  "widget.no_data": { en: "No data", fr: "Aucune donnée", de: "Keine Daten" },
+  "widget.unavailable": { en: "unavailable", fr: "indisponible", de: "nicht verfügbar" },
+  "widget.value_unavailable": { en: "{label}: unavailable", fr: "{label} : indisponible", de: "{label}: nicht verfügbar" },
+  "widget.gauge.range": { en: "{value} on a range of {min} to {max}", fr: "{value} sur une plage de {min} à {max}", de: "{value} in einem Bereich von {min} bis {max}" },
+  "widget.gauge.marker": { en: "{range}, {marker} {value}", fr: "{range}, {marker} {value}", de: "{range}, {marker} {value}" },
+  "widget.history_unavailable": { en: "History unavailable", fr: "Historique indisponible", de: "Verlauf nicht verfügbar" },
+  "widget.curve.summary": {
+    en: "Over the last 24 hours: from {min} to {max}, last value {last}.",
+    fr: "Sur les dernières 24 heures : de {min} à {max}, dernière valeur {last}.",
+    de: "In den letzten 24 Stunden: von {min} bis {max}, letzter Wert {last}.",
+  },
+};
 
 /** The messages of the error codes that the translations of Versatile Thermostat do not have, and the generic message. */
 export const ERROR_TEXTS: Readonly<Record<string, Text>> = {

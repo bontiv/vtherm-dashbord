@@ -10,6 +10,7 @@ A widget of the overview of a thermostat.
 
 - `ContributionBase`\<`"thermostat_widget"`\>
 - `ComponentFields`
+- `WidgetFields`
 
 ## Properties
 
@@ -58,6 +59,18 @@ Where the contribution goes. Without it, the contribution goes `last`.
 #### Inherited from
 
 `ContributionBase.placement`
+
+***
+
+### size?
+
+> `readonly` `optional` **size?**: [`WidgetSize`](WidgetSize.md)
+
+The size of the widget in the grid. Without it, the widget takes one column and the height of its content.
+
+#### Inherited from
+
+`WidgetFields.size`
 
 ***
 

@@ -26,7 +26,7 @@ The properties of the pages of the Dashboard tab.
 
 ### global\_widget
 
-> **global\_widget**: [`BaseProps`](BaseProps.md) & [`DisplayProps`](DisplayProps.md)
+> **global\_widget**: [`GlobalWidgetProps`](GlobalWidgetProps.md) & [`DisplayProps`](DisplayProps.md)
 
 The properties of the widgets of the Overview page.
 

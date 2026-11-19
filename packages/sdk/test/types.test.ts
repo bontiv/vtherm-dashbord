@@ -2,11 +2,13 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { DIAGRAM_IDS, FIELD_HELP_ELEMENT, HOOK_NAMES, defineTranslations, isDiagramId } from "../src/index.ts";
 import type {
+  CentralContext,
   ComponentHookName,
   Contribution,
   DiagramId,
   FieldHelpProps,
   DisplayProps,
+  Hass,
   DraftControls,
   GeneralConfigProps,
   HookName,
@@ -17,6 +19,8 @@ import type {
   ThermostatConfigProps,
   ThermostatProps,
   UiPluginDefinition,
+  VisibilityContext,
+  WidgetSize,
 } from "../src/index.ts";
 
 // The compile-time checks are done by `tsc` (npm run typecheck): a `@ts-expect-error` that no longer hides an error is reported.
@@ -92,8 +96,55 @@ describe("properties of the components", () => {
     expectTypeOf<SaveResult>().toEqualTypeOf<"success" | "error" | "partial">();
   });
 
+  it("gives the central configuration to the global widgets and to their visibility condition, as an optional property", () => {
+    expectTypeOf<HookProps<"global_widget">["central"]>().toEqualTypeOf<CentralContext | undefined>();
+    expectTypeOf<VisibilityContext<"global_widget">["central"]>().toEqualTypeOf<CentralContext | undefined>();
+    expectTypeOf<CentralContext["entryId"]>().toEqualTypeOf<string>();
+    expectTypeOf<HookProps<"global_page">>().not.toHaveProperty("central");
+  });
+
+  it("keeps valid a global widget written before the central configuration was given", () => {
+    // A plugin published before this change reads only hass in its condition, and its component declares only hass and narrow.
+    const old: Contribution<"global_widget"> = { id: "old.widget", component: "old-widget", visible: (context: { hass: Hass }) => context.hass.language !== "" };
+    const props: { hass: Hass; narrow: boolean } = {} as HookProps<"global_widget">;
+    expect([old, props]).toHaveLength(2);
+  });
+
   it("has no component for a top tab", () => {
     expectTypeOf<ComponentHookName>().toEqualTypeOf<Exclude<HookName, "top_tab">>();
+  });
+});
+
+describe("size of a widget", () => {
+  it("accepts a widget without size, or with a partial size", () => {
+    const widgets: Contribution<"thermostat_widget">[] = [
+      { id: "a.none", component: "a-none" },
+      { id: "a.full", component: "a-full", size: { columns: "full" } },
+      { id: "a.tall", component: "a-tall", size: { rows: 3 } },
+      { id: "a.both", component: "a-both", size: { columns: 2, rows: 2 } },
+    ];
+    const global: Contribution<"global_widget"> = { id: "a.global", component: "a-global", size: { columns: 3 } };
+    expectTypeOf<WidgetSize["columns"]>().toEqualTypeOf<1 | 2 | 3 | "full" | undefined>();
+    expectTypeOf<WidgetSize["rows"]>().toEqualTypeOf<1 | 2 | 3 | undefined>();
+    expect([...widgets, global]).toHaveLength(5);
+  });
+
+  it("refuses a width or a height out of the allowed values, and an unknown key", () => {
+    // @ts-expect-error 4 columns do not exist: use "full"
+    const wide: Contribution<"thermostat_widget"> = { id: "a.wide", component: "a-wide", size: { columns: 4 } };
+    // @ts-expect-error 5 rows do not exist
+    const tall: Contribution<"global_widget"> = { id: "a.tall", component: "a-tall", size: { rows: 5 } };
+    // @ts-expect-error the size has columns and rows, no width
+    const width: Contribution<"thermostat_widget"> = { id: "a.width", component: "a-width", size: { width: 2 } };
+    expect([wide, tall, width]).toHaveLength(3);
+  });
+
+  it("refuses a size on a contribution that is not a widget", () => {
+    // @ts-expect-error only the widgets have a size
+    const section: Contribution<"thermostat_config"> = { id: "a.section", title: "t", component: "a-section", size: { columns: 2 } };
+    // @ts-expect-error only the widgets have a size
+    const page: Contribution<"global_page"> = { id: "a.page", title: "t", component: "a-page", size: { rows: 1 } };
+    expect([section, page]).toHaveLength(2);
   });
 });
 

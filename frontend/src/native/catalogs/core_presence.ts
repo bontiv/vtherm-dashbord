@@ -9,6 +9,14 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
+  "widget.loading": "Loading…",
+  "widget.no_data": "No data",
+  "widget.unavailable": "unavailable",
+  "widget.value_unavailable": "{label}: unavailable",
+  "widget.gauge.range": "{value} on a range of {min} to {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "History unavailable",
+  "widget.curve.summary": "Over the last 24 hours: from {min} to {max}, last value {last}.",
   "title.presence": "Presence detection",
   "description.presence": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting",
   "field.presence_sensor_entity_id": "Presence sensor",
@@ -17,10 +25,22 @@ export const en = {
   "feature_intro.use_presence_feature": "Uses the away temperatures of the presets while nobody is at home.",
   "hint.use_presence_central_config": "Uses the away temperatures of the central configuration.",
   "hint.presence_sensor_entity_id": "Sensor or person that is on, or home, while someone is at home.",
+  "widget.presence.title": "Presence",
+  "widget.presence.present": "Present",
+  "widget.presence.absent": "Absent",
+  "widget.presence.unknown": "Unknown",
 } as const;
 
 /** The French catalog. */
 export const fr = {
+  "widget.loading": "Chargement…",
+  "widget.no_data": "Aucune donnée",
+  "widget.unavailable": "indisponible",
+  "widget.value_unavailable": "{label} : indisponible",
+  "widget.gauge.range": "{value} sur une plage de {min} à {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Historique indisponible",
+  "widget.curve.summary": "Sur les dernières 24 heures : de {min} à {max}, dernière valeur {last}.",
   "title.presence": "Détection de présence",
   "description.presence": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
   "field.presence_sensor_entity_id": "Capteur de présence",
@@ -29,10 +49,22 @@ export const fr = {
   "feature_intro.use_presence_feature": "Utilise les températures d'absence des pré-réglages quand personne n'est à la maison.",
   "hint.use_presence_central_config": "Utilise les températures d'absence de la configuration centrale.",
   "hint.presence_sensor_entity_id": "Capteur ou personne qui est actif, ou présent, quand quelqu'un est à la maison.",
+  "widget.presence.title": "Présence",
+  "widget.presence.present": "Présent",
+  "widget.presence.absent": "Absent",
+  "widget.presence.unknown": "Inconnu",
 } satisfies CompleteCatalog<typeof en>;
 
 /** The German catalog. */
 export const de = {
+  "widget.loading": "Wird geladen…",
+  "widget.no_data": "Keine Daten",
+  "widget.unavailable": "nicht verfügbar",
+  "widget.value_unavailable": "{label}: nicht verfügbar",
+  "widget.gauge.range": "{value} in einem Bereich von {min} bis {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Verlauf nicht verfügbar",
+  "widget.curve.summary": "In den letzten 24 Stunden: von {min} bis {max}, letzter Wert {last}.",
   "title.presence": "Anwesenheitserkennung",
   "description.presence": "Geben Sie einen Präsenzsensor (Status true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
   "field.presence_sensor_entity_id": "Anwesenheitssensor",
@@ -41,4 +73,8 @@ export const de = {
   "feature_intro.use_presence_feature": "Verwendet die Abwesenheitstemperaturen der Voreinstellungen, wenn niemand zu Hause ist.",
   "hint.use_presence_central_config": "Verwendet die Abwesenheitstemperaturen der zentralen Konfiguration.",
   "hint.presence_sensor_entity_id": "Sensor oder Person, der aktiv oder zu Hause ist, wenn jemand daheim ist.",
+  "widget.presence.title": "Anwesenheit",
+  "widget.presence.present": "Anwesend",
+  "widget.presence.absent": "Abwesend",
+  "widget.presence.unknown": "Unbekannt",
 } satisfies CompleteCatalog<typeof en>;

@@ -9,6 +9,14 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
+  "widget.loading": "Loading…",
+  "widget.no_data": "No data",
+  "widget.unavailable": "unavailable",
+  "widget.value_unavailable": "{label}: unavailable",
+  "widget.gauge.range": "{value} on a range of {min} to {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "History unavailable",
+  "widget.curve.summary": "Over the last 24 hours: from {min} to {max}, last value {last}.",
   "title.lock": "Lock",
   "description.lock": "The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.",
   "field.auto_relock_sec": "Auto-relock delay",
@@ -18,6 +26,9 @@ export const en = {
   "field.lock_users": "Lock will prevent commands from Users",
   "field.use_lock_central_config": "Use central lock configuration",
   "help.use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm",
+  "widget.lock.title": "Lock",
+  "widget.lock.locked": "Locked",
+  "widget.lock.unlocked": "Unlocked",
   "hint.use_lock_central_config": "Uses the lock settings of the central configuration.",
   "hint.lock_code": "Optional four-digit code asked to lock or unlock the thermostat.",
   "hint.lock_users": "While locked, the changes made from the Home Assistant interface are refused.",
@@ -27,6 +38,14 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
+  "widget.loading": "Chargement…",
+  "widget.no_data": "Aucune donnée",
+  "widget.unavailable": "indisponible",
+  "widget.value_unavailable": "{label} : indisponible",
+  "widget.gauge.range": "{value} sur une plage de {min} à {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Historique indisponible",
+  "widget.curve.summary": "Sur les dernières 24 heures : de {min} à {max}, dernière valeur {last}.",
   "title.lock": "Gestion du verrouilage",
   "description.lock": "La fonction de verrouillage empêche les modifications d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.",
   "field.auto_relock_sec": "Délai de re-verrouillage automatique",
@@ -36,6 +55,9 @@ export const fr = {
   "field.lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
   "field.use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
   "help.use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
+  "widget.lock.title": "Verrouillage",
+  "widget.lock.locked": "Verrouillé",
+  "widget.lock.unlocked": "Libre",
   "hint.use_lock_central_config": "Utilise les réglages de verrouillage de la configuration centrale.",
   "hint.lock_code": "Code facultatif à quatre chiffres demandé pour verrouiller ou déverrouiller le thermostat.",
   "hint.lock_users": "Une fois verrouillé, les changements faits depuis l'interface de Home Assistant sont refusés.",
@@ -45,6 +67,14 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
+  "widget.loading": "Wird geladen…",
+  "widget.no_data": "Keine Daten",
+  "widget.unavailable": "nicht verfügbar",
+  "widget.value_unavailable": "{label}: nicht verfügbar",
+  "widget.gauge.range": "{value} in einem Bereich von {min} bis {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Verlauf nicht verfügbar",
+  "widget.curve.summary": "In den letzten 24 Stunden: von {min} bis {max}, letzter Wert {last}.",
   "title.lock": "Sperrenverwaltung",
   "description.lock": "Die Sperrfunktion verhindert Änderungen an einem Thermostat über die Benutzeroberfläche oder Automatisierungen, während der Thermostat weiterhin funktioniert.",
   "field.auto_relock_sec": "Automatische Wiederverriegelung",
@@ -54,6 +84,9 @@ export const de = {
   "field.lock_users": "Sperre verhindert Benutzerbefehle",
   "field.use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
   "help.use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
+  "widget.lock.title": "Sperre",
+  "widget.lock.locked": "Gesperrt",
+  "widget.lock.unlocked": "Entsperrt",
   "hint.use_lock_central_config": "Verwendet die Sperreinstellungen der zentralen Konfiguration.",
   "hint.lock_code": "Optionaler vierstelliger Code, der zum Sperren oder Entsperren des Thermostats verlangt wird.",
   "hint.lock_users": "Im gesperrten Zustand werden Änderungen über die Oberfläche von Home Assistant abgelehnt.",

@@ -39,6 +39,62 @@ flow: `core.tab.features` and `core.general.features` no longer exist (place you
 For example, `placement: { after: "core_tpi.tab.main" }` puts a tab right after the TPI tab, and `placement: { replace: "core_lock.tab.main" }`
 puts yours in place of the lock tab.
 
+### The widgets of the overview of a thermostat
+Thirteen native plugins add widgets to the overview of a thermostat (`thermostat_widget`). They only show how Versatile Thermostat works;
+none draws a command. Their order, from the placements, is:
+
+| Order | Widget | Plugin | Placement | Shown when |
+| --- | --- | --- | --- | --- |
+| 1 | `core.widget.temperature` | `core` | `first` | the thermostat exists |
+| 2 | `core.widget.mode` | `core` | after the temperature | the thermostat exists |
+| 3 | `core.widget.alerts` | `core` | after the mode | the thermostat exists |
+| 4 | `core_tpi.widget.heating` | `core_tpi` | after the alerts | the algorithm is TPI and the thermostat has a heating share |
+| 5 | `core_valve_regulation.widget.valve` | `core_valve_regulation` | after the heating | the thermostat has an opening of valve |
+| 6 | `core_presets.widget.preset` | `core_presets` | after the heating | the thermostat exists |
+| 7 | `core_advanced.widget.safety` | `core_advanced` | after the preset | the thermostat has the sensor of the safety mode, and the safety mode is configured |
+| 8 | `core_window.widget.window` | `core_window` | after the preset | the window detection is on (`use_window_feature`) and the binary sensor `window_state` exists |
+| 9 | `core_motion.widget.motion` | `core_motion` | after the window | the motion detection is on (`use_motion_feature`) and the binary sensor `motion_state` exists |
+| 10 | `core_power.widget.overpowering` | `core_power` | after the motion | the power management is on (`use_power_feature`) and the binary sensor `overpowering_state` exists |
+| 11 | `core_auto_start_stop.widget.auto_start_stop` | `core_auto_start_stop` | after the load shedding | the thermostat is over a climate without valves, has the feature, and publishes `auto_start_stop_manager` |
+| 12 | `core_lock.widget.lock` | `core_lock` | after the auto start and stop | the lock is configured (`is_lock_configured`) |
+| 13 | `core_heating_failure.widget.failure` | `core_heating_failure` | after the lock | the detection is on and the binary sensor `heating_failure_state` exists, except over a climate without valves |
+| 14 | `core.widget.devices` | `core` | `last` | the thermostat publishes its equipment (`underlying_entities`) |
+| 15 | `core_tpi.widget.auto_tpi` | `core_tpi` | after the equipment | the algorithm is TPI, `auto_tpi_mode` is on and the sensor `auto_tpi_learning` is not `disabled` |
+| 16 | `core_central_boiler.widget.thermostat` | `core_central_boiler` | after Auto TPI | the thermostat is used by the central boiler and the central boiler is on |
+| 17 | `core_power.widget.energy` | `core_power` | after the boiler | the sensor `energy` or `mean_power_cycle` exists |
+| 18 | `core_humidity.widget.humidity` | `core_humidity` | after the energy | the `climate` entity publishes `current_humidity` |
+| 19 | `core_sync_temp.widget.sync` | `core_sync_temp` | after the energy | the thermostat is over a climate and publishes the tracking of its setpoint or a synchronisation |
+| 20 | `core.widget.history` | `core` | `last` | the thermostat exists |
+
+The valve and the preset are both placed after the heating: the valve, loaded after the presets, goes right after the heating, so before
+the preset. The widgets of the features (8 to 13) are each placed after the one before them; the safety, loaded later, is placed after
+the preset, so it comes before the window. When the preset is not there, the window goes last, and the other widgets of the features
+follow it in their order. `core` loads first: it places the equipment and the history last, so the widgets of the other plugins, placed
+after their targets, come before them. The tracking of the equipment is placed after the energy, and the humidity, loaded later, comes
+in between. The history takes two columns and two rows, Auto TPI and the energy one column and two rows. A hidden widget keeps its place. Put a widget of yours between two of them with `after`, for example
+`placement: { after: "core.widget.mode" }`, or take one away with `remove`. The other widgets declare no `size`: each takes one column.
+The other native plugins have no widget in the overview of a thermostat.
+
+### The widgets of the Overview page
+Four native plugins add widgets to the Overview page (`global_widget`). They read the central configuration (`central`) and the entities
+of the central device with `getEntryEntities(hass, central.entryId)`; none draws a command. Their order, from the placements, is:
+
+| Order | Widget | Plugin | Placement | Size | Shown when |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `core.widget.central_mode` | `core` | `first` | 1 column | the central device has the `select` of the central mode |
+| 2 | `core_presence.widget.presence` | `core_presence` | after the central mode | 1 column | the presence sensor of the central configuration exists |
+| 3 | `core.widget.summary` | `core` | after the central mode | 1 column | at least one thermostat exists |
+| 4 | `core_central_boiler.widget.boiler` | `core_central_boiler` | after the summary | 1 column, 2 rows | the central boiler is on in the central configuration and the binary sensor `central_boiler_state` exists |
+| 5 | `core_central_boiler.widget.boiler_power` | `core_central_boiler` | after the boiler | 2 columns, 2 rows | the central boiler is on in the central configuration and the sensor `total_power_active_boiler` exists |
+| 6 | `core_power.widget.house_power` | `core_power` | after the power of the boiler | 1 column | a thermostat publishes `power_manager.current_power` |
+| 7 | `core.widget.outdoor` | `core` | after the summary | 2 columns, 2 rows | the outdoor sensor of the central configuration exists |
+
+`core` loads first, so it places the outdoor temperature after the summary: the boiler, its power and the power of the home, loaded
+later, come in between; the presence, loaded last, comes right after the central mode. A hidden widget keeps its place. Put a widget
+of yours between two of them with `after`, or take the place of one with `replace`, for example
+`placement: { replace: "core_central_boiler.widget.boiler" }`: the others keep their order. Versatile Thermostat has no central presence
+entity: the presence is the sensor `presence_sensor_entity_id` of the central configuration.
+
 The table is generated from the code by `frontend/test/native-docs.test.ts`. Do not edit it: run `UPDATE_NATIVE_DOCS=1 npx vitest run frontend/test/native-docs.test.ts`.
 The titles are those of the dashboard: the tab of `core_advanced`, "Safety and manual override", is the step that Versatile Thermostat
 calls "Advanced parameters".
@@ -57,29 +113,56 @@ calls "Advanced parameters".
 | `core` | `core.page.thermostat_overview` | `thermostat_config` | Overview |
 | `core` | `core.tab.main` | `thermostat_config` | Main attributes |
 | `core` | `core.tab.type` | `thermostat_config` | Underlyings |
+| `core` | `core.widget.temperature` | `thermostat_widget` | Temperature |
+| `core` | `core.widget.mode` | `thermostat_widget` | Mode and action |
+| `core` | `core.widget.alerts` | `thermostat_widget` | Alerts |
+| `core` | `core.widget.devices` | `thermostat_widget` | Equipment |
+| `core` | `core.widget.history` | `thermostat_widget` | Last 24 hours |
+| `core` | `core.widget.central_mode` | `global_widget` | Central mode |
+| `core` | `core.widget.summary` | `global_widget` | Thermostats |
+| `core` | `core.widget.outdoor` | `global_widget` | Outdoor temperature |
 | `core_tpi` | `core_tpi.tab.main` | `thermostat_config` | TPI parameters |
 | `core_tpi` | `core_tpi.general.main` | `general_config` | TPI parameters |
+| `core_tpi` | `core_tpi.widget.heating` | `thermostat_widget` | Heating |
+| `core_tpi` | `core_tpi.widget.auto_tpi` | `thermostat_widget` | Auto TPI learning |
 | `core_presets` | `core_presets.tab.main` | `thermostat_config` | Presets |
 | `core_presets` | `core_presets.general.main` | `general_config` | Presets |
+| `core_presets` | `core_presets.widget.preset` | `thermostat_widget` | Preset |
 | `core_central_boiler` | `core_central_boiler.general.main` | `general_config` | Central boiler |
+| `core_central_boiler` | `core_central_boiler.widget.boiler` | `global_widget` | Central boiler |
+| `core_central_boiler` | `core_central_boiler.widget.boiler_power` | `global_widget` | Power asked of the boiler |
+| `core_central_boiler` | `core_central_boiler.widget.thermostat` | `thermostat_widget` |  |
 | `core_window` | `core_window.tab.main` | `thermostat_config` | Window detection |
 | `core_window` | `core_window.general.main` | `general_config` | Window detection |
+| `core_window` | `core_window.widget.window` | `thermostat_widget` | Window |
 | `core_motion` | `core_motion.tab.main` | `thermostat_config` | Motion detection |
 | `core_motion` | `core_motion.general.main` | `general_config` | Motion detection |
+| `core_motion` | `core_motion.widget.motion` | `thermostat_widget` | Motion |
 | `core_power` | `core_power.tab.main` | `thermostat_config` | Power management |
 | `core_power` | `core_power.general.main` | `general_config` | Power management |
+| `core_power` | `core_power.widget.house_power` | `global_widget` | Power of the home |
+| `core_power` | `core_power.widget.overpowering` | `thermostat_widget` | Load shedding |
+| `core_power` | `core_power.widget.energy` | `thermostat_widget` | Energy |
 | `core_presence` | `core_presence.tab.main` | `thermostat_config` | Presence detection |
 | `core_presence` | `core_presence.general.main` | `general_config` | Presence detection |
+| `core_presence` | `core_presence.widget.presence` | `global_widget` | Presence |
 | `core_auto_start_stop` | `core_auto_start_stop.tab.main` | `thermostat_config` | Auto start and stop |
+| `core_auto_start_stop` | `core_auto_start_stop.widget.auto_start_stop` | `thermostat_widget` | Auto start and stop |
 | `core_valve_regulation` | `core_valve_regulation.tab.main` | `thermostat_config` | Valve regulation configuration |
+| `core_valve_regulation` | `core_valve_regulation.widget.valve` | `thermostat_widget` | Valve |
 | `core_sync_temp` | `core_sync_temp.tab.main` | `thermostat_config` | Synchronize device temperature |
+| `core_sync_temp` | `core_sync_temp.widget.sync` | `thermostat_widget` | Tracking of the equipment |
 | `core_advanced` | `core_advanced.tab.main` | `thermostat_config` | Safety and manual override |
 | `core_advanced` | `core_advanced.general.main` | `general_config` | Safety and manual override |
+| `core_advanced` | `core_advanced.widget.safety` | `thermostat_widget` | Safety |
 | `core_lock` | `core_lock.tab.main` | `thermostat_config` | Lock |
 | `core_lock` | `core_lock.general.main` | `general_config` | Lock |
+| `core_lock` | `core_lock.widget.lock` | `thermostat_widget` | Lock |
 | `core_humidity` | `core_humidity.tab.main` | `thermostat_config` | Humidity |
+| `core_humidity` | `core_humidity.widget.humidity` | `thermostat_widget` | Humidity |
 | `core_heating_failure` | `core_heating_failure.tab.main` | `thermostat_config` | Heating failure detection |
 | `core_heating_failure` | `core_heating_failure.general.main` | `general_config` | Heating failure detection |
+| `core_heating_failure` | `core_heating_failure.widget.failure` | `thermostat_widget` | Heating failure |
 | `core_complements` | `core_complements.top.complements` | `top_tab` | VT add-ons |
 | `core_complements` | `core_complements.page.catalog` | `tab_page` | Catalog |
 | `core_complements` | `core_complements.page.installed` | `tab_page` | Installed |

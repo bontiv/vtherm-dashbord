@@ -15,6 +15,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 
 - [BaseProps](interfaces/BaseProps.md)
 - [CatalogModule](interfaces/CatalogModule.md)
+- [CentralContext](interfaces/CentralContext.md)
 - [CompleteStatus](interfaces/CompleteStatus.md)
 - [ConfigProps](interfaces/ConfigProps.md)
 - [ContributionMap](interfaces/ContributionMap.md)
@@ -27,6 +28,8 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [EngineIssue](interfaces/EngineIssue.md)
 - [EntityField](interfaces/EntityField.md)
 - [EntityListField](interfaces/EntityListField.md)
+- [EntryEntities](interfaces/EntryEntities.md)
+- [EntryEntity](interfaces/EntryEntity.md)
 - [FieldBase](interfaces/FieldBase.md)
 - [FieldHelpProps](interfaces/FieldHelpProps.md)
 - [GeneralConfigContribution](interfaces/GeneralConfigContribution.md)
@@ -34,6 +37,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [GeneralConfigVisibilityContext](interfaces/GeneralConfigVisibilityContext.md)
 - [GlobalPageContribution](interfaces/GlobalPageContribution.md)
 - [GlobalWidgetContribution](interfaces/GlobalWidgetContribution.md)
+- [GlobalWidgetProps](interfaces/GlobalWidgetProps.md)
 - [HaControlsOptions](interfaces/HaControlsOptions.md)
 - [HaControlsResult](interfaces/HaControlsResult.md)
 - [HaEntityFilter](interfaces/HaEntityFilter.md)
@@ -42,6 +46,8 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [HaSelectSelector](interfaces/HaSelectSelector.md)
 - [Hass](interfaces/Hass.md)
 - [HassConfig](interfaces/HassConfig.md)
+- [HassDeviceRegistryEntry](interfaces/HassDeviceRegistryEntry.md)
+- [HassEntityRegistryEntry](interfaces/HassEntityRegistryEntry.md)
 - [HassLocale](interfaces/HassLocale.md)
 - [HassState](interfaces/HassState.md)
 - [HassUser](interfaces/HassUser.md)
@@ -59,6 +65,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [PluralMessage](interfaces/PluralMessage.md)
 - [RemovalContribution](interfaces/RemovalContribution.md)
 - [RemovalPlacement](interfaces/RemovalPlacement.md)
+- [ResolvedWidgetSize](interfaces/ResolvedWidgetSize.md)
 - [SelectField](interfaces/SelectField.md)
 - [SelectOption](interfaces/SelectOption.md)
 - [TabPageContribution](interfaces/TabPageContribution.md)
@@ -76,6 +83,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [UiPluginRegistry](interfaces/UiPluginRegistry.md)
 - [ValidationIssue](interfaces/ValidationIssue.md)
 - [VisibilityContextMap](interfaces/VisibilityContextMap.md)
+- [WidgetSize](interfaces/WidgetSize.md)
 
 ## Type Aliases
 
@@ -124,6 +132,9 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [HA\_CONTROLS](variables/HA_CONTROLS.md)
 - [HA\_SPINNERS](variables/HA_SPINNERS.md)
 - [HOOK\_NAMES](variables/HOOK_NAMES.md)
+- [VTHERM\_DOMAIN](variables/VTHERM_DOMAIN.md)
+- [WIDGET\_COLUMNS](variables/WIDGET_COLUMNS.md)
+- [WIDGET\_ROWS](variables/WIDGET_ROWS.md)
 
 ## Functions
 
@@ -132,6 +143,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [defineTranslations](functions/defineTranslations.md)
 - [ensureHaControls](functions/ensureHaControls.md)
 - [getDashboardVersion](functions/getDashboardVersion.md)
+- [getEntryEntities](functions/getEntryEntities.md)
 - [groupMenu](functions/groupMenu.md)
 - [haControlsStatus](functions/haControlsStatus.md)
 - [isCoreMenuGroup](functions/isCoreMenuGroup.md)
@@ -140,6 +152,7 @@ Public entry point of the SDK for the plugins of the Versatile Thermostat dashbo
 - [languageChain](functions/languageChain.md)
 - [normalizeLanguage](functions/normalizeLanguage.md)
 - [registerUiPlugin](functions/registerUiPlugin.md)
+- [resolveWidgetSize](functions/resolveWidgetSize.md)
 - [sectionStatusOf](functions/sectionStatusOf.md)
 - [selectorOf](functions/selectorOf.md)
 - [validateDefinition](functions/validateDefinition.md)

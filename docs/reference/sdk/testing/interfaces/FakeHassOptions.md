@@ -8,6 +8,22 @@ What `createFakeHass` can be given.
 
 ## Properties
 
+### devices?
+
+> `readonly` `optional` **devices?**: `Readonly`\<`Record`\<`string`, [`HassDeviceRegistryEntry`](../../index/interfaces/HassDeviceRegistryEntry.md)\>\>
+
+The registry of the devices, by device id. Undefined by default.
+
+***
+
+### entities?
+
+> `readonly` `optional` **entities?**: `Readonly`\<`Record`\<`string`, [`HassEntityRegistryEntry`](../../index/interfaces/HassEntityRegistryEntry.md)\>\>
+
+The registry of the entities, by entity id. Undefined by default.
+
+***
+
 ### isAdmin?
 
 > `readonly` `optional` **isAdmin?**: `boolean`

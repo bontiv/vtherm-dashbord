@@ -1,11 +1,17 @@
-/** The native plugin `core`: the top tabs, the overview pages, the pages of the configuration, and the tabs main and type. */
+/**
+ * The native plugin `core`: the top tabs, the overview pages, the pages of the configuration, the tabs main and type, and the widgets of
+ * the overview of a thermostat and of the Overview page.
+ */
 
 import { CORE_MENU_GROUPS, CORE_TOP_TABS, defineTranslations, registerUiPlugin } from "@vtherm/dashboard-sdk";
 import type { UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";
 
 import { de, en, fr } from "../catalogs/core.ts";
 import { defineCorePages } from "../core-pages.ts";
-import { PLUGINS_PAGE_ID, THERMOSTAT_OVERVIEW_ID, nativeTabContributions } from "../native-plugin.ts";
+import { CORE_OVERVIEW_ID, PLUGINS_PAGE_ID, THERMOSTAT_OVERVIEW_ID, nativeTabContributions } from "../native-plugin.ts";
+import { coreWidgets } from "../widgets/core.ts";
+import { coreDetailWidgets } from "../widgets/core_details.ts";
+import { coreGlobalWidgets } from "../widgets/core_overview.ts";
 
 export const translations = defineTranslations(en, { fr, de });
 
@@ -29,7 +35,7 @@ export const definition: UiPluginDefinition = {
       { id: PLUGINS_PAGE_ID, tab: CORE_TOP_TABS.configuration, title: "page.plugins", group: "group.dashboard", component: "core-plugins-page" },
       { id: "core.page.dev_plugins", tab: CORE_TOP_TABS.configuration, title: "page.dev_plugins", group: "group.dashboard", component: "core-dev-plugins-page", visible: administrator },
     ],
-    global_page: [{ id: "core.page.overview", title: "page.overview", icon: "mdi:view-dashboard-outline", component: "core-overview-page", placement: { first: true } }],
+    global_page: [{ id: CORE_OVERVIEW_ID, title: "page.overview", icon: "mdi:view-dashboard-outline", component: "core-overview-page", placement: { first: true } }],
     general_config: [
       {
         id: "core.general.create",
@@ -48,6 +54,11 @@ export const definition: UiPluginDefinition = {
       { id: THERMOSTAT_OVERVIEW_ID, title: "page.thermostat_overview", component: "core-thermostat-overview-page", save_actions: "component", placement: { first: true } },
       ...tabs.thermostat_config,
     ],
+    // The temperature, the mode and the action, and the alerts, first in the overview of a thermostat.
+    // Then the equipment, and the history of 24 hours last.
+    thermostat_widget: [...coreWidgets(translations), ...coreDetailWidgets(translations)],
+    // The central mode, the summary of the thermostats and the outdoor temperature on the Overview page.
+    global_widget: coreGlobalWidgets(translations),
   },
 };
 

@@ -9,11 +9,11 @@
  * Every value that the dashboard computes is marked as an estimation. The history is read only while a panel is shown.
  */
 
+import { getEntryEntities } from "@vtherm/dashboard-sdk";
 import type { ConfigValues, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
-import type { ThermostatList } from "../config/api.ts";
 import { defineElement } from "../components/define.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
 import { renderAlert, renderProgress } from "../components/ha.ts";
@@ -21,21 +21,18 @@ import "../components/time-chart.ts";
 import type { ChartBand, ChartRule, ChartSeries } from "../components/time-chart.ts";
 import { comfortStats, resample, sensorGaps, slopeHistory, temperatureHistory, timeMean, tpiDecision, tpiHistory, windowDetections } from "../insights/index.ts";
 import type { Sample, TpiDecision, TpiSettings, WindowSettings } from "../insights/index.ts";
-import { HistoryClient, PERIOD_MS } from "./history.ts";
+import { PERIOD_MS, sharedHistory } from "./history.ts";
 import type { EntityHistory, Period } from "./history.ts";
+import { effectiveValues } from "./effective-values.ts";
 import { thermostatTypeOf, usesValveRegulation, windowMethod, windowValues } from "./tab-definitions.ts";
+
+export { effectiveValues };
 
 /** Translate a key of the catalog of the native plugin of the tab. */
 export type InsightText = (key: string, params?: Readonly<Record<string, string | number>>) => string;
 
 /** How many points a chart draws over a period: enough for a curve, few enough for a phone. */
 const CHART_POINTS = 300;
-
-/** The state of Home Assistant that the history client reads: the last one that a panel was given. */
-let currentHass: Hass | undefined;
-
-/** The history shared by the panels, so that a period read by one panel is not read again by another for a few minutes. */
-export const insightHistory = new HistoryClient(() => currentHass);
 
 /** The entities of a thermostat that the panels read. */
 export interface ThermostatEntities {
@@ -44,33 +41,26 @@ export interface ThermostatEntities {
   readonly slope?: string;
 }
 
-/** An entry of the registry of the entities of Home Assistant, as `hass.entities` gives it. */
-interface EntityEntry {
-  readonly entity_id: string;
-  readonly device_id?: string | null;
-  readonly platform?: string;
-  readonly translation_key?: string | null;
-}
-
 /**
- * Find the entities of a thermostat: its climate entity from the list of the thermostats, and the sensors of its device that Versatile
- * Thermostat creates, by their translation key.
+ * Find the entities of a thermostat in the registries of `hass`: its climate entity, and the sensors of its device that Versatile
+ * Thermostat creates, by their translation key. Nothing is asked to the server.
  *
  * @param hass - The state of Home Assistant.
  * @param entryId - The configuration entry of the thermostat.
  */
-export async function thermostatEntities(hass: Hass, entryId: string): Promise<ThermostatEntities> {
-  const list = await hass.callWS<ThermostatList>({ type: "vtherm_dashboard/get_thermostats" });
-  const entry = list.thermostats.find((thermostat) => thermostat.id === entryId);
-  const entities = Object.values((hass as Hass & { readonly entities?: Readonly<Record<string, EntityEntry>> }).entities ?? {});
-  const ofDevice = (key: string): string | undefined =>
-    entry?.device_id === null || entry?.device_id === undefined ? undefined : entities.find((candidate) => candidate.device_id === entry.device_id && candidate.translation_key === key)?.entity_id;
+export function thermostatEntities(hass: Hass, entryId: string): ThermostatEntities {
+  const found = getEntryEntities(hass, entryId);
+  const powerPercent = found.byKey["power_percent"];
+  const slope = found.byKey["temperature_slope"];
   return {
-    ...(entry?.climate_entity_id ? { climate: entry.climate_entity_id } : {}),
-    ...(ofDevice("power_percent") === undefined ? {} : { powerPercent: ofDevice("power_percent") as string }),
-    ...(ofDevice("temperature_slope") === undefined ? {} : { slope: ofDevice("temperature_slope") as string }),
+    ...(found.climate === undefined ? {} : { climate: found.climate }),
+    ...(powerPercent === undefined ? {} : { powerPercent }),
+    ...(slope === undefined ? {} : { slope }),
   };
 }
+
+/** Whether two sets of entities name the same entities. */
+const sameEntities = (a: ThermostatEntities | undefined, b: ThermostatEntities): boolean => a !== undefined && a.climate === b.climate && a.powerPercent === b.powerPercent && a.slope === b.slope;
 
 const numberOf = (value: unknown): number | undefined => {
   const number = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value.replace(",", ".")) : Number.NaN;
@@ -78,27 +68,6 @@ const numberOf = (value: unknown): number | undefined => {
 };
 
 const textOf = (value: unknown): string | undefined => (typeof value === "string" && value !== "" ? value : undefined);
-
-/**
- * The values that a panel reads: the values of the draft, with the central ones of each section that uses the central configuration.
- *
- * @param values - The values of the draft of the thermostat.
- * @param central - The values of the central configuration.
- */
-export function effectiveValues(values: ConfigValues, central: ConfigValues): ConfigValues {
-  if (Object.keys(central).length === 0) {
-    return values;
-  }
-  const inherits = (option: string): boolean => values[option] !== false;
-  const sections: readonly (readonly [string, readonly string[]])[] = [
-    ["use_main_central_config", ["external_temperature_sensor_entity_id", "temp_min", "temp_max", "step_temperature"]],
-    ["use_tpi_central_config", ["tpi_coef_int", "tpi_coef_ext", "minimal_activation_delay", "minimal_deactivation_delay", "tpi_threshold_low", "tpi_threshold_high"]],
-    ["use_window_central_config", ["window_delay", "window_off_delay", "window_auto_open_threshold", "window_auto_close_threshold", "window_auto_max_duration", "window_action"]],
-    ["use_advanced_central_config", ["safety_delay_min", "safety_min_on_percent", "safety_default_on_percent"]],
-  ];
-  const inherited = sections.filter(([option]) => inherits(option)).flatMap(([, keys]) => keys.map((key) => [key, central[key]] as const));
-  return { ...values, ...Object.fromEntries(inherited) };
-}
 
 /** The settings of TPI of the values, with the defaults of Versatile Thermostat. */
 export function tpiSettingsOf(values: ConfigValues): TpiSettings {
@@ -308,7 +277,6 @@ abstract class InsightPanel extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues): void {
-    currentHass = this.hass;
     // The element can be kept for another thermostat: it forgets the entities and the history of the previous one.
     if (changed.has("thermostatId") && changed.get("thermostatId") !== undefined) {
       this.entities = undefined;
@@ -319,18 +287,12 @@ abstract class InsightPanel extends LitElement {
     if (this.creating || this.hass === undefined) {
       return;
     }
-    const entities = this.entities;
-    // The entities of the thermostat, read once from the list of the thermostats: this is not a read of the history.
-    if (entities === undefined) {
-      if (this.loadedFor !== "entities") {
-        this.loadedFor = "entities";
-        void thermostatEntities(this.hass, this.thermostatId).then(
-          (found) => (this.entities = found),
-          (error: unknown) => (this.failure = error instanceof Error ? error.message : String(error)),
-        );
-      }
-      return;
+    // The entities of the thermostat, from the registries of hass: they are there at once, and a change of the registries is followed.
+    const found = thermostatEntities(this.hass, this.thermostatId);
+    if (!sameEntities(this.entities, found)) {
+      this.entities = found;
     }
+    const entities = this.entities as ThermostatEntities;
     if (!this.needsHistory) {
       return;
     }
@@ -346,7 +308,7 @@ abstract class InsightPanel extends LitElement {
     this.failure = undefined;
     try {
       const requests = this.historyRequests(entities);
-      const read = await Promise.all(requests.map((request) => insightHistory.read(request.entityId, period, request.attributes ?? [])));
+      const read = await Promise.all(requests.map((request) => sharedHistory(this.hass).read(request.entityId, period, request.attributes ?? [])));
       if (this.period === period) {
         this.history = Object.fromEntries(requests.map((request, index) => [request.key, read[index] as EntityHistory]));
       }

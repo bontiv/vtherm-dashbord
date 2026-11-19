@@ -9,6 +9,14 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
+  "widget.loading": "Loading…",
+  "widget.no_data": "No data",
+  "widget.unavailable": "unavailable",
+  "widget.value_unavailable": "{label}: unavailable",
+  "widget.gauge.range": "{value} on a range of {min} to {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "History unavailable",
+  "widget.curve.summary": "Over the last 24 hours: from {min} to {max}, last value {last}.",
   "title.valve_regulation": "Valve regulation configuration",
   "description.valve_regulation": "Configuration for self-regulation with direct control of the valve",
   "field.closing_degree_entity_ids": "Closing degree entities",
@@ -26,6 +34,8 @@ export const en = {
   "field.proportional_function": "Algorithm",
   "help.proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
   "option.proportional_function.tpi": "TPI",
+  "widget.valve.title": "Valve",
+  "widget.valve.opening": "Opening",
   "hint.opening_degree_entity_ids": "Entity that sets the opening of each valve: one per device, in the same order.",
   "hint.closing_degree_entity_ids": "Optional entity that sets the closing of each valve: one per device, or none.",
   "hint.proportional_function": "Algorithm that computes the power; others can be added as plugins.",
@@ -41,6 +51,14 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
+  "widget.loading": "Chargement…",
+  "widget.no_data": "Aucune donnée",
+  "widget.unavailable": "indisponible",
+  "widget.value_unavailable": "{label} : indisponible",
+  "widget.gauge.range": "{value} sur une plage de {min} à {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Historique indisponible",
+  "widget.curve.summary": "Sur les dernières 24 heures : de {min} à {max}, dernière valeur {last}.",
   "title.valve_regulation": "Configuration de la regulation par vanne",
   "description.valve_regulation": "Configuration de l'auto-régulation par controle direct de la vanne",
   "field.closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
@@ -58,6 +76,8 @@ export const fr = {
   "field.proportional_function": "Algorithme",
   "help.proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
   "option.proportional_function.tpi": "TPI",
+  "widget.valve.title": "Vanne",
+  "widget.valve.opening": "Ouverture",
   "hint.opening_degree_entity_ids": "Entité qui règle l'ouverture de chaque vanne : une par appareil, dans le même ordre.",
   "hint.closing_degree_entity_ids": "Entité facultative qui règle la fermeture de chaque vanne : une par appareil, ou aucune.",
   "hint.proportional_function": "Algorithme qui calcule la puissance ; d'autres peuvent être ajoutés par des plugins.",
@@ -73,6 +93,14 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
+  "widget.loading": "Wird geladen…",
+  "widget.no_data": "Keine Daten",
+  "widget.unavailable": "nicht verfügbar",
+  "widget.value_unavailable": "{label}: nicht verfügbar",
+  "widget.gauge.range": "{value} in einem Bereich von {min} bis {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Verlauf nicht verfügbar",
+  "widget.curve.summary": "In den letzten 24 Stunden: von {min} bis {max}, letzter Wert {last}.",
   "title.valve_regulation": "Konfiguration Ventilsteuerung",
   "description.valve_regulation": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung",
   "field.closing_degree_entity_ids": "Schließweite Entity-IDs",
@@ -90,6 +118,8 @@ export const de = {
   "field.proportional_function": "Algorithmus",
   "help.proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
   "option.proportional_function.tpi": "TPI",
+  "widget.valve.title": "Ventil",
+  "widget.valve.opening": "Öffnung",
   "hint.opening_degree_entity_ids": "Entität, die die Öffnung jedes Ventils einstellt: eine pro Gerät, in derselben Reihenfolge.",
   "hint.closing_degree_entity_ids": "Optionale Entität, die das Schließen jedes Ventils einstellt: eine pro Gerät oder keine.",
   "hint.proportional_function": "Algorithmus, der die Leistung berechnet; weitere lassen sich als Plugins hinzufügen.",

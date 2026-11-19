@@ -32,3 +32,16 @@ export function usedVariables(): string[] {
   return [...used].sort();
 }
 
+/**
+ * The custom properties that the dashboard defines itself in its styles (`--vtherm-...: value`), such as the unit of height of the grid
+ * of the widgets. They are not colors of the theme: the components may use them.
+ */
+export function ownVariables(): string[] {
+  const own = new Set<string>();
+  for (const { css } of sourceStyles()) {
+    for (const match of css.matchAll(/(--vtherm-[a-z0-9_-]+)\s*:/g)) {
+      own.add(match[1] as string);
+    }
+  }
+  return [...own].sort();
+}

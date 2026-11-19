@@ -30,7 +30,9 @@ function table(): string {
     for (const [hook, list] of Object.entries(definition.contributions)) {
       for (const contribution of list ?? []) {
         const item = contribution as { id: string; title?: string };
-        const title = item.title === undefined ? "" : (english(definition)[item.title] ?? item.title);
+        // A widget has no title in its contribution: its card shows the key `widget.<name>.title` of its catalog.
+        const key = item.title ?? (hook.endsWith("_widget") ? `widget.${item.id.split(".").at(-1) ?? ""}.title` : undefined);
+        const title = key === undefined ? "" : (english(definition)[key] ?? item.title ?? "");
         rows.push(`| \`${id}\` | \`${item.id}\` | \`${hook}\` | ${title} |`);
       }
     }

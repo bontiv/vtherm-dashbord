@@ -1,5 +1,5 @@
 import { CORE_TOP_TABS } from "@vtherm/dashboard-sdk";
-import type { DraftMessage, Hass, HookName, PlacedEntry, SaveResult, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
+import type { CentralContext, DraftMessage, Hass, HookName, PlacedEntry, SaveResult, ThermostatType, VisibilityContext } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 
@@ -9,6 +9,7 @@ import { ConfigSession, creationKey, isCreationKey } from "./config/config-sessi
 import type { OpenConfig } from "./config/config-session.ts";
 import { PRESET_PREFIX } from "./config/draft.ts";
 import { fieldLabelKey } from "./native/fields.ts";
+import { CORE_OVERVIEW_ID, THERMOSTAT_OVERVIEW_ID } from "./native/native-plugin.ts";
 import { creationContributionIds, creationMissing, creationValues, definitionOfContribution, featureStepOf } from "./native/tab-definitions.ts";
 import type { ConfigKind } from "./native/tab-definitions.ts";
 import type { BootstrapResult } from "./bootstrap.ts";
@@ -784,6 +785,15 @@ export class VThermDashboardPanel extends LitElement {
     return { ...draft.values(), ...presets };
   }
 
+  /**
+   * The central configuration that the widgets of the Overview page receive: its entry and its values, which are empty while they are
+   * read. Undefined when there is no central configuration.
+   */
+  private centralContext(): CentralContext | undefined {
+    const entryId = this.session?.centralId ?? null;
+    return entryId === null ? undefined : { entryId, values: this.valuesOf(entryId) };
+  }
+
   private contextOf = (entry: PlacedEntry, thermostat: ThermostatInfo | undefined): VisibilityContext<HookName> => {
     const hass = this.hass as Hass;
     const central = this.valuesOf(this.session?.centralId ?? null);
@@ -876,7 +886,8 @@ export class VThermDashboardPanel extends LitElement {
   private propsOf(entry: PlacedEntry, thermostat: ThermostatInfo | undefined): Readonly<Record<string, unknown>> {
     const hass = this.pluginHass ?? this.hass;
     if (entry.hook !== "thermostat_config" && entry.hook !== "general_config") {
-      return { hass, narrow: this.compact, language: String(this.languageVersion), subpath: this.currentRoute.rest };
+      const central = entry.id === CORE_OVERVIEW_ID ? this.centralContext() : undefined;
+      return { hass, narrow: this.compact, language: String(this.languageVersion), subpath: this.currentRoute.rest, ...(central === undefined ? {} : { central }) };
     }
     const entryId = entry.hook === "thermostat_config" ? this.thermostatKey(thermostat) : this.centralKey();
     const draft = this.session?.get(entryId)?.draft;
@@ -899,7 +910,9 @@ export class VThermDashboardPanel extends LitElement {
       draft: this.draftControls(entryId),
       ...(creationKind === undefined || draft === undefined ? {} : { missing: this.missingKeys(creationKind, draft, tab) }),
     };
-    return entry.hook === "thermostat_config" ? { ...common, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
+    // The overview of a thermostat draws the texts of the widgets again when the language changes, as the pages of the Dashboard tab do.
+    const language = entry.id === THERMOSTAT_OVERVIEW_ID ? { language: String(this.languageVersion) } : {};
+    return entry.hook === "thermostat_config" ? { ...common, ...language, thermostatId: thermostat?.id, centralValues: this.valuesOf(this.session?.centralId ?? null) } : common;
   }
 
   /** The card of the save actions under a configuration component that does not draw them itself (`save_actions` is not `component`). */

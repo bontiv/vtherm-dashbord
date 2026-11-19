@@ -8,7 +8,7 @@
  */
 
 import { HOOK_NAMES } from "./types.js";
-import type { Contribution, ContributionMap, HookName, UiPluginDefinition, VisibilityContext } from "./types.js";
+import type { Contribution, ContributionMap, HookName, UiPluginDefinition, VisibilityContext, WidgetSize } from "./types.js";
 import { validateDefinition } from "./validation.js";
 
 /** The identifiers of the top tabs that the `core` plugin provides. The left menus of three of the hooks belong to them. */
@@ -75,6 +75,28 @@ export interface PlacedEntry {
   readonly hook: HookName;
   /** The contribution as the plugin declared it. */
   readonly contribution: ShownContribution;
+  /** The size of a widget, with its default values: present for the contributions of `global_widget` and `thermostat_widget` only. */
+  readonly size?: ResolvedWidgetSize;
+}
+
+/** The size of a widget once resolved: both values are given. */
+export interface ResolvedWidgetSize {
+  /** How many columns the widget takes, or `full` for the whole row. */
+  readonly columns: NonNullable<WidgetSize["columns"]>;
+  /**
+   * The minimal height in units of 140 px. 1 when the widget declares none: the grid then gives it no minimal height, so that its height
+   * follows its content as before.
+   */
+  readonly rows: NonNullable<WidgetSize["rows"]>;
+}
+
+/**
+ * Give the values of a widget size that the widget does not declare: one column, one row.
+ *
+ * @param size - The size that the widget declares, already validated.
+ */
+export function resolveWidgetSize(size: WidgetSize | undefined): ResolvedWidgetSize {
+  return { columns: size?.columns ?? 1, rows: size?.rows ?? 1 };
 }
 
 /** The tabs of the top bar, by zone. */
@@ -265,7 +287,8 @@ export function createPlacementEngine(): PlacementEngine {
       return;
     }
     const list = listOf(key);
-    const slot: Slot = { entry: { id: contribution.id, pluginId, hook, contribution }, list: key, state: "active", replacedBy: undefined };
+    const size = hook === "global_widget" || hook === "thermostat_widget" ? { size: resolveWidgetSize((contribution as { size?: WidgetSize }).size) } : {};
+    const slot: Slot = { entry: { id: contribution.id, pluginId, hook, contribution, ...size }, list: key, state: "active", replacedBy: undefined };
     const placement = contribution.placement ?? { last: true as const };
     const onMissing = contribution.on_missing ?? "last";
 

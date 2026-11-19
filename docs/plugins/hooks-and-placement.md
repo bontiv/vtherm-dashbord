@@ -13,7 +13,7 @@ A hook is a place of the dashboard. A plugin gives its contributions grouped by 
 | `top_tab` | A tab of the top bar. It has no component: its pages are `tab_page` contributions. | none |
 | `tab_page` | An entry of the left menu of a top tab, chosen with `tab`. | `hass`, `narrow` |
 | `global_page` | An entry of the left menu of the Dashboard tab. | `hass`, `narrow` |
-| `global_widget` | A widget of the Overview page. | `hass`, `narrow` |
+| `global_widget` | A widget of the Overview page. | `hass`, `narrow`, `central` |
 | `general_config` | A section of the general configuration of Versatile Thermostat. | `hass`, `narrow`, `values`, `errors`, `proposeChanges`, `draft` |
 | `thermostat_config` | An entry of the menu of a thermostat, in particular a configuration section. | `hass`, `narrow`, `thermostatId`, `values`, `centralValues`, `errors`, `proposeChanges`, `draft` |
 | `thermostat_widget` | A widget of the overview of a thermostat. | `hass`, `narrow`, `thermostatId` |
@@ -21,6 +21,11 @@ A hook is a place of the dashboard. A plugin gives its contributions grouped by 
 `narrow` is true when the dashboard is shown on a narrow screen, such as a phone (under 700 px): the menu is then a drawer and the
 page takes the whole width. It changes without a reload when the width of the window crosses the threshold, so draw again when it
 changes, for example by declaring it as a reactive property of a Lit element. Visibility conditions do not receive it.
+
+`thermostatId` is the identifier of the configuration entry of the thermostat, not its `climate` entity. `central`, given to the
+widgets of the Overview page and to their visibility conditions, holds `entryId`, the entry of the central configuration, and `values`,
+its values; it is absent when there is no central configuration. Find the entities of an entry with `getEntryEntities`, see
+[Widgets](#widgets).
 
 A contribution has an `id` that starts with the identifier of your plugin and a dot (`smartpi.tab.main`). The identifier
 must be unique in its hook. A contribution that shows something also has a `component`, the tag name of a custom element
@@ -34,6 +39,98 @@ saves. The save actions are at the foot of the card of the section: a contributi
 `save_actions: "component"`; otherwise (`"dashboard"`, the default) the dashboard draws them in a card under the component. Only
 `general_config` and `thermostat_config` accept `save_actions`. See
 [Save actions](plugin-development.md#save-actions).
+
+## Widgets
+
+The widgets are the contributions of `global_widget` (the Overview page) and `thermostat_widget` (the overview of a thermostat). The
+dashboard draws each one in a card of a grid, in the order of their placements.
+
+### What a widget reads
+A widget reads the state of Home Assistant from `hass`, which has everything it needs without a call to the server:
+
+- `getEntryEntities(hass, entryId)` gives the entities of a configuration entry from the registries `hass.devices` and `hass.entities`:
+  the `climate` entity of a thermostat, its sensors by translation key (`byKey["power_percent"]`), and every entity of its device. Give
+  it `thermostatId`, or `central.entryId` for the central configuration. It is pure and synchronous, so a visibility condition can call
+  it, and it gives empty values when the entry or a registry is missing.
+- `hass.states[entityId]` gives the state and the attributes of an entity.
+- `hass.formatEntityState` and `hass.formatEntityAttributeValue`, when Home Assistant gives them, format a value with its unit and its
+  precision. They are optional: format with `hass.locale` without them.
+- `hass.callWS` reads the history from the recorder. See [Read the history](plugin-development.md#read-the-history).
+
+`hass.entities` and `hass.devices` are optional in the type `Hass`, and read-only. A plugin that does not read them needs no change.
+See [Read the entities of a thermostat](plugin-development.md#read-the-entities-of-a-thermostat) for an example.
+
+### Size and grid
+A widget can declare its `size` in the grid: `{ columns?: 1 | 2 | 3 | "full"; rows?: 1 | 2 | 3 }`. Only `global_widget` and
+`thermostat_widget` accept it.
+
+- **Columns.** The grid measures its width and has as many columns of at least 280 px as it holds:
+  `floor((width + 16) / (280 + 16))`, at least one (four columns at 1 440 px, with a gap of 16 px). A widget takes `columns` of them,
+  reduced to the number of columns of the grid: a widget of 3 columns in a grid of 2 takes 2, and the grid never overflows. `"full"`
+  takes the whole row.
+- **Rows.** `rows` gives the card a minimal height of `rows` units of 140 px (a gauge and two lines of text), plus the gaps between
+  them: `rows: 2` is at least 296 px. The card grows when its content is higher. Without `rows`, the height follows the content.
+- **Default.** Without `size`, a widget takes one column and the height of its content, as before the sizes. A widget that declares
+  only one value gets the default of the other: `size: { columns: "full" }` resolves to `{ columns: "full", rows: 1 }`, with no minimal
+  height.
+- **Narrow screen.** On a phone (under 700 px), the grid has one column: every card takes it, whatever its `columns`, and keeps the
+  minimal height of its `rows`.
+- **Order.** The cards follow the order of the placements, which is the order of reading and of the keyboard. The grid never moves a
+  card to fill a hole (no `grid-auto-flow: dense`): a wide widget that does not fit at the end of a row goes to the next row and leaves a
+  hole. Order your widgets so that the rows fill.
+
+The dashboard refuses at registration a size that is not an object, an unknown key (`size.width`), a value out of these sets
+(`size.columns: 4`, `size.rows: 5`), and a `size` on another hook, with the path of the faulty value. TypeScript refuses them too. The
+resolved entries of a widget hook carry the size with its default values (`entry.size`).
+
+<!-- example: docs/examples/typescript/widget-size.ts -->
+```typescript
+import { defineTranslations } from "@vtherm/dashboard-sdk";
+import type { UiPluginDefinition } from "@vtherm/dashboard-sdk";
+
+/** A plugin whose widgets declare their size in the grid of the overview of a thermostat. */
+export const definition: UiPluginDefinition = {
+  id: "my_sizes",
+  translations: defineTranslations({ "widget.chart.title": "Last 24 hours", "widget.gauge.title": "Heating share", "widget.alerts.title": "Alerts" }),
+  contributions: {
+    thermostat_widget: [
+      // Two columns of the grid, and at least two units of 140 px high: room for a chart.
+      { id: "my_sizes.widget.chart", component: "my-chart-widget", size: { columns: 2, rows: 2 } },
+      // No size: one column, and the height of its content, as every widget written before the sizes.
+      { id: "my_sizes.widget.gauge", component: "my-gauge-widget" },
+      // The whole row, whatever the number of columns. Without `rows`, no minimal height.
+      { id: "my_sizes.widget.alerts", component: "my-alerts-widget", size: { columns: "full" } },
+    ],
+  },
+};
+```
+<!-- /example -->
+
+Each widget is drawn in a `ha-card`, or in an element with the same border, radius and background when Home Assistant does not define
+it. The card is the only border of the widget: do not draw a second one. The widgets receive `narrow`, as the pages do.
+
+### Conventions of the widgets
+The native widgets follow these rules, and a plugin that follows them looks like the dashboard:
+
+- **Identifier.** `<plugin>.widget.<name>`, for example `core_window.widget.window`.
+- **Title.** The key `widget.<name>.title` of the catalog of the plugin, in English, French and German for a native plugin.
+- **Hidden, not empty.** A widget whose feature is off, or whose source entity does not exist, is hidden by its visibility condition:
+  it never shows an empty card. The condition reads the effective values: the values of the thermostat, and the central values for
+  the sections that use the central configuration (`centralValues`); and the presence of the entity with `getEntryEntities`. A
+  condition that raises hides the widget and records `visibility_error`.
+- **States.** A card that waits shows its title and an indicator of progress, without a value. A card with nothing to show says why. A
+  value that is missing, `unavailable` or `unknown` is "—", said "unavailable" to a screen reader, and never 0. An attribute that is
+  missing makes only its own value "—".
+- **Units and formats.** Format with `hass.formatEntityState` and `hass.formatEntityAttributeValue` when they exist, else with
+  `hass.locale` and the unit of the entity or of `hass.config.unit_system`. Never convert a temperature: show the unit of Home
+  Assistant. An age is relative ("3 minutes ago"), with the full date in its tooltip.
+- **Accessibility.** A state is an icon and a text, never a color alone. A tooltip can be reached with the keyboard. An icon that
+  carries a meaning has a translated accessible name. An alert is announced by a screen reader.
+- **Theme and phone.** Only the variables of the theme of Home Assistant, no color of your own. Nothing wider than the card: a widget
+  stays readable at 360 px without a horizontal scroll.
+- **Cost.** Draw again only when an entity that the widget reads changes, and read a history only once the card is visible.
+- **Display only.** A widget shows how Versatile Thermostat works; it does not change it. No widget calls a service, and none draws a
+  command (mode, preset, lock, window bypass, central mode, learning).
 
 ## The menus
 
@@ -248,7 +345,8 @@ removes nothing and records the same warning.
 
 ### Visibility
 
-`visible` is a function that receives the context of the contribution (`hass`, and the thermostat, its type and its values for the thermostat hooks) and
+`visible` is a function that receives the context of the contribution (`hass`; the thermostat, its type, its values and the central
+values for the thermostat hooks; `central` for `global_widget`) and
 returns whether to show it. It is evaluated again at each change of the context, so a section can appear when a feature is
 turned on. It must be a pure function. A hidden contribution keeps its place, so the others do not move. A condition that raises
 an error hides the contribution and records `visibility_error`.

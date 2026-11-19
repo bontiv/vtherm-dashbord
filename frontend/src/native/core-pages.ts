@@ -1,4 +1,4 @@
-import type { ConfigValues, Hass } from "@vtherm/dashboard-sdk";
+import type { CentralContext, ConfigValues, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
 
@@ -10,18 +10,36 @@ import { t } from "../shell-translations.ts";
 import { narrowStyles } from "../components/narrow-styles.ts";
 import { isDefined } from "../components/ha.ts";
 
-/** The page Overview of the Dashboard tab: the widgets of the plugins. */
+/**
+ * The page Overview of the Dashboard tab: the widgets of the plugins, with the central configuration that the panel gives. When no widget
+ * is visible (no thermostat, no central configuration), a message says so instead of a blank page.
+ */
 export class CoreOverviewPage extends LitElement {
-  static override properties = { hass: { attribute: false } };
+  static override properties = { hass: { attribute: false }, central: { attribute: false }, narrow: { type: Boolean }, language: { type: String } };
   declare hass: Hass | undefined;
+  declare central: CentralContext | undefined;
+  declare narrow: boolean;
+  declare language: string;
+  constructor() {
+    super();
+    this.narrow = false;
+    this.language = "";
+  }
   protected override render(): TemplateResult {
-    return html`<vtherm-widgets-page .hook=${"global_widget"} .hass=${this.hass}></vtherm-widgets-page>`;
+    return html`<vtherm-widgets-page
+      .hook=${"global_widget"}
+      .hass=${this.hass}
+      .central=${this.central}
+      .narrow=${this.narrow}
+      .language=${this.language}
+      .emptyMessage=${t("overview.empty")}
+    ></vtherm-widgets-page>`;
   }
 }
 
 /** The overview of a thermostat: its type, then the widgets of the plugins for the thermostat. */
 export class CoreThermostatOverviewPage extends LitElement {
-  static override properties = { hass: { attribute: false }, thermostatId: { type: String }, values: { attribute: false }, language: { type: String } };
+  static override properties = { hass: { attribute: false }, thermostatId: { type: String }, values: { attribute: false }, centralValues: { attribute: false }, narrow: { type: Boolean }, language: { type: String } };
   static override styles = [
     narrowStyles,
     css`
@@ -37,11 +55,15 @@ export class CoreThermostatOverviewPage extends LitElement {
   declare hass: Hass | undefined;
   declare thermostatId: string;
   declare values: ConfigValues;
+  declare centralValues: ConfigValues;
+  declare narrow: boolean;
   declare language: string;
   constructor() {
     super();
     this.thermostatId = "";
     this.values = {};
+    this.centralValues = {};
+    this.narrow = false;
     this.language = "";
   }
   protected override render(): TemplateResult {
@@ -53,6 +75,9 @@ export class CoreThermostatOverviewPage extends LitElement {
         .thermostatId=${this.thermostatId}
         .thermostatType=${type}
         .values=${this.values}
+        .centralValues=${this.centralValues}
+        .narrow=${this.narrow}
+        .language=${this.language}
       ></vtherm-widgets-page>`;
   }
 }

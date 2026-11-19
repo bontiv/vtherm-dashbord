@@ -36,6 +36,28 @@ describe("the registry", () => {
     expect(registry.definitions().map((item) => item.id)).toEqual(["smartpi"]);
   });
 
+  it("gives the widgets their size with its default values, and refuses an invalid size", () => {
+    const registry = createRegistry(list(plugin("smartpi"), plugin("broken")));
+    registry.register({
+      id: "smartpi",
+      translations: defineTranslations({}),
+      contributions: {
+        thermostat_widget: [
+          { id: "smartpi.none", component: "smartpi-none" },
+          { id: "smartpi.full", component: "smartpi-full", size: { columns: "full" } },
+        ],
+        global_widget: [{ id: "smartpi.global", component: "smartpi-global", size: { columns: 2, rows: 3 } }],
+      },
+    });
+    expect(registry.engine.widgets("thermostat_widget").map((entry) => entry.size)).toEqual([
+      { columns: 1, rows: 1 },
+      { columns: "full", rows: 1 },
+    ]);
+    expect(registry.engine.widgets("global_widget")[0]?.size).toEqual({ columns: 2, rows: 3 });
+    const broken = { id: "broken", translations: defineTranslations({}), contributions: { thermostat_widget: [{ id: "broken.w", component: "broken-w", size: { columns: 4 } }] } };
+    expect(() => registry.register(broken as never)).toThrow(/size\.columns/);
+  });
+
   it("refuses a plugin that the server did not put in the list, without applying any contribution", () => {
     const registry = createRegistry(list(plugin("core")));
     expect(() => registry.register(definition("stranger"))).toThrow(/neither registered in Python nor declared by a development entry/);

@@ -15,7 +15,29 @@ import { VThermSideMenu } from "../src/components/side-menu.ts";
 import { VThermThermostatList } from "../src/components/thermostat-list.ts";
 import { VThermTimeChart } from "../src/components/time-chart.ts";
 import { VThermTopBar } from "../src/components/top-bar.ts";
-import { VThermWidgets } from "../src/components/widgets.ts";
+import { VThermWidgets, gridColumns } from "../src/components/widgets.ts";
+import { AlertsWidget, ModeWidget, TemperatureWidget } from "../src/native/widgets/core.ts";
+import { SafetyWidget } from "../src/native/widgets/core_advanced.ts";
+import { PresetWidget } from "../src/native/widgets/core_presets.ts";
+import { HeatingWidget } from "../src/native/widgets/core_tpi.ts";
+import { ValveWidget } from "../src/native/widgets/core_valve_regulation.ts";
+import { CentralModeWidget, OutdoorWidget, SummaryWidget } from "../src/native/widgets/core_overview.ts";
+import { BoilerPowerWidget, BoilerWidget } from "../src/native/widgets/core_central_boiler.ts";
+import { HousePowerWidget, OverpoweringWidget } from "../src/native/widgets/core_power.ts";
+import { AutoStartStopWidget } from "../src/native/widgets/core_auto_start_stop.ts";
+import { FailureWidget } from "../src/native/widgets/core_heating_failure.ts";
+import { LockWidget } from "../src/native/widgets/core_lock.ts";
+import { MotionWidget } from "../src/native/widgets/core_motion.ts";
+import { WindowWidget } from "../src/native/widgets/core_window.ts";
+import { DevicesWidget, HistoryWidget } from "../src/native/widgets/core_details.ts";
+import { AutoTpiWidget } from "../src/native/widgets/core_tpi_auto.ts";
+import { HumidityWidget } from "../src/native/widgets/core_humidity.ts";
+import { SyncWidget } from "../src/native/widgets/core_sync_temp.ts";
+import { BoilerDemandWidget } from "../src/native/widgets/core_central_boiler_thermostat.ts";
+import { EnergyWidget } from "../src/native/widgets/core_power_energy.ts";
+import { VThermHistoryCurve } from "../src/native/widgets/history-curve.ts";
+import { PresenceWidget } from "../src/native/widgets/core_presence.ts";
+import { VThermAge, VThermBar, VThermGauge, VThermStateIcon, VThermValueRow, VThermWidgetCard } from "../src/components/overview/index.ts";
 import { VThermDevPluginsPage } from "../src/dev/dev-plugins-page.ts";
 import { CoreThermostatOverviewPage } from "../src/native/core-pages.ts";
 import { NativeTabElement } from "../src/native/native-tab.ts";
@@ -104,6 +126,111 @@ describe("the chart of time series on a phone", () => {
     expect(css).toMatch(/\.readout\s*\{[^}]*position: absolute;[^}]*box-sizing: border-box;[^}]*max-width: calc\(100% - 8px\);[^}]*overflow-wrap: anywhere/);
     expect(css).toMatch(/\.legend\s*\{[^}]*flex-wrap: wrap;[^}]*min-width: 0/);
     expect(css).toMatch(/\.legend-item\s*\{[^}]*min-width: 0;[^}]*overflow-wrap: anywhere/);
+  });
+});
+
+describe("the curves of the widgets on a phone", () => {
+  it("cannot overflow a screen of 360 px: the charts of the history and of the energy shrink with their card", () => {
+    for (const [name, element] of Object.entries({ HistoryWidget, VThermHistoryCurve })) {
+      const css = flatten((element as unknown as { styles: CSSResultGroup }).styles)
+        .map((style) => (style as { cssText?: string }).cssText ?? "")
+        .join("\n");
+      expect(css, name).toMatch(/vtherm-time-chart\s*\{[^}]*display: block;[^}]*min-width: 0/);
+      expect(css, name).toMatch(/:host\s*\{[^}]*min-width: 0/);
+    }
+  });
+});
+
+describe("the grid of the widgets on a phone", () => {
+  it("cannot overflow a screen of 360 px: one column that shrinks, every card on it whatever its size", () => {
+    const css = flatten(VThermWidgets.styles)
+      .map((style) => (style as { cssText?: string }).cssText ?? "")
+      .join("\n");
+    expect(css).toMatch(/:host\s*\{[^}]*minmax\(0, 1fr\)[^}]*min-width: 0/);
+    expect(css).toMatch(/\.widget\s*\{[^}]*min-width: 0;[^}]*overflow: hidden;[^}]*box-sizing: border-box/);
+    const narrow = css.slice(css.indexOf(`@media ${NARROW_QUERY}`));
+    expect(narrow).toMatch(/:host\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\)/);
+    expect(narrow).toMatch(/\.widget\s*\{[^}]*grid-column: 1 \/ -1 !important/);
+  });
+
+  it("puts a card of three columns on the one column of a grid of 360 px", async () => {
+    const grid = document.createElement("vtherm-widgets") as VThermWidgets;
+    const contribution = { id: "a.wide", component: "a-wide-el", size: { columns: 3, rows: 2 } };
+    grid.entries = [{ id: "a.wide", pluginId: "a", hook: "thermostat_widget", contribution: contribution as never, size: { columns: 3, rows: 2 } }];
+    document.body.append(grid);
+    await grid.updateComplete;
+    // Measured at 360 px: 328 px of content once the padding is removed.
+    grid.columns = gridColumns(360 - 32);
+    await grid.updateComplete;
+    const card = grid.shadowRoot?.querySelector<HTMLElement>(".widget");
+    expect(grid.gridColumns).toBe(1);
+    expect(card?.style.gridColumn).toBe("span 1");
+  });
+});
+
+describe("the components of the widgets on a phone", () => {
+  it("cannot overflow a screen of 360 px: each shrinks with its card, and its texts wrap", () => {
+    const components = { VThermWidgetCard, VThermGauge, VThermBar, VThermStateIcon, VThermValueRow, VThermAge };
+    for (const [name, component] of Object.entries(components)) {
+      const css = flatten((component as unknown as { styles: CSSResultGroup }).styles)
+        .map((style) => (style as { cssText?: string }).cssText ?? "")
+        .join("\n");
+      expect(css, name).toMatch(/:host\s*\{[^}]*min-width: 0/);
+      expect(css, name).toContain("overflow-wrap: anywhere");
+    }
+    const gauge = flatten(VThermGauge.styles).map((style) => (style as { cssText?: string }).cssText ?? "").join("\n");
+    expect(gauge).toMatch(/svg\s*\{[^}]*width: 100%;[^}]*max-width: 200px/);
+    const bar = flatten(VThermBar.styles).map((style) => (style as { cssText?: string }).cssText ?? "").join("\n");
+    expect(bar).toMatch(/ul\s*\{[^}]*flex-wrap: wrap/);
+  });
+});
+
+describe("the native widgets of the overview of a thermostat on a phone", () => {
+  it("shrink with their card and wrap their texts, so that nothing is cut at 375 px", () => {
+    const widgets = {
+      TemperatureWidget,
+      ModeWidget,
+      AlertsWidget,
+      HeatingWidget,
+      ValveWidget,
+      PresetWidget,
+      SafetyWidget,
+      WindowWidget,
+      MotionWidget,
+      OverpoweringWidget,
+      AutoStartStopWidget,
+      LockWidget,
+      FailureWidget,
+      DevicesWidget,
+      AutoTpiWidget,
+      BoilerDemandWidget,
+      EnergyWidget,
+      HumidityWidget,
+      SyncWidget,
+      HistoryWidget,
+    };
+    for (const [name, widget] of Object.entries(widgets)) {
+      const styles = flatten((widget as unknown as { styles: CSSResultGroup }).styles);
+      expect(styles, name).toContain(narrowStyles);
+      const css = styles.map((style) => (style as { cssText?: string }).cssText ?? "").join("\n");
+      expect(css, name).toMatch(/:host\s*\{[^}]*min-width: 0/);
+      expect(css, name).toMatch(/\.lines\s*\{[^}]*min-width: 0/);
+      expect(css, name).toMatch(/\.note\s*\{[^}]*overflow-wrap: anywhere/);
+    }
+  });
+});
+
+describe("the native widgets of the Overview page on a phone", () => {
+  it("shrink with their card and wrap their texts, so that nothing is cut at 375 px", () => {
+    const widgets = { CentralModeWidget, SummaryWidget, BoilerWidget, BoilerPowerWidget, HousePowerWidget, OutdoorWidget, PresenceWidget };
+    for (const [name, widget] of Object.entries(widgets)) {
+      const styles = flatten((widget as unknown as { styles: CSSResultGroup }).styles);
+      expect(styles, name).toContain(narrowStyles);
+      const css = styles.map((style) => (style as { cssText?: string }).cssText ?? "").join("\n");
+      expect(css, name).toMatch(/:host\s*\{[^}]*min-width: 0/);
+      expect(css, name).toMatch(/\.lines\s*\{[^}]*min-width: 0/);
+      expect(css, name).toMatch(/\.note\s*\{[^}]*overflow-wrap: anywhere/);
+    }
   });
 });
 

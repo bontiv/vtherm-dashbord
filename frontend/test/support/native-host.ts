@@ -27,14 +27,18 @@ export const NATIVE_LOAD_ORDER = [
   "core_complements",
 ] as const;
 
-/** Import the module of each native plugin with a fake dashboard in the page, and return the host and the definitions. */
-export async function nativeHost(): Promise<{ host: FakeHost; definitions: Map<string, UiPluginDefinition> }> {
+/**
+ * Import the module of each native plugin with a fake dashboard in the page, and return the host and the definitions.
+ *
+ * @param without - Native plugins that are not loaded, as when the dashboard does not get them.
+ */
+export async function nativeHost(without: readonly string[] = []): Promise<{ host: FakeHost; definitions: Map<string, UiPluginDefinition> }> {
   vi.resetModules();
   const host = createFakeHost({ dashboardVersion: DASHBOARD_VERSION });
   host.install();
   const definitions = new Map<string, UiPluginDefinition>();
   try {
-    for (const id of NATIVE_LOAD_ORDER) {
+    for (const id of NATIVE_LOAD_ORDER.filter((candidate) => !without.includes(candidate))) {
       const module = (await import(`../../src/native/plugins/${id}.ts`)) as { definition: UiPluginDefinition };
       definitions.set(id, module.definition);
     }

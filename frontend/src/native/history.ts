@@ -2,7 +2,8 @@
  * The history of the entities of a thermostat, read from the recorder of Home Assistant for the panels of estimation.
  *
  * One request for each entity and each period, through the WebSocket command `history/history_during_period`, kept a few minutes.
- * Nothing is read until a panel asks for it, and nothing is written.
+ * Nothing is read until a panel or a widget asks for it, and nothing is written. The panels of estimation and the widgets share one
+ * client, `sharedHistory`, so that a history read by one is not read again by another.
  */
 
 import type { Hass } from "@vtherm/dashboard-sdk";
@@ -80,6 +81,42 @@ export function toHistory(rows: readonly CompressedState[], attributes: readonly
   return { start, end, state, attributes: byAttribute };
 }
 
+/** The error of a read whose reader went away: its card was removed from the page. */
+function abortError(): Error {
+  const error = new Error("The read of the history was cancelled");
+  error.name = "AbortError";
+  return error;
+}
+
+/**
+ * The answer of a read for one reader: it rejects with an `AbortError` as soon as the reader cancels. The request itself goes on and
+ * stays in the cache, so another reader of the same history still gets it.
+ */
+function abortable<Value>(value: Promise<Value>, signal: AbortSignal | undefined): Promise<Value> {
+  if (signal === undefined) {
+    return value;
+  }
+  return new Promise<Value>((resolve, reject) => {
+    const cancel = (): void => reject(abortError());
+    signal.addEventListener("abort", cancel, { once: true });
+    value.then(
+      (result) => {
+        signal.removeEventListener("abort", cancel);
+        resolve(result);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", cancel);
+        reject(error);
+      },
+    );
+  });
+}
+
+/** Whether an error is the cancellation of a read, which a reader that went away ignores. */
+export function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
 /** Reads and keeps the history of the entities of a thermostat. */
 export class HistoryClient {
   private readonly cache = new Map<string, { readonly at: number; readonly value: Promise<EntityHistory> }>();
@@ -102,13 +139,18 @@ export class HistoryClient {
    * @param entityId - The entity.
    * @param period - The period.
    * @param attributes - The attributes to read; without any, the recorder sends no attribute.
+   * @param signal - Cancels the read for this reader, for example when its card leaves the page: the promise rejects with an
+   *   `AbortError` (see `isAbortError`), and nothing is asked when it is already cancelled.
    */
-  read(entityId: string, period: Period, attributes: readonly string[] = []): Promise<EntityHistory> {
+  read(entityId: string, period: Period, attributes: readonly string[] = [], signal?: AbortSignal): Promise<EntityHistory> {
+    if (signal?.aborted === true) {
+      return Promise.reject(abortError());
+    }
     const key = `${entityId}|${period}|${[...attributes].sort().join(",")}`;
     const now = this.now();
     const cached = this.cache.get(key);
     if (cached !== undefined && now - cached.at < CACHE_MS) {
-      return cached.value;
+      return abortable(cached.value, signal);
     }
     const value = this.request(entityId, now - PERIOD_MS[period], now, attributes);
     this.cache.set(key, { at: now, value });
@@ -117,7 +159,12 @@ export class HistoryClient {
         this.cache.delete(key);
       }
     });
-    return value;
+    return abortable(value, signal);
+  }
+
+  /** Forget the histories that are kept: the next read of each one asks the recorder again. */
+  clear(): void {
+    this.cache.clear();
   }
 
   private async request(entityId: string, start: number, end: number, attributes: readonly string[]): Promise<EntityHistory> {
@@ -137,4 +184,22 @@ export class HistoryClient {
     });
     return toHistory(answer[entityId] ?? [], attributes, start, end);
   }
+}
+
+/** The state of Home Assistant that the shared client reads: the last one that a reader gave. */
+let sharedHass: Hass | undefined;
+
+/** The client shared by the panels of estimation and the widgets, with its cache of `CACHE_MS`. */
+const shared = new HistoryClient(() => sharedHass);
+
+/**
+ * The history client that the panels and the widgets share. Give it the state of Home Assistant of the reader: the next request uses it.
+ *
+ * @param hass - The state of Home Assistant.
+ */
+export function sharedHistory(hass: Hass | undefined): HistoryClient {
+  if (hass !== undefined) {
+    sharedHass = hass;
+  }
+  return shared;
 }

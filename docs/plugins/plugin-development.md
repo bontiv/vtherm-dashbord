@@ -145,6 +145,7 @@ Add a `language` property so that the element draws its texts again when the use
 
 <!-- example: examples/vtherm_sample_plugin/ui/src/elements.ts -->
 ```typescript
+import { getEntryEntities } from "@vtherm/dashboard-sdk";
 import type { ConfigValues, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
@@ -218,8 +219,10 @@ export class SampleStatusWidget extends LitElement {
   }
 
   protected override render(): TemplateResult {
-    const state = this.hass?.states[this.thermostatId]?.state ?? t("widget.unknown");
-    return html`<p>${t("widget.state", { name: this.thermostatId, state })}</p>`;
+    // thermostatId is the configuration entry of the thermostat, not its climate entity: find the entity in the registries of hass.
+    const climate = this.hass === undefined ? undefined : getEntryEntities(this.hass, this.thermostatId).climate;
+    const state = climate === undefined ? undefined : this.hass?.states[climate]?.state;
+    return html`<p>${t("widget.state", { name: climate ?? this.thermostatId, state: state ?? t("widget.unknown") })}</p>`;
   }
 }
 
@@ -235,6 +238,153 @@ export function define(tag: string, element: CustomElementConstructor): void {
   if (customElements.get(tag) === undefined) {
     customElements.define(tag, element);
   }
+}
+```
+<!-- /example -->
+
+### Read the entities of a thermostat
+`thermostatId` is the identifier of the **configuration entry** of the thermostat, not its `climate` entity: `hass.states[thermostatId]`
+is always undefined. The entities of an entry are on its device, so find them with `getEntryEntities(hass, entryId)`. It reads the
+registries that Home Assistant gives to its frontend, `hass.devices` and `hass.entities`, finds the device whose `identifiers` hold
+`["versatile_thermostat", entryId]`, and gives its entities:
+
+| Field | What it holds |
+| --- | --- |
+| `deviceId` | The device of the entry. |
+| `entities` | Every entity of the device: `entityId`, `domain`, `translationKey`, `platform`. |
+| `climate` | The first `climate` entity of the device: the thermostat itself. Undefined for the central configuration. |
+| `byKey` | The entities by translation key: `byKey["power_percent"]` is the sensor of the share of heating. |
+
+The function is pure and synchronous: it calls nothing on the server, so a visibility condition can use it, and its result is there
+at once. It gives empty values, without an error, for an entry that the registries do not have, for an entity identifier given by
+mistake, or when a registry is missing (an older Home Assistant, or a fake `hass` that does not declare it). Find an entity by its
+translation key, never by its name, which the user can change. An entity without a translation key, such as the `select` of the
+central mode, is found by its domain in `entities`.
+
+A widget of the Overview page (`global_widget`) receives `central`, the identifier of the entry of the central configuration and its
+values, absent when there is none: give `central.entryId` to `getEntryEntities` to read the central entities. Its visibility condition
+receives `central` too.
+
+To show a value, use the formatters of Home Assistant when `hass` has them: `hass.formatEntityState(stateObj)` and
+`hass.formatEntityAttributeValue(stateObj, attribute)` give the translated value with its unit and its precision. They are optional in
+the type `Hass`: without them, in a test or an older Home Assistant, format the value with `Intl.NumberFormat` and
+`hass.locale.language`, and the unit of the entity or of `hass.config.unit_system`. Show "—" for a state `unavailable` or `unknown`.
+
+<!-- example: docs/examples/typescript/widget-entities.ts -->
+```typescript
+import { defineTranslations, getEntryEntities } from "@vtherm/dashboard-sdk";
+import type { CentralContext, Hass, HassState, UiPluginDefinition } from "@vtherm/dashboard-sdk";
+
+/** Whether a state has no value to show. */
+const missing = (state: HassState | undefined): state is undefined => state === undefined || state.state === "unavailable" || state.state === "unknown";
+
+/**
+ * The share of heating of a thermostat, as its widget shows it. `thermostatId` is the configuration entry of the thermostat, not an
+ * entity: the sensor is found on the device of the entry by its translation key.
+ */
+export function heatingShare(hass: Hass, thermostatId: string): string {
+  const sensor = getEntryEntities(hass, thermostatId).byKey["power_percent"];
+  const state = sensor === undefined ? undefined : hass.states[sensor];
+  if (missing(state)) {
+    return "—";
+  }
+  // Home Assistant formats the value with its unit and its precision. Without its formatter (in a test), format it yourself.
+  return hass.formatEntityState?.(state) ?? `${new Intl.NumberFormat(hass.locale?.language ?? hass.language).format(Number(state.state))} %`;
+}
+
+/** The central mode, for a widget of the Overview page: the only `select` of the central device that has no translation key. */
+export function centralMode(hass: Hass, central: CentralContext | undefined): string | undefined {
+  if (central === undefined) {
+    return undefined;
+  }
+  const select = getEntryEntities(hass, central.entryId).entities.find((entity) => entity.domain === "select" && entity.translationKey === undefined);
+  const state = select === undefined ? undefined : hass.states[select.entityId];
+  return missing(state) ? undefined : state.state;
+}
+
+export const definition: UiPluginDefinition = {
+  id: "my_share",
+  translations: defineTranslations({ "widget.share.title": "Heating share", "widget.central_mode.title": "Central mode" }),
+  contributions: {
+    // Hidden, not empty, when the thermostat has no sensor of the share.
+    thermostat_widget: [{ id: "my_share.widget.share", component: "my-share-widget", visible: ({ hass, thermostatId }) => getEntryEntities(hass, thermostatId).byKey["power_percent"] !== undefined }],
+    // Hidden without a central configuration.
+    global_widget: [{ id: "my_share.widget.central_mode", component: "my-central-mode-widget", visible: ({ central }) => central !== undefined }],
+  },
+};
+```
+<!-- /example -->
+
+### Read the history
+The SDK has no reader of the history: ask the recorder of Home Assistant with `hass.callWS` and the command
+`history/history_during_period`. Ask for one entity and the smallest answer you need: `minimal_response` and `no_attributes` give
+only the states and their times, in rows `{ s, lu }` (`lu` in seconds). Read the history only when your widget is visible, and keep the
+answer a few minutes: each call reads the database of the recorder.
+
+What the recorder keeps for a thermostat of Versatile Thermostat:
+
+- The state of the `climate` entity, and its attributes `current_temperature`, `temperature`, `hvac_action`, `preset_mode`,
+  `on_percent`, `power_percent`, `valve_open_percent` and `ema_temp`. Ask for the attributes with `no_attributes: false` and
+  `minimal_response: false`, and read them in `a`.
+- The state of the sensors of Versatile Thermostat, such as the share of heating (`power_percent`) or the slope of the temperature
+  (`temperature_slope`), found with `getEntryEntities`.
+- Not the nested attributes, such as `specific_states.*`, `*_manager.*` or `vtherm_over_*`: their history cannot be read. A widget that
+  needs them shows their current value only.
+
+The long-term statistics (`recorder/statistics_during_period`) only cover the sensors that have a `state_class`, never an attribute of a
+`climate` entity.
+
+<!-- example: docs/examples/typescript/history.ts -->
+```typescript
+import type { Hass } from "@vtherm/dashboard-sdk";
+
+/** A state of the history: when it was written, in milliseconds since the epoch, and its value. */
+export interface HistoryPoint {
+  readonly t: number;
+  readonly state: string;
+}
+
+/** A row of the compact answer of the recorder: `s` the state, `lu` the time of the update in seconds, `a` the attributes. */
+interface Row {
+  readonly s?: string;
+  readonly lu?: number;
+  readonly a?: Readonly<Record<string, unknown>>;
+}
+
+/**
+ * Read the states of an entity over the last hours from the recorder of Home Assistant. Read it only when your widget is visible, and keep
+ * the answer a few minutes: the recorder reads its database at each call.
+ */
+export async function readStates(hass: Hass, entityId: string, hours: number, now: number = Date.now()): Promise<HistoryPoint[]> {
+  const answer = await hass.callWS<Record<string, readonly Row[]>>({
+    type: "history/history_during_period",
+    start_time: new Date(now - hours * 3_600_000).toISOString(),
+    end_time: new Date(now).toISOString(),
+    entity_ids: [entityId],
+    // The smallest answer: the state and its time, without the attributes.
+    minimal_response: true,
+    no_attributes: true,
+  });
+  return (answer[entityId] ?? []).flatMap((row) => (row.s === undefined || row.lu === undefined ? [] : [{ t: row.lu * 1000, state: row.s }]));
+}
+
+/**
+ * Read an attribute of an entity over the last hours, for example `current_temperature` of the `climate` entity of a thermostat. The
+ * recorder sends every attribute of each row, so ask for one entity at a time.
+ */
+export async function readAttribute(hass: Hass, entityId: string, attribute: string, hours: number, now: number = Date.now()): Promise<HistoryPoint[]> {
+  const answer = await hass.callWS<Record<string, readonly Row[]>>({
+    type: "history/history_during_period",
+    start_time: new Date(now - hours * 3_600_000).toISOString(),
+    end_time: new Date(now).toISOString(),
+    entity_ids: [entityId],
+    minimal_response: false,
+    no_attributes: false,
+  });
+  return (answer[entityId] ?? []).flatMap((row) => {
+    const value = row.a?.[attribute];
+    return row.lu === undefined || value === undefined || value === null ? [] : [{ t: row.lu * 1000, state: String(value) }];
+  });
 }
 ```
 <!-- /example -->
@@ -701,17 +851,27 @@ describe("the sample plugin", () => {
 
   it("shows the section with the properties that the dashboard gives it", async () => {
     const section = host.resolved("thermostat_config").find((entry) => entry.id === "vtherm_sample.tab.main");
-    const element = await host.render<"thermostat_config">(section as never, { thermostatId: "climate.salon", values: { name: "Salon", cycle_min: 5 }, centralValues: {}, errors: {}, proposeChanges: () => undefined });
+    const element = await host.render<"thermostat_config">(section as never, { thermostatId: "entry_salon", values: { name: "Salon", cycle_min: 5 }, centralValues: {}, errors: {}, proposeChanges: () => undefined });
     await (element as unknown as { updateComplete: Promise<boolean> }).updateComplete;
     expect(element.shadowRoot?.textContent).toContain("Cycle of Salon: 5 minutes");
   });
 
   it("shows the state of the thermostat in the widget", async () => {
+    // thermostatId is the configuration entry: its climate entity is on the device of the entry, in the registries of hass.
+    host.hass.setDevice({ id: "device_salon", identifiers: [["versatile_thermostat", "entry_salon"]] });
+    host.hass.setEntity({ entity_id: "climate.salon", device_id: "device_salon", platform: "versatile_thermostat" });
     host.hass.setState("climate.salon", "heat");
     const widget = host.resolved("thermostat_widget")[0];
-    const element = await host.render<"thermostat_widget">(widget as never, { thermostatId: "climate.salon" });
+    const element = await host.render<"thermostat_widget">(widget as never, { thermostatId: "entry_salon" });
     await (element as unknown as { updateComplete: Promise<boolean> }).updateComplete;
     expect(element.shadowRoot?.textContent).toContain("climate.salon is heat");
+  });
+
+  it("says that the state is unknown for an entry that the registries do not have", async () => {
+    const widget = host.resolved("thermostat_widget")[0];
+    const element = await host.render<"thermostat_widget">(widget as never, { thermostatId: "entry_unknown" });
+    await (element as unknown as { updateComplete: Promise<boolean> }).updateComplete;
+    expect(element.shadowRoot?.textContent).toContain("entry_unknown is unknown");
   });
 
   it("has complete French and German catalogs", async () => {

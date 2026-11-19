@@ -95,6 +95,113 @@ The dashboard uses the controls of Home Assistant, so they look and work as in t
 While Home Assistant loads its controls, the page shows a spinner for a moment. If they do not load, the page shows simpler fields that
 do the same thing. See [the fields of the configuration](configuration.md#the-fields).
 
+## The widgets
+
+The overview of the Dashboard tab and the overview of a thermostat show widgets: cards that show how Versatile Thermostat is working
+(measures, states, alerts). They only show: no widget changes a mode, a preset or a setting.
+
+- The cards are on a grid that uses the width of the screen. A widget can be wider (up to the whole row) or higher than the others;
+  on a phone, every card takes the whole width. The cards keep the order that the plugins gave, which is also the order of the
+  keyboard.
+- A widget of a feature that is off, or whose sensor does not exist, is not shown at all: there is no empty card.
+- A value that cannot be read, because its sensor is unavailable, shows "—", never 0. A card that waits for its history shows its
+  title and a spinner; a card with nothing to show says why.
+- The values are written in your language and with the units of Home Assistant (°C or °F): a temperature is "19,5 °C" in French.
+  The age of a measure is written as "3 minutes ago"; point at it, or reach it with the Tab key, to read the full date.
+- A state is always given by an icon and a text, never by a color alone. An alert is announced by screen readers.
+- A widget that draws a history reads it only once its card is on the screen.
+
+### The overview of a thermostat
+The overview of a thermostat shows up to twenty cards, in this order. A card whose feature the thermostat does not have is not shown.
+The values come from the `climate` entity of the thermostat and from the sensors that Versatile Thermostat creates for it.
+
+- **Temperature**: the temperature of the room on a gauge whose ends are the minimum and the maximum of the setpoint, with the setpoint
+  marked on it; the outdoor temperature of the thermostat; "requested → applied" when a feature (an open window, load shedding…) applies
+  another setpoint than the one asked for; and the regulated setpoint of a thermostat over a climate that regulates.
+- **Mode and action**: the mode (heating, cooling, off…) and what the thermostat does now (heating now, idle…), with the reason of an
+  off or of a mode that was not asked for (window open, sleep mode, central mode…). The sleep mode and the central mode that applies are
+  shown only when they apply. A reason that the dashboard does not know yet is shown as Versatile Thermostat writes it.
+- **Alerts**: the messages of Versatile Thermostat (load shedding, safety mode, setpoint changed by a feature…), a thermostat that is not
+  ready, the equipment that is unavailable (point at the alert to read the list), and a plugin that took the control. Then the age of the
+  last measure of the room and of the outside: it turns to the color of a warning, with a clock icon, when it is older than the safety
+  delay of the thermostat; without a safety delay, it stays neutral. With nothing to report, the card says "No alert".
+- **Heating**: for a thermostat that uses TPI, the heating share asked for, and the times on and off of the cycle when Versatile Thermostat
+  publishes them (thermostat over a switch). The position in the cycle is not shown: Versatile Thermostat does not publish it. The
+  heating share over 24 hours is not in this card.
+- **Valve**: for a thermostat over a valve, or over a climate with valves, the opening of the valve on a gauge, and a bar for each valve
+  when there are several.
+- **Preset**: the preset with its icon, a timed preset with its remaining time and its end, and a manual override with the preset that
+  resumes. No bar shows the progress of a timed preset: its total duration is not published.
+- **Safety**: whether the safety mode is on and, while it is, the heating share that it imposes, on a bar of the color of a warning.
+  Shown only when the safety mode is configured, by the thermostat or by the central configuration.
+
+Then a card for each feature that the thermostat uses, in this order. A feature that is off leaves no card.
+
+- **Window**: the window sensor (open, closed or unknown), the detection by the drop of temperature when it is configured, the bypass
+  when it is on, and what the open window does now: off, eco, frost protection, fan only, or none. The time left before the window
+  acts is not shown: Versatile Thermostat does not publish when the window opened.
+- **Motion**: motion or no motion, and "Activity preset in force" while Versatile Thermostat applies the preset of activity.
+- **Load shedding**: "Load shedding active", in the color of a warning, or "No load shedding" with a check mark.
+- **Auto start and stop**: for a thermostat over a climate, whether it is stopped by the feature, whether the feature is enabled, the
+  accumulated error on a gauge whose ends and marker are its threshold, and how long ago it last switched. The next action is not
+  shown: Versatile Thermostat does not publish one.
+- **Lock**: a closed padlock and "Locked", or an open one and "Unlocked". The time of the automatic relock is not shown.
+- **Heating failure**: a failure of the heating or of the cooling with its probable cause and a **More info** link that opens the
+  entity in Home Assistant, a check in progress on a bar with the minutes elapsed and left, "Detection paused by the template" when a
+  template pauses it, and "No failure" when there is nothing to report. It stays shown while the detection is on.
+
+Then the details, and the history last:
+
+- **Equipment**: each equipment of the thermostat (switches, valves, climates) with its name and its state, "unavailable" for one that
+  Home Assistant cannot read, how many are active, "Expected active, off" when the thermostat asks for heat and no equipment is on,
+  and the fan mode of a thermostat over a climate.
+- **Auto TPI learning**: for a thermostat that uses TPI with the option Auto TPI, the state of the learning (active, starting, stopped),
+  the heating cycles, the cycles learned for each coefficient, the coefficients computed, the confidence of the model as a percentage
+  (it reaches 100 % after 50 cycles of each coefficient), the thermal time constant, the heating capacity, the status of the last
+  learning as Versatile Thermostat writes it, and when the learning started. There is no button to start, stop or calibrate the
+  learning: use the services of Versatile Thermostat.
+- **Central boiler**: a flame and "Calls the boiler" while the thermostat, used by the central boiler, has an active equipment.
+- **Energy**: the mean power of the cycle with its curve over 24 hours, and the energy used, with the unit of its sensor.
+- **Humidity**: the humidity of the room on a gauge. It has no curve.
+- **Tracking of the equipment**: for a thermostat over a climate, the temperature sent to each equipment, the value of each entity that
+  it synchronises, and an alert when Versatile Thermostat suspended the tracking of the setpoint, with its reason and its attempts;
+  point at the alert to read, for each equipment, the temperature sent and the one that the equipment reports.
+- **Last 24 hours**: on two columns, the temperature of the room, the setpoint and the outdoor temperature of the sensor that the
+  thermostat uses (its own, or the one of the central configuration), then the heating share on a second chart when the thermostat
+  has one. Each chart has a text summary. The history is read only once the card is on the screen; when it cannot be read, the card
+  says "History unavailable". Home Assistant does not record the values that Versatile Thermostat publishes inside its groups of
+  attributes (the reasons, the managers, the details of the equipment): they have no curve.
+
+None of these cards changes the mode, the setpoint or the preset, bypasses a window, locks the thermostat or turns a feature on: use
+the card of the thermostat in Home Assistant for that.
+
+### The Overview page
+The Overview page of the Dashboard tab shows the whole home, in up to seven cards, in this order. A card whose feature is off in the
+central configuration, or whose entity does not exist, is not shown; the others keep their order. With no thermostat and no central
+configuration, the page says that there is nothing to show yet.
+
+- **Central mode**: the central mode (Auto, Stopped, Heat only, Cool only, Frost protection) with its icon. A mode that the dashboard
+  does not know yet is shown as Versatile Thermostat writes it. Shown when there is a central configuration.
+- **Presence**: present, absent or unknown, read on the presence sensor of the central configuration as Versatile Thermostat reads it
+  (`on` or `home` is present, `off` or `not_home` is absent). An unknown sensor is never shown as absent.
+- **Thermostats**: on one column, a bar that counts the thermostats that heat, are idle, are off and are unavailable (a thermostat
+  that cools adds its own part), with each number written; then the thermostats in alert (safety mode, load shedding, equipment
+  unavailable, failure of the heating or of the cooling), each with the reason and a link to its overview. With none, "No alert". An
+  unavailable thermostat is counted as unavailable, not as off.
+- **Central boiler**: whether the boiler is on, the number of active devices on a gauge whose marker is the activation threshold, the
+  thermostats that call the boiler (each with a link to its overview; a device that no thermostat claims is shown by its name), an
+  hourglass with "Activation in 30 s" while the activation is delayed, and "Boiler not ready" when Versatile Thermostat says so.
+- **Power asked of the boiler**: the power that the active thermostats ask of the boiler on a gauge whose marker is the power threshold,
+  and its curve over the last 24 hours with the threshold, in the unit of the sensor (W or kW).
+- **Power of the home**: the power of the home against its maximum ("4,1 / 6 kW"), the margin, and the energy of all the thermostats
+  when their counters share one unit. The margin and the energy are computed by the dashboard, as their tooltip says. Above the maximum,
+  the gauge turns to the color of a warning and the margin says by how much. Shown when the power management is on.
+- **Outdoor temperature**: the outdoor sensor of the central configuration, with its unit, and its curve over the last 24 hours. When the
+  history cannot be read, the card shows the value and "History unavailable".
+
+The two curves are read only once their card is on the screen, and kept a few minutes. None of these cards changes the central mode or
+the presence.
+
 ## No thermostat, no plugin
 
 If you have no thermostat, the Thermostats tab says so and tells you to create one from the Configuration. Without any plugin of

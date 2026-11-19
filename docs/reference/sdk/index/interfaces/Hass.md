@@ -20,6 +20,72 @@ The configuration of Home Assistant, in particular the unit of the temperatures.
 
 ***
 
+### devices?
+
+> `readonly` `optional` **devices?**: `Readonly`\<`Record`\<`string`, [`HassDeviceRegistryEntry`](HassDeviceRegistryEntry.md)\>\>
+
+The registry of the devices, by device id. Undefined in a version of Home Assistant that does not give it.
+
+***
+
+### entities?
+
+> `readonly` `optional` **entities?**: `Readonly`\<`Record`\<`string`, [`HassEntityRegistryEntry`](HassEntityRegistryEntry.md)\>\>
+
+The registry of the entities for display, by entity id. Undefined in a version of Home Assistant that does not give it, and in the
+fake `hass` of the tests unless the test gives it.
+
+***
+
+### formatEntityAttributeValue?
+
+> `readonly` `optional` **formatEntityAttributeValue?**: (`stateObj`, `attribute`, `value?`) => `string`
+
+Format the value of an attribute of an entity as Home Assistant shows it, with its unit. Undefined when Home Assistant does not give it.
+
+#### Parameters
+
+##### stateObj
+
+[`HassState`](HassState.md)
+
+##### attribute
+
+`string`
+
+##### value?
+
+`unknown`
+
+#### Returns
+
+`string`
+
+***
+
+### formatEntityState?
+
+> `readonly` `optional` **formatEntityState?**: (`stateObj`, `state?`) => `string`
+
+Format the state of an entity as Home Assistant shows it: translated, with its unit and its precision. Undefined when Home Assistant
+does not give it, for example in the test harness: format the value with `locale` then.
+
+#### Parameters
+
+##### stateObj
+
+[`HassState`](HassState.md)
+
+##### state?
+
+`string`
+
+#### Returns
+
+`string`
+
+***
+
 ### language
 
 > `readonly` **language**: `string`

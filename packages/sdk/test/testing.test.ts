@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from "vitest";
 
-import { UiPluginValidationError, defineTranslations, registerUiPlugin, selectorOf } from "../src/index.ts";
-import type { UiPluginDefinition } from "../src/index.ts";
+import { UiPluginValidationError, defineTranslations, getEntryEntities, registerUiPlugin, selectorOf } from "../src/index.ts";
+import type { Hass, UiPluginDefinition } from "../src/index.ts";
 import { assertCompleteTranslations, createFakeHass, createFakeHost, defineFieldHelpMock, defineHaControlMocks, findTranslationProblems } from "../src/testing.ts";
 import type { MockFieldHelpElement } from "../src/testing.ts";
 import { FIELD_HELP_ELEMENT } from "../src/index.ts";
@@ -184,12 +184,105 @@ describe("rendering a component", () => {
   });
 });
 
+describe("the size of the widgets in the fake host", () => {
+  it("gives the widgets their size with its default values", () => {
+    const host = createFakeHost();
+    host.registerPlugin(
+      plugin("smartpi", {
+        thermostat_widget: [
+          { id: "smartpi.none", component: "x-el" },
+          { id: "smartpi.full", component: "x-el", size: { columns: "full" } },
+          { id: "smartpi.tall", component: "x-el", size: { rows: 3 } },
+          { id: "smartpi.both", component: "x-el", size: { columns: 2, rows: 2 } },
+        ],
+        global_widget: [{ id: "smartpi.global", component: "x-el" }],
+      }),
+    );
+    expect(host.resolved("thermostat_widget").map((entry) => [entry.id, entry.size])).toEqual([
+      ["smartpi.none", { columns: 1, rows: 1 }],
+      ["smartpi.full", { columns: "full", rows: 1 }],
+      ["smartpi.tall", { columns: 1, rows: 3 }],
+      ["smartpi.both", { columns: 2, rows: 2 }],
+    ]);
+    expect(host.resolved("global_widget")[0]?.size).toEqual({ columns: 1, rows: 1 });
+  });
+
+  it("gives no size to the contributions that are not widgets", () => {
+    const host = createFakeHost();
+    host.registerPlugin(core);
+    expect(host.resolved("thermostat_config")[0]?.size).toBeUndefined();
+  });
+
+  it("refuses an invalid size with the same error as registerUiPlugin", () => {
+    const definition = plugin("smartpi", { thermostat_widget: [{ id: "smartpi.w", component: "x-el", size: { rows: 5 } }] });
+    const host = createFakeHost();
+    let fromHost: unknown;
+    try {
+      host.registerPlugin(definition);
+    } catch (error) {
+      fromHost = error;
+    }
+    host.install();
+    try {
+      expect(() => registerUiPlugin(definition)).toThrow(UiPluginValidationError);
+      expect(() => registerUiPlugin(definition)).toThrow((fromHost as Error).message);
+    } finally {
+      host.uninstall();
+    }
+    expect((fromHost as UiPluginValidationError).issues.map((issue) => issue.path)).toEqual(["contributions.thermostat_widget[0].size.rows"]);
+  });
+});
+
+describe("a widget that reads the entities of its thermostat", () => {
+  class ShareWidget extends HTMLElement {
+    hass: Hass | undefined;
+    thermostatId = "";
+    connectedCallback(): void {
+      const sensor = this.hass === undefined ? undefined : getEntryEntities(this.hass, this.thermostatId).byKey["power_percent"];
+      this.textContent = sensor === undefined ? "—" : `${this.hass?.states[sensor]?.state ?? "—"} %`;
+    }
+  }
+  if (customElements.get("share-widget-el") === undefined) {
+    customElements.define("share-widget-el", ShareWidget);
+  }
+
+  it("reads the sensor that the test declares in the registries of the fake hass", async () => {
+    const host = createFakeHost();
+    host.registerPlugin(plugin("smartpi", { thermostat_widget: [{ id: "smartpi.share", component: "share-widget-el" }] }));
+    host.hass.setDevice({ id: "device_salon", identifiers: [["versatile_thermostat", "entry_salon"]] });
+    host.hass.setEntity({ entity_id: "sensor.salon_power", device_id: "device_salon", platform: "versatile_thermostat", translation_key: "power_percent" });
+    host.hass.setState("sensor.salon_power", "42");
+    const element = await host.render<"thermostat_widget">(host.resolved("thermostat_widget")[0] as never, { thermostatId: "entry_salon" });
+    expect(element.textContent).toBe("42 %");
+  });
+
+  it("finds nothing for an entry that the registries of the fake hass do not declare, as in the dashboard", async () => {
+    const host = createFakeHost();
+    host.registerPlugin(plugin("smartpi", { thermostat_widget: [{ id: "smartpi.share", component: "share-widget-el" }] }));
+    expect(host.hass.devices).toBeUndefined();
+    expect(getEntryEntities(host.hass, "entry_salon").entities).toEqual([]);
+    host.hass.setDevice({ id: "device_salon", identifiers: [["versatile_thermostat", "entry_salon"]] });
+    const element = await host.render<"thermostat_widget">(host.resolved("thermostat_widget")[0] as never, { thermostatId: "entry_other" });
+    expect(getEntryEntities(host.hass, "entry_other")).toEqual({ deviceId: undefined, entities: [], climate: undefined, byKey: {} });
+    expect(element.textContent).toBe("—");
+  });
+
+  it("takes the registries given when the fake hass is created", () => {
+    const hass = createFakeHass({
+      devices: { device_salon: { id: "device_salon", identifiers: [["versatile_thermostat", "entry_salon"]] } },
+      entities: { "climate.salon": { entity_id: "climate.salon", device_id: "device_salon" } },
+    });
+    expect(getEntryEntities(hass, "entry_salon").climate).toBe("climate.salon");
+  });
+});
+
 describe("the fake hass", () => {
   it("holds states, the language and the services called", async () => {
     const hass = createFakeHass({ language: "fr", states: { "sensor.temp": "19.5" } });
     hass.setState("climate.salon", "heat", { temperature: 20 });
     expect(hass.states["sensor.temp"]?.state).toBe("19.5");
-    expect(hass.states["climate.salon"]).toEqual({ state: "heat", attributes: { temperature: 20 } });
+    expect(hass.states["climate.salon"]).toMatchObject({ entity_id: "climate.salon", state: "heat", attributes: { temperature: 20 } });
+    expect(Number.isNaN(Date.parse(hass.states["climate.salon"]?.last_changed ?? ""))).toBe(false);
     hass.setLanguage("de");
     expect([hass.language, hass.locale?.language]).toEqual(["de", "de"]);
     await hass.callService("number", "set_value", { value: 20 });

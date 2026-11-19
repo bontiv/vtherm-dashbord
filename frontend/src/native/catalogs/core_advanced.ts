@@ -9,6 +9,14 @@ import type { CompleteCatalog } from "@vtherm/dashboard-sdk";
 
 /** The English catalog, which gives the keys. */
 export const en = {
+  "widget.loading": "Loading…",
+  "widget.no_data": "No data",
+  "widget.unavailable": "unavailable",
+  "widget.value_unavailable": "{label}: unavailable",
+  "widget.gauge.range": "{value} on a range of {min} to {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "History unavailable",
+  "widget.curve.summary": "Over the last 24 hours: from {min} to {max}, last value {last}.",
   "title.advanced": "Safety and manual override",
   "description.advanced": "Safety settings (maximum delay between two measurements, minimum power and power in safety mode), manual override duration and repair of an incorrect state. Versatile Thermostat calls this tab \"Advanced parameters\". Leave the default values if you don't know what you are doing. These parameters can lead to very poor temperature control or bad power regulation",
   "field.manual_override_duration_min": "Manual override duration (min)",
@@ -23,6 +31,10 @@ export const en = {
   "help.safety_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
   "field.use_advanced_central_config": "Use central advanced configuration",
   "help.use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm",
+  "widget.safety.title": "Safety",
+  "widget.safety.normal": "Normal",
+  "widget.safety.active": "Safety mode active",
+  "widget.safety.imposed": "Imposed heating share",
   "label.safety_delay_min": "Safety delay (min)",
   "label.safety_min_on_percent": "Minimum power for safety mode",
   "label.safety_default_on_percent": "Power in safety mode",
@@ -66,6 +78,14 @@ export const en = {
 
 /** The French catalog. */
 export const fr = {
+  "widget.loading": "Chargement…",
+  "widget.no_data": "Aucune donnée",
+  "widget.unavailable": "indisponible",
+  "widget.value_unavailable": "{label} : indisponible",
+  "widget.gauge.range": "{value} sur une plage de {min} à {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Historique indisponible",
+  "widget.curve.summary": "Sur les dernières 24 heures : de {min} à {max}, dernière valeur {last}.",
   "title.advanced": "Sécurité et dérogation",
   "description.advanced": "Réglages de sécurité (délai maximal entre deux mesures, puissance minimale et puissance en mode sécurité), durée de la dérogation manuelle et réparation de l'état incorrect. Versatile Thermostat appelle cet onglet « Paramètres avancés ». Laissez les valeurs par défaut si vous ne savez pas ce que vous faites. Ces paramètres peuvent induire des mauvais comportements du thermostat",
   "field.manual_override_duration_min": "Durée de la dérogation manuelle (min)",
@@ -80,6 +100,10 @@ export const fr = {
   "help.safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
   "field.use_advanced_central_config": "Utiliser la configuration centrale avancée",
   "help.use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée",
+  "widget.safety.title": "Sécurité",
+  "widget.safety.normal": "Normal",
+  "widget.safety.active": "Mode sécurité actif",
+  "widget.safety.imposed": "Part de chauffe imposée",
   "label.safety_delay_min": "Délai max. sans mesure (min)",
   "label.safety_min_on_percent": "Puissance minimale (mode sécurité)",
   "label.safety_default_on_percent": "Puissance en mode sécurité",
@@ -123,6 +147,14 @@ export const fr = {
 
 /** The German catalog. */
 export const de = {
+  "widget.loading": "Wird geladen…",
+  "widget.no_data": "Keine Daten",
+  "widget.unavailable": "nicht verfügbar",
+  "widget.value_unavailable": "{label}: nicht verfügbar",
+  "widget.gauge.range": "{value} in einem Bereich von {min} bis {max}",
+  "widget.gauge.marker": "{range}, {marker} {value}",
+  "widget.history_unavailable": "Verlauf nicht verfügbar",
+  "widget.curve.summary": "In den letzten 24 Stunden: von {min} bis {max}, letzter Wert {last}.",
   "title.advanced": "Sicherheit und Übersteuerung",
   "description.advanced": "Sicherheitseinstellungen (maximale Zeitspanne zwischen zwei Messungen, Mindestleistung und Leistung im Sicherheitsmodus), Dauer der manuellen Übersteuerung und Reparatur des fehlerhaften Zustands. Versatile Thermostat nennt diesen Tab „Erweiterte Einstellungen\". Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun. Diese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
   "field.manual_override_duration_min": "Dauer der manuellen Übersteuerung (min)",
@@ -137,6 +169,10 @@ export const de = {
   "help.safety_min_on_percent": "Mindestprozentsatz für die Heizleistung, unterhalb dessen die Sicherheitsvoreinstellung niemals aktiviert wird.",
   "field.use_advanced_central_config": "Erweiterte zentrale Konfiguration verwenden",
   "help.use_advanced_central_config": "Wenn aktiviert wird die zentrale erweiterte Konfiguration verwendet. Deaktivieren und Attribute eingeben um eine spezifische erweiterte Konfiguration zu verwenden.",
+  "widget.safety.title": "Sicherheit",
+  "widget.safety.normal": "Normal",
+  "widget.safety.active": "Sicherheitsmodus aktiv",
+  "widget.safety.imposed": "Vorgegebener Heizanteil",
   "label.safety_delay_min": "Max. Zeit ohne Messung (min)",
   "label.safety_min_on_percent": "Mindestleistung (Sicherheitsmodus)",
   "label.safety_default_on_percent": "Leistung im Sicherheitsmodus",

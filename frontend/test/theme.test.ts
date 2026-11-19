@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sourceStyles, usedVariables } from "./support/css-variables.ts";
+import { ownVariables, sourceStyles, usedVariables } from "./support/css-variables.ts";
 
 describe("the theme", () => {
   it("uses no color of its own: only the variables of the theme of Home Assistant", () => {
@@ -48,6 +48,8 @@ describe("the theme", () => {
       "--state-climate-cool-color",
       "--state-climate-idle-color",
     ]);
-    expect(usedVariables().filter((name) => !known.has(name))).toEqual([]);
+    // The variables of the dashboard itself are allowed only where a style of the dashboard defines them.
+    const own = new Set(ownVariables());
+    expect(usedVariables().filter((name) => !known.has(name) && !own.has(name))).toEqual([]);
   });
 });

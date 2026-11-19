@@ -62,17 +62,27 @@ describe("the sample plugin", () => {
 
   it("shows the section with the properties that the dashboard gives it", async () => {
     const section = host.resolved("thermostat_config").find((entry) => entry.id === "vtherm_sample.tab.main");
-    const element = await host.render<"thermostat_config">(section as never, { thermostatId: "climate.salon", values: { name: "Salon", cycle_min: 5 }, centralValues: {}, errors: {}, proposeChanges: () => undefined });
+    const element = await host.render<"thermostat_config">(section as never, { thermostatId: "entry_salon", values: { name: "Salon", cycle_min: 5 }, centralValues: {}, errors: {}, proposeChanges: () => undefined });
     await (element as unknown as { updateComplete: Promise<boolean> }).updateComplete;
     expect(element.shadowRoot?.textContent).toContain("Cycle of Salon: 5 minutes");
   });
 
   it("shows the state of the thermostat in the widget", async () => {
+    // thermostatId is the configuration entry: its climate entity is on the device of the entry, in the registries of hass.
+    host.hass.setDevice({ id: "device_salon", identifiers: [["versatile_thermostat", "entry_salon"]] });
+    host.hass.setEntity({ entity_id: "climate.salon", device_id: "device_salon", platform: "versatile_thermostat" });
     host.hass.setState("climate.salon", "heat");
     const widget = host.resolved("thermostat_widget")[0];
-    const element = await host.render<"thermostat_widget">(widget as never, { thermostatId: "climate.salon" });
+    const element = await host.render<"thermostat_widget">(widget as never, { thermostatId: "entry_salon" });
     await (element as unknown as { updateComplete: Promise<boolean> }).updateComplete;
     expect(element.shadowRoot?.textContent).toContain("climate.salon is heat");
+  });
+
+  it("says that the state is unknown for an entry that the registries do not have", async () => {
+    const widget = host.resolved("thermostat_widget")[0];
+    const element = await host.render<"thermostat_widget">(widget as never, { thermostatId: "entry_unknown" });
+    await (element as unknown as { updateComplete: Promise<boolean> }).updateComplete;
+    expect(element.shadowRoot?.textContent).toContain("entry_unknown is unknown");
   });
 
   it("has complete French and German catalogs", async () => {

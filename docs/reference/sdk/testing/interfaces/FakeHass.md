@@ -24,6 +24,88 @@ The configuration of Home Assistant, in particular the unit of the temperatures.
 
 ***
 
+### devices?
+
+> `readonly` `optional` **devices?**: `Readonly`\<`Record`\<`string`, [`HassDeviceRegistryEntry`](../../index/interfaces/HassDeviceRegistryEntry.md)\>\>
+
+The registry of the devices, by device id. Undefined in a version of Home Assistant that does not give it.
+
+#### Inherited from
+
+[`Hass`](../../index/interfaces/Hass.md).[`devices`](../../index/interfaces/Hass.md#devices)
+
+***
+
+### entities?
+
+> `readonly` `optional` **entities?**: `Readonly`\<`Record`\<`string`, [`HassEntityRegistryEntry`](../../index/interfaces/HassEntityRegistryEntry.md)\>\>
+
+The registry of the entities for display, by entity id. Undefined in a version of Home Assistant that does not give it, and in the
+fake `hass` of the tests unless the test gives it.
+
+#### Inherited from
+
+[`Hass`](../../index/interfaces/Hass.md).[`entities`](../../index/interfaces/Hass.md#entities)
+
+***
+
+### formatEntityAttributeValue?
+
+> `readonly` `optional` **formatEntityAttributeValue?**: (`stateObj`, `attribute`, `value?`) => `string`
+
+Format the value of an attribute of an entity as Home Assistant shows it, with its unit. Undefined when Home Assistant does not give it.
+
+#### Parameters
+
+##### stateObj
+
+[`HassState`](../../index/interfaces/HassState.md)
+
+##### attribute
+
+`string`
+
+##### value?
+
+`unknown`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[`Hass`](../../index/interfaces/Hass.md).[`formatEntityAttributeValue`](../../index/interfaces/Hass.md#formatentityattributevalue)
+
+***
+
+### formatEntityState?
+
+> `readonly` `optional` **formatEntityState?**: (`stateObj`, `state?`) => `string`
+
+Format the state of an entity as Home Assistant shows it: translated, with its unit and its precision. Undefined when Home Assistant
+does not give it, for example in the test harness: format the value with `locale` then.
+
+#### Parameters
+
+##### stateObj
+
+[`HassState`](../../index/interfaces/HassState.md)
+
+##### state?
+
+`string`
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[`Hass`](../../index/interfaces/Hass.md).[`formatEntityState`](../../index/interfaces/Hass.md#formatentitystate)
+
+***
+
 ### language
 
 > **language**: `string`
@@ -135,6 +217,43 @@ Send a WebSocket message to Home Assistant.
 #### Inherited from
 
 [`Hass`](../../index/interfaces/Hass.md).[`callWS`](../../index/interfaces/Hass.md#callws)
+
+***
+
+### setDevice()
+
+> **setDevice**(`device`): `void`
+
+Add a device to `devices`, or replace the one with the same `id`. The registry is created by the first device: until then
+`devices` is undefined, as in a version of Home Assistant that does not give it.
+
+#### Parameters
+
+##### device
+
+[`HassDeviceRegistryEntry`](../../index/interfaces/HassDeviceRegistryEntry.md)
+
+#### Returns
+
+`void`
+
+***
+
+### setEntity()
+
+> **setEntity**(`entity`): `void`
+
+Add an entity to `entities`, or replace the one with the same `entity_id`. The registry is created by the first entity.
+
+#### Parameters
+
+##### entity
+
+[`HassEntityRegistryEntry`](../../index/interfaces/HassEntityRegistryEntry.md)
+
+#### Returns
+
+`void`
 
 ***
 

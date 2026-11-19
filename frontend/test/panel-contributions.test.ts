@@ -15,13 +15,26 @@ const natives: TestPlugin[] = nativePlugins.map((definition) => ({ definition })
 const root = (panel: HTMLElement) => panel.shadowRoot as ShadowRoot;
 const texts = (nodes: readonly HTMLElement[]) => nodes.map((node) => node.textContent?.trim());
 
-/** The overview pages show the widgets of their hook, as the native pages do. */
+/** The overview pages show the widgets of their hook, as the native pages do, and give them the central configuration of the panel. */
 class WidgetsOverview extends TestElement {
+  #central: unknown;
+  #widgets: (HTMLElement & { hook: string; hass: unknown; thermostatId: string; central: unknown }) | undefined;
+  get central(): unknown {
+    return this.#central;
+  }
+  set central(value: unknown) {
+    this.#central = value;
+    if (this.#widgets !== undefined) {
+      this.#widgets.central = value;
+    }
+  }
   override connectedCallback(): void {
-    const widgets = document.createElement("vtherm-widgets-page") as HTMLElement & { hook: string; hass: unknown; thermostatId: string };
+    const widgets = document.createElement("vtherm-widgets-page") as HTMLElement & { hook: string; hass: unknown; thermostatId: string; central: unknown };
     widgets.hook = this.localName.includes("thermostat") ? "thermostat_widget" : "global_widget";
     widgets.hass = this.hass;
     widgets.thermostatId = this.thermostatId ?? "";
+    widgets.central = this.#central;
+    this.#widgets = widgets;
     this.append(widgets);
   }
 }
@@ -90,6 +103,35 @@ describe("the contributions of the seven hooks", () => {
     const shown = find(root(panel), "smartpi-widget-thermostat-el") as TestElement;
     expect(shown).not.toBeNull();
     expect(shown.thermostatId).toBe("climate.chambre");
+  });
+
+  it("gives the central configuration to the global widgets and to their visibility condition", async () => {
+    const contexts: unknown[] = [];
+    const central = plugin("central", { global_widget: [widget("central.w", { visible: (context: unknown) => (contexts.push(context), true) })] });
+    const configs = {
+      central_entry: { name: "Central", type: "central" as const, values: { thermostat_type: "thermostat_central_config", use_presence_feature: true } },
+      "climate.salon": { name: "Salon", type: "over_switch" as const, values: { thermostat_type: "thermostat_over_switch" } },
+    };
+    const { panel, hass } = await mountPanel({ plugins: [...natives, { definition: central }], configs, realThermostats: true });
+    const shown = find(root(panel), "central-w-el") as TestElement & { central: { entryId: string; values: Record<string, unknown> } | undefined };
+    await vi.waitFor(() => expect(shown.central?.values["use_presence_feature"]).toBe(true));
+    expect(shown.central?.entryId).toBe("central_entry");
+    expect(shown.hass).toBe(hass);
+    const last = contexts.at(-1) as { hass: unknown; central?: { entryId: string; values: Record<string, unknown> } };
+    expect(last.hass).toBe(hass);
+    expect(last.central?.entryId).toBe("central_entry");
+    expect(last.central?.values["use_presence_feature"]).toBe(true);
+  });
+
+  it("gives no central configuration to the global widgets when there is none", async () => {
+    const contexts: Record<string, unknown>[] = [];
+    const lonely = plugin("lonely", { global_widget: [widget("lonely.w", { visible: (context: Record<string, unknown>) => (contexts.push(context), true) })] });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: lonely }], realThermostats: true });
+    const shown = find(root(panel), "lonely-w-el") as TestElement & { central?: unknown };
+    expect(shown).not.toBeNull();
+    expect("central" in shown && shown.central !== undefined).toBe(false);
+    expect(contexts.length).toBeGreaterThan(0);
+    expect(contexts.every((context) => !("central" in context))).toBe(true);
   });
 
   it("does not show a widget whose visibility condition is false", async () => {

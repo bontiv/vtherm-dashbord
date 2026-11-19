@@ -25,8 +25,10 @@ export type {
   TranslationWarning,
   Translations,
 } from "./translations.js";
-export { CORE_MENU_GROUPS, CORE_TOP_TABS, createPlacementEngine, groupMenu, isCoreMenuGroup } from "./placement.js";
-export type { CoreMenuGroups, CoreTopTabs, EngineIssue, MenuSection, PlacedEntry, PlacementEngine, PluginRelations, ShownContribution, TopTabZones } from "./placement.js";
+export { CORE_MENU_GROUPS, CORE_TOP_TABS, createPlacementEngine, groupMenu, isCoreMenuGroup, resolveWidgetSize } from "./placement.js";
+export type { CoreMenuGroups, CoreTopTabs, EngineIssue, MenuSection, PlacedEntry, PlacementEngine, PluginRelations, ResolvedWidgetSize, ShownContribution, TopTabZones } from "./placement.js";
+export { VTHERM_DOMAIN, getEntryEntities } from "./entities.js";
+export type { EntryEntities, EntryEntity } from "./entities.js";
 export { selectorOf } from "./fields.js";
 export type {
   BooleanField,

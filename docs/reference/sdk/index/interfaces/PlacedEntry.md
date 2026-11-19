@@ -37,3 +37,11 @@ The identifier of the contribution.
 > `readonly` **pluginId**: `string`
 
 The plugin that contributes it.
+
+***
+
+### size?
+
+> `readonly` `optional` **size?**: [`ResolvedWidgetSize`](ResolvedWidgetSize.md)
+
+The size of a widget, with its default values: present for the contributions of `global_widget` and `thermostat_widget` only.

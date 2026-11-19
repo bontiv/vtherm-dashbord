@@ -17,7 +17,7 @@ load order of the real dashboard.
 | Member | Use |
 | --- | --- |
 | `registerPlugin(definition, relations?)` | Register a plugin like the dashboard. It throws `UiPluginValidationError` for an invalid definition, the same error as `registerUiPlugin`. It returns the problems of the placement. `relations` gives `requires` and `load_after`. |
-| `resolved(hook)` | The contributions of a hook, resolved and in order. For `top_tab`, the zone `start` then the zone `end`. |
+| `resolved(hook)` | The contributions of a hook, resolved and in order. For `top_tab`, the zone `start` then the zone `end`. The entries of `global_widget` and `thermostat_widget` carry their `size` with its default values, `{ columns: 1, rows: 1 }` for a widget without size. |
 | `menu(tabId)` | The left menu of a top tab, which holds the contributions of several hooks. |
 | `visible(entries, context)` | The entries whose visibility condition is true for a context. |
 | `render(entry, props)` | Shows the component of a contribution in the document with its properties, and waits for its first render. `hass` is the fake `hass`. It needs a DOM, such as the one of `happy-dom` or `jsdom`. |
@@ -33,6 +33,14 @@ registered in Python. When it is given, a plugin that is not in the list is refu
 `createFakeHass(options)` is the state of Home Assistant that a component reads. `setState(entityId, state, attributes)` sets an entity,
 `setLanguage(language)` changes the language of the user, `serviceCalls` lists the services the component called, and
 `setWebSocketHandler(handler)` says what the server answers to `callWS`. By default `callWS` fails, so a test has to say what it expects.
+
+The registries `devices` and `entities` are undefined until the test gives them, as in a Home Assistant that does not have them: pass
+them to `createFakeHass({ devices, entities })`, or add them one by one with `setDevice(device)` and `setEntity(entity)`, also on
+`host.hass`. A widget that uses `getEntryEntities` then finds its entities as in the dashboard, and an entry that the test does not
+declare gives empty values. The fake `hass` has no formatter (`formatEntityState`): a widget formats its values with `hass.locale`. The
+test of [Read the entities of a thermostat](plugin-development.md#read-the-entities-of-a-thermostat) is
+`docs/examples/typescript/widget-entities.test.ts`; the one of the sizes of the widgets
+([Size and grid](hooks-and-placement.md#size-and-grid)) is `docs/examples/typescript/widget-size.test.ts`.
 
 ## Example
 

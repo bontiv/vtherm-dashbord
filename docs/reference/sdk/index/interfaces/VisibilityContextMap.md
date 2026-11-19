@@ -26,9 +26,9 @@ The context of the pages of the Dashboard tab.
 
 ### global\_widget
 
-> **global\_widget**: [`BaseProps`](BaseProps.md)
+> **global\_widget**: [`GlobalWidgetProps`](GlobalWidgetProps.md)
 
-The context of the widgets of the Overview page.
+The context of the widgets of the Overview page, with the central configuration when there is one.
 
 ***
 

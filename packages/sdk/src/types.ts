@@ -71,10 +71,48 @@ export interface HassLocale {
 
 /** The state of an entity of Home Assistant. */
 export interface HassState {
+  /** The identifier of the entity, for example `climate.living_room`. Home Assistant always gives it; a test can leave it out. */
+  readonly entity_id?: string;
   /** The state, for example `heat` or `19.5`. */
   readonly state: string;
   /** The attributes of the entity. */
   readonly attributes: Readonly<Record<string, unknown>>;
+  /** When the state last changed, as an ISO 8601 date. */
+  readonly last_changed?: string;
+  /** When the state or an attribute was last written, as an ISO 8601 date. */
+  readonly last_updated?: string;
+}
+
+/**
+ * An entity of the registry that Home Assistant gives to its frontend for display, `hass.entities`. It is a subset of the full registry:
+ * in particular it has no `config_entry_id`, so the entities of a configuration entry are found through their device, see
+ * `getEntryEntities`.
+ */
+export interface HassEntityRegistryEntry {
+  /** The identifier of the entity, for example `sensor.living_room_power_percent`. */
+  readonly entity_id: string;
+  /** The integration that created the entity, for example `versatile_thermostat`. */
+  readonly platform?: string;
+  /** The device of the entity, when it has one. */
+  readonly device_id?: string | null;
+  /** The key of the name of the entity in the translations of its integration, for example `power_percent`. */
+  readonly translation_key?: string | null;
+  /** The area of the entity, when it differs from the area of its device. */
+  readonly area_id?: string | null;
+}
+
+/** A device of the registry of the devices of Home Assistant, `hass.devices`. */
+export interface HassDeviceRegistryEntry {
+  /** The identifier of the device. */
+  readonly id: string;
+  /** The identifiers that the integrations gave to the device, as pairs of a domain and an identifier. */
+  readonly identifiers?: readonly (readonly [string, string])[];
+  /** The configuration entries of the device. */
+  readonly config_entries?: readonly string[];
+  /** The area of the device. */
+  readonly area_id?: string | null;
+  /** The name of the device. */
+  readonly name?: string | null;
 }
 
 /** The user of the session. */
@@ -104,6 +142,20 @@ export interface Hass {
   readonly user?: HassUser;
   /** The configuration of Home Assistant, in particular the unit of the temperatures. */
   readonly config?: HassConfig;
+  /**
+   * The registry of the entities for display, by entity id. Undefined in a version of Home Assistant that does not give it, and in the
+   * fake `hass` of the tests unless the test gives it.
+   */
+  readonly entities?: Readonly<Record<string, HassEntityRegistryEntry>> | undefined;
+  /** The registry of the devices, by device id. Undefined in a version of Home Assistant that does not give it. */
+  readonly devices?: Readonly<Record<string, HassDeviceRegistryEntry>> | undefined;
+  /**
+   * Format the state of an entity as Home Assistant shows it: translated, with its unit and its precision. Undefined when Home Assistant
+   * does not give it, for example in the test harness: format the value with `locale` then.
+   */
+  readonly formatEntityState?: (stateObj: HassState, state?: string) => string;
+  /** Format the value of an attribute of an entity as Home Assistant shows it, with its unit. Undefined when Home Assistant does not give it. */
+  readonly formatEntityAttributeValue?: (stateObj: HassState, attribute: string, value?: unknown) => string;
   /** Call a service of Home Assistant. */
   callService(domain: string, service: string, data?: Readonly<Record<string, unknown>>): Promise<unknown>;
   /** Send a WebSocket message to Home Assistant. */
@@ -132,6 +184,23 @@ export interface DisplayProps {
    * It changes without a reload when the width of the window crosses the threshold, so a component that uses it must draw again.
    */
   narrow: boolean;
+}
+
+/** The central configuration of Versatile Thermostat, as the widgets of the Overview page receive it. */
+export interface CentralContext {
+  /**
+   * The identifier of the configuration entry of the central configuration. Give it to `getEntryEntities` to find the entities of the
+   * central device, such as the `select` of the central mode.
+   */
+  readonly entryId: string;
+  /** The values of the central configuration. Empty while they are being read. */
+  readonly values: ConfigValues;
+}
+
+/** What the widgets of the Overview page receive, besides `hass`. */
+export interface GlobalWidgetProps extends BaseProps {
+  /** The central configuration. Absent when there is none. */
+  central?: CentralContext;
 }
 
 /** The properties of the components that are shown for one thermostat. */
@@ -209,7 +278,7 @@ export interface HookPropsMap {
   /** The properties of the pages of the Dashboard tab. */
   global_page: BaseProps & DisplayProps;
   /** The properties of the widgets of the Overview page. */
-  global_widget: BaseProps & DisplayProps;
+  global_widget: GlobalWidgetProps & DisplayProps;
   /** The properties of the sections of the general configuration. */
   general_config: GeneralConfigProps & DisplayProps;
   /** The properties of the entries of the menu of a thermostat. */
@@ -245,8 +314,8 @@ export interface VisibilityContextMap {
   tab_page: BaseProps;
   /** The context of the pages of the Dashboard tab. */
   global_page: BaseProps;
-  /** The context of the widgets of the Overview page. */
-  global_widget: BaseProps;
+  /** The context of the widgets of the Overview page, with the central configuration when there is one. */
+  global_widget: GlobalWidgetProps;
   /** The context of the sections of the general configuration. */
   general_config: GeneralConfigVisibilityContext;
   /** The context of the entries of the menu of a thermostat. */
@@ -311,8 +380,34 @@ export interface TabPageContribution extends ContributionBase<"tab_page">, MenuE
 /** An entry of the left menu of the Dashboard tab. */
 export interface GlobalPageContribution extends ContributionBase<"global_page">, MenuEntryFields, ComponentFields {}
 
+/** The values of `columns` of a widget size: a number of columns of the grid, or `full` for the whole row. */
+export const WIDGET_COLUMNS = [1, 2, 3, "full"] as const;
+
+/** The values of `rows` of a widget size: a number of units of height of 140 px. */
+export const WIDGET_ROWS = [1, 2, 3] as const;
+
+/**
+ * The size of a widget in the grid of its page. Without it, a widget takes one column and the height of its content.
+ *
+ * - `columns`: how many columns of the grid it takes (a column is at least 280 px wide), or `full` for the whole row. A width larger
+ *   than the grid is reduced to the grid, and a narrow screen has one column.
+ * - `rows`: a minimal height of `rows` units of 140 px, plus the gaps between them. The card grows when its content is higher.
+ */
+export interface WidgetSize {
+  /** How many columns the widget takes, or `full` for the whole row. 1 by default. */
+  readonly columns?: (typeof WIDGET_COLUMNS)[number];
+  /** The minimal height of the widget, in units of 140 px. Without it, the height follows the content. */
+  readonly rows?: (typeof WIDGET_ROWS)[number];
+}
+
+/** The fields of a widget contribution. */
+interface WidgetFields {
+  /** The size of the widget in the grid. Without it, the widget takes one column and the height of its content. */
+  readonly size?: WidgetSize;
+}
+
 /** A widget of the Overview page. */
-export interface GlobalWidgetContribution extends ContributionBase<"global_widget">, ComponentFields {}
+export interface GlobalWidgetContribution extends ContributionBase<"global_widget">, ComponentFields, WidgetFields {}
 
 /**
  * What a configuration section says about itself in the menu: nothing required is missing (`complete`), its values come from the
@@ -381,7 +476,7 @@ export interface GeneralConfigContribution extends ContributionBase<"general_con
 export interface ThermostatConfigContribution extends ContributionBase<"thermostat_config">, MenuEntryFields, ComponentFields, ConfigFields<"thermostat_config"> {}
 
 /** A widget of the overview of a thermostat. */
-export interface ThermostatWidgetContribution extends ContributionBase<"thermostat_widget">, ComponentFields {}
+export interface ThermostatWidgetContribution extends ContributionBase<"thermostat_widget">, ComponentFields, WidgetFields {}
 
 /** The placement of a contribution that removes another one. */
 export interface RemovalPlacement {

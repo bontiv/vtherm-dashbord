@@ -6,7 +6,7 @@
  * in plain JavaScript and TypeScript types do not exist then.
  */
 
-import { HOOK_NAMES } from "./types.js";
+import { HOOK_NAMES, WIDGET_COLUMNS, WIDGET_ROWS } from "./types.js";
 import type { HookName, UiPluginDefinition } from "./types.js";
 
 /** A problem found in a definition. */
@@ -118,6 +118,32 @@ function checkConfigField(hook: HookName, name: string, path: string, issues: Va
   }
 }
 
+/** The hooks whose contributions are widgets, and can declare a size. */
+const WIDGET_HOOKS: readonly HookName[] = ["global_widget", "thermostat_widget"];
+
+/** The keys of a widget size. */
+const SIZE_KEYS = ["columns", "rows"] as const;
+
+function checkSize(hook: HookName, size: unknown, path: string, issues: ValidationIssue[]): void {
+  if (!WIDGET_HOOKS.includes(hook)) {
+    issues.push({ path, message: `'size' is only accepted by the contributions of ${WIDGET_HOOKS.join(" and ")}` });
+    return;
+  }
+  if (!isRecord(size)) {
+    issues.push({ path, message: `'size' must be an object with 'columns' and 'rows', got ${describe(size)}` });
+    return;
+  }
+  for (const key of Object.keys(size).filter((name) => !(SIZE_KEYS as readonly string[]).includes(name))) {
+    issues.push({ path: `${path}.${key}`, message: `Unknown key '${key}' of 'size', expected ${SIZE_KEYS.join(" or ")}` });
+  }
+  if ("columns" in size && !(WIDGET_COLUMNS as readonly unknown[]).includes(size["columns"])) {
+    issues.push({ path: `${path}.columns`, message: `'columns' must be 1, 2, 3 or "full", got ${describe(size["columns"])}` });
+  }
+  if ("rows" in size && !(WIDGET_ROWS as readonly unknown[]).includes(size["rows"])) {
+    issues.push({ path: `${path}.rows`, message: `'rows' must be 1, 2 or 3, got ${describe(size["rows"])}` });
+  }
+}
+
 function checkContribution(pluginId: string, hook: HookName, contribution: unknown, path: string, issues: ValidationIssue[]): string | undefined {
   if (!isRecord(contribution)) {
     issues.push({ path, message: "A contribution must be an object" });
@@ -171,6 +197,9 @@ function checkContribution(pluginId: string, hook: HookName, contribution: unkno
     }
     if ("feature" in contribution) {
       checkConfigField(hook, "feature", path, issues, isText(contribution["feature"]) ? undefined : "'feature' must be a non-empty string: the key of the value that turns the feature on");
+    }
+    if ("size" in contribution) {
+      checkSize(hook, contribution["size"], `${path}.size`, issues);
     }
     checkOptionalText(contribution, "icon", path, issues);
     checkOptionalText(contribution, "group", path, issues);

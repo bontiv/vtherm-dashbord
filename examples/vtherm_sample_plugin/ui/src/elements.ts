@@ -1,3 +1,4 @@
+import { getEntryEntities } from "@vtherm/dashboard-sdk";
 import type { ConfigValues, Hass } from "@vtherm/dashboard-sdk";
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
@@ -71,8 +72,10 @@ export class SampleStatusWidget extends LitElement {
   }
 
   protected override render(): TemplateResult {
-    const state = this.hass?.states[this.thermostatId]?.state ?? t("widget.unknown");
-    return html`<p>${t("widget.state", { name: this.thermostatId, state })}</p>`;
+    // thermostatId is the configuration entry of the thermostat, not its climate entity: find the entity in the registries of hass.
+    const climate = this.hass === undefined ? undefined : getEntryEntities(this.hass, this.thermostatId).climate;
+    const state = climate === undefined ? undefined : this.hass?.states[climate]?.state;
+    return html`<p>${t("widget.state", { name: climate ?? this.thermostatId, state: state ?? t("widget.unknown") })}</p>`;
   }
 }
 
