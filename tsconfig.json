@@ -1,10 +1,14 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+    "paths": {
+      "@vtherm/dashboard-sdk/testing": ["./packages/sdk/src/testing.ts"],
+      "@vtherm/dashboard-sdk": ["./packages/sdk/src/index.ts"]
+    }
   },
   "include": ["scripts/**/*.ts", "*.ts"]
 }
