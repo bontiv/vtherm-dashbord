@@ -1,6 +1,6 @@
 {
   "name": "vtherm-sample-plugin-ui",
-  "version": "0.1.0-beta3",
+  "version": "0.1.0-beta4",
   "private": true,
   "description": "A sample UI plugin for the Versatile Thermostat dashboard",
   "type": "module",
@@ -12,7 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@vtherm/dashboard-sdk": "^0.1.0-beta3",
+    "@vtherm/dashboard-sdk": "^0.1.0-beta4",
     "lit": "^3.3.3"
   }
 }

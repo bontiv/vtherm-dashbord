@@ -8,6 +8,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+## [0.1.0-beta4]
+The fourth beta.
+
 ### Changed
 - The tab **VT add-ons** opens on **Installed**, which is now the first entry of its menu, before **Catalog**.
 
@@ -22,6 +25,18 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   a config flow that the Marketplace loads at once is "To configure" without a restart.
 - The warning banner of the add-ons pages has a single outline: the border and the padding are drawn only by the fallback without
   `ha-alert`, which draws its own.
+
+### For contributors
+- The Python tests run on Home Assistant 2026.11.0, pinned in `requirements-dev.txt`, with `pytest-homeassistant` (the test helpers of
+  the core) instead of `pytest-homeassistant-custom-component`, which stops at 2026.10, as Versatile Thermostat does. Reinstall the
+  requirements, and remove `pytest-homeassistant-custom-component` from an existing environment: its plugin no longer imports.
+- The projects that the dashboard reads (Versatile Thermostat, `vtherm_api`, HACS) are located through the `VTHERM_*_DIR` variables
+  instead of links in `external/`.
+- `tests/test_marketplace_contract.py` records the answers of the real Marketplace in `shared/marketplace-answers.json`
+  (`--update-marketplace-answers`), and `frontend/test/store-contract.test.ts` replays them, as for HACS.
+
+### For plugin authors
+- Nothing changes for plugins.
 
 ## [0.1.0-beta3]
 The third beta.
