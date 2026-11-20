@@ -9,5 +9,18 @@
     "abort": {
       "single_instance_allowed": "Le tableau de bord est déjà configuré."
     }
+  },
+  "issues": {
+    "restart_required": {
+      "title": "Redémarrez Home Assistant pour charger vtherm_api {required}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Redémarrer Home Assistant",
+            "description": "Le tableau de bord nécessite vtherm_api {required} ou plus, mais la version {running} est encore en cours d'exécution. La nouvelle version est installée, mais elle n'est chargée qu'au redémarrage de Home Assistant.\n\nCliquez sur Valider pour redémarrer Home Assistant maintenant. Le tableau de bord démarrera ensuite normalement."
+          }
+        }
+      }
+    }
   }
 }

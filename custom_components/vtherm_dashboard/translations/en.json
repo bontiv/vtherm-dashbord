@@ -9,5 +9,18 @@
     "abort": {
       "single_instance_allowed": "The dashboard is already configured."
     }
+  },
+  "issues": {
+    "restart_required": {
+      "title": "Restart Home Assistant to load vtherm_api {required}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Restart Home Assistant",
+            "description": "The dashboard needs vtherm_api {required} or later, but version {running} is still running. The new version is installed but only loaded when Home Assistant restarts.\n\nSelect Submit to restart Home Assistant now. The dashboard will then start normally."
+          }
+        }
+      }
+    }
   }
 }

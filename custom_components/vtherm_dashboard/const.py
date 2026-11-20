@@ -8,6 +8,12 @@ DOMAIN = "vtherm_dashboard"
 TITLE = "Versatile Thermostat"
 """The title of the configuration entry."""
 
+MIN_VTHERM_API_VERSION = "0.11.0"
+"""The minimum version of `vtherm_api`. It must match the requirement of `manifest.json`."""
+
+ISSUE_RESTART_REQUIRED = "restart_required"
+"""The identifier and translation key of the repair issue raised when the running `vtherm_api` is too old."""
+
 PANEL_URL_PATH = "vtherm"
 """The path of the panel in the Home Assistant URL."""
 

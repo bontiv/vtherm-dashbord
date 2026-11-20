@@ -9,5 +9,18 @@
     "abort": {
       "single_instance_allowed": "Das Dashboard ist bereits eingerichtet."
     }
+  },
+  "issues": {
+    "restart_required": {
+      "title": "Starten Sie Home Assistant neu, um vtherm_api {required} zu laden",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Home Assistant neu starten",
+            "description": "Das Dashboard benötigt vtherm_api {required} oder neuer, aber Version {running} läuft noch. Die neue Version ist installiert, wird aber erst beim Neustart von Home Assistant geladen.\n\nWählen Sie Absenden, um Home Assistant jetzt neu zu starten. Danach startet das Dashboard normal."
+          }
+        }
+      }
+    }
   }
 }
