@@ -5,27 +5,17 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-VTHERM_API_REPO="${VTHERM_API_REPO:-https://github.com/jmcollin78/vtherm_api.git}"
-# A branch or a tag of vtherm_api, empty for the default branch. The dashboard needs the registry of UI plugins of vtherm_api: until it
-# is published, set VTHERM_API_REPO (and VTHERM_API_REF) to the fork or the branch that has it.
-VTHERM_API_REF="${VTHERM_API_REF:-}"
-
-# Versatile Thermostat and HACS, at the references of external-refs.txt (a folder of external/ that exists is never changed).
-# To use another repository or reference: VERSATILE_THERMOSTAT_REPO, VERSATILE_THERMOSTAT_REF, HACS_REPO and HACS_REF.
+# Versatile Thermostat, vtherm_api and HACS, at the references of external-refs.txt. A project whose VTHERM_*_DIR variable is set, or
+# whose folder of external/ exists, is never changed. To use another repository or reference: VERSATILE_THERMOSTAT_REPO,
+# VERSATILE_THERMOSTAT_REF, VTHERM_API_REPO, VTHERM_API_REF, HACS_REPO and HACS_REF.
 bash scripts/fetch-external.sh
-if [ ! -d external/vtherm_api ]; then
-    if [ -n "$VTHERM_API_REF" ]; then
-        git clone --branch "$VTHERM_API_REF" "$VTHERM_API_REPO" external/vtherm_api
-    else
-        git clone "$VTHERM_API_REPO" external/vtherm_api
-    fi
-fi
+source scripts/external-paths.sh
 
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
 
 # vtherm_api in editable mode: changes are picked up when Home Assistant restarts.
-python -m pip install -e external/vtherm_api
+python -m pip install -e "$(external_locate vtherm_api)"
 
 # Dependencies of the Versatile Thermostat integration, without the published vtherm_api package.
 python -m pip install numpy scipy

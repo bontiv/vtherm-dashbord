@@ -1,7 +1,7 @@
 """The answers of the real HACS to the commands that the adapter of the dashboard sends (`frontend/src/complements/hacs-client.ts`).
 
 HACS has no public API: the dashboard calls the WebSocket commands that the interface of HACS calls. This test runs the real handlers of
-`external/hacs` in Home Assistant, in the scenarios of the adapter, and compares their answers with `shared/hacs-answers.json`. The test
+HACS (folder `VTHERM_HACS_DIR`) in Home Assistant, in the scenarios of the adapter, and compares their answers with `shared/hacs-answers.json`. The test
 of the adapter (`frontend/test/hacs-contract.test.ts`) replays that file, so the adapter is checked against what HACS really answers.
 
 Only GitHub is replaced: registering a repository and downloading it need the network, so `async_register_repository` and
@@ -27,7 +27,9 @@ from homeassistant.core import HomeAssistant
 
 import custom_components
 
-EXTERNAL_HACS = Path(__file__).resolve().parent.parent / "external" / "hacs" / "custom_components"
+from .external_paths import LOCATIONS, locate, skip_reason
+
+EXTERNAL_HACS = locate("hacs") / "custom_components"
 """The HACS of the development environment, at the reference of `external-refs.txt`."""
 
 ANSWERS = Path(__file__).resolve().parent.parent / "shared" / "hacs-answers.json"
@@ -35,12 +37,14 @@ ANSWERS = Path(__file__).resolve().parent.parent / "shared" / "hacs-answers.json
 HACS_VERSION = "2.0.5"
 """The version that the test gives to HACS. A clone of its repository says `0.0.0`; a release says its own version."""
 
-pytestmark = pytest.mark.skipif(not EXTERNAL_HACS.is_dir(), reason="external/hacs is not available")
+pytestmark = pytest.mark.skipif(
+    skip_reason("hacs") is not None, reason=f"{LOCATIONS['hacs'].variable}: {locate('hacs')} is not available"
+)
 
 
 @pytest.fixture(name="hacs_modules")
 def hacs_modules_fixture():
-    """Import the modules of the real HACS from `external/hacs`."""
+    """Import the modules of the real HACS from the folder of `VTHERM_HACS_DIR`."""
     path = str(EXTERNAL_HACS)
     custom_components.__path__.append(path)
     modules = SimpleNamespace(

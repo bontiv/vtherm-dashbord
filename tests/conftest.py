@@ -3,7 +3,6 @@
 import asyncio
 import os
 from collections.abc import Mapping
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -17,11 +16,14 @@ import custom_components
 from custom_components.vtherm_dashboard import panel
 from custom_components.vtherm_dashboard.const import DOMAIN
 
-EXTERNAL_VTHERM = Path(__file__).resolve().parent.parent / "external" / "versatile_thermostat" / "custom_components"
+from .external_paths import LOCATIONS, locate, skip_reason
+
+EXTERNAL_VTHERM = locate("versatile_thermostat") / "custom_components"
 """The Versatile Thermostat of the development environment. Tests that run its real code need it, see requires_vtherm."""
 
-REQUIRES_VTHERM_REASON = "external/versatile_thermostat is not available"
-requires_vtherm = pytest.mark.skipif(not EXTERNAL_VTHERM.is_dir(), reason=REQUIRES_VTHERM_REASON)
+REQUIRES_VTHERM_REASON = f"{LOCATIONS['versatile_thermostat'].variable}: {locate('versatile_thermostat')} is not available"
+"""The skip reason, fixed at import: it also identifies the tests that need the real Versatile Thermostat, whether it is there or not."""
+requires_vtherm = pytest.mark.skipif(skip_reason("versatile_thermostat") is not None, reason=REQUIRES_VTHERM_REASON)
 
 
 def asyncio_debug_wanted(environ: Mapping[str, str]) -> bool:
@@ -50,7 +52,7 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 @pytest.fixture(name="real_vtherm")
 def real_vtherm_fixture(hass: HomeAssistant):
-    """Let Home Assistant load the real Versatile Thermostat of external/, for the tests that run its code.
+    """Let Home Assistant load the real Versatile Thermostat of its external folder, for the tests that run its code.
 
     The other tests must not see it: they check what happens when Versatile Thermostat is absent, or replace it by a fake.
     """

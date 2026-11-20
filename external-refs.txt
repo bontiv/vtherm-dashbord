@@ -3,3 +3,4 @@
 # scripts/fetch-external.sh, so two runs on the same commit test against the same code. Change a reference on purpose, and run the tests.
 versatile_thermostat https://github.com/jmcollin78/versatile_thermostat.git e0b0a2f88b543ec2d68f344542407df2a90a5c46
 hacs https://github.com/hacs/integration.git 8a543828351b963438a1613a6f06332138e4f4d6
+vtherm_api https://github.com/jmcollin78/vtherm_api.git main

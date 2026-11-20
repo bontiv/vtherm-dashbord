@@ -3,7 +3,7 @@ Audience: contributors.
 
 The panels "What VT would do with these settings" of the tabs TPI, open window and safety and manual override replay rules of Versatile Thermostat on the
 recorded history of a thermostat. The rules are ported to TypeScript in `frontend/src/insights/`, as pure functions (no DOM, no Lit, no
-Home Assistant), from the reference version of Versatile Thermostat named in `external-refs.txt` and checked out in `external/`. This page
+Home Assistant), from the reference version of Versatile Thermostat named in `external-refs.txt` and checked out in the folder of `VTHERM_VERSATILE_THERMOSTAT_DIR`. This page
 lists what is ported from where, how the port is checked against the Python code, and what to do when the reference version changes.
 
 ## Conventions
@@ -44,7 +44,7 @@ The rules that are not replayed, and why:
   thermostat over climate never enters it: the panel says so.
 
 ## The fixtures
-`tests/test_insights_fixtures.py` imports the modules of Versatile Thermostat from `external/` (`prop_algo_tpi`, `cycle_scheduler`, `ema`,
+`tests/test_insights_fixtures.py` imports the modules of Versatile Thermostat from the folder of `VTHERM_VERSATILE_THERMOSTAT_DIR` (`prop_algo_tpi`, `cycle_scheduler`, `ema`,
 `open_window_algorithm`, `const`), runs them on fixed cases and compares the results to the JSON files of
 `frontend/test/fixtures/insights/`. `frontend/test/insights-fixtures.test.ts` compares the TypeScript functions to the same files. The
 safety manager and the window manager need a whole thermostat: their decisions are covered by the unit tests of
@@ -63,7 +63,7 @@ window in the order of `BaseThermostat`, which it copies.
 1. Run `npm run test:python -- tests/test_insights_fixtures.py`. A failure means that Versatile Thermostat gives other results on the
    fixed cases.
 2. Whether it fails or not, read the diff of the ported files between the two references, for example
-   `git -C external/versatile_thermostat diff <old> <new> -- custom_components/versatile_thermostat/prop_algo_tpi.py`, for each file of the
+   `git -C "$VTHERM_VERSATILE_THERMOSTAT_DIR" diff <old> <new> -- custom_components/versatile_thermostat/prop_algo_tpi.py`, for each file of the
    table above (and `prop_handler_tpi.py`, `thermostat_prop.py`, `base_thermostat.py`, `feature_window_manager.py`,
    `feature_safety_manager.py`, `const.py`). A rule can change outside the fixed cases.
 3. Update the ported functions and their comments, then the fixed cases of the Python test if a new rule needs one.

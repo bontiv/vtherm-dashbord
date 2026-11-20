@@ -65,14 +65,14 @@ that fails does not undo the configuration, and is reported on its field.
 
 - `SUPPORTED_CONFIG_VERSION` in `vtherm_config.py` is the version of configuration (`CONFIG_VERSION`, `CONFIG_MINOR_VERSION`) that the
   dashboard was written for. An entry with a newer version is shown read-only, and saving it gives `config_version_unsupported`.
-- A test compares this version, the domain and the types with the Versatile Thermostat of `external/versatile_thermostat`.
+- A test compares this version, the domain and the types with the Versatile Thermostat of the folder of `VTHERM_VERSATILE_THERMOSTAT_DIR`.
 - `shared/vtherm-config-schemas.json` describes every form of the flow (key, kind, default, limits). `tests/test_schema_drift.py`
   compares it with the forms of the Versatile Thermostat of the environment and names every field that was added, removed or changed.
 - The integration tests (`tests/test_config_flow_driver.py`, `tests/test_presets.py`) run the real flow.
 
 When Versatile Thermostat changes:
 
-1. Update `external/versatile_thermostat` and run the tests.
+1. Update the folder of `VTHERM_VERSATILE_THERMOSTAT_DIR` and run the tests.
 2. For each difference of `test_schema_drift.py`, update the native tab that shows the form.
 3. Run `pytest tests/test_schema_drift.py --update-schemas` to write the new description, and commit it with the change of the tab.
 4. If the version of configuration changed, review the migration of Versatile Thermostat, then update `SUPPORTED_CONFIG_VERSION`.

@@ -14,3 +14,6 @@ pytest-xdist
 # Quality (same tools as Versatile Thermostat)
 black
 pylint
+
+# Property-based tests of the path resolvers
+hypothesis

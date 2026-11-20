@@ -28,7 +28,9 @@ The jobs are independent and run in parallel. The sample plugin is not a workspa
 
 ### What the tests read
 - `vtherm_api` comes from its package index, at the version that `manifest.json` requires.
-- Versatile Thermostat and HACS are cloned into `external/` at the commit or tag of `external-refs.txt` by `scripts/fetch-external.sh`.
+- Versatile Thermostat and HACS are cloned at the commit or tag of `external-refs.txt` by `scripts/fetch-external.sh`, into the default folder of
+  `VTHERM_VERSATILE_THERMOSTAT_DIR` and `VTHERM_HACS_DIR`. The workflow sets none of the variables of
+  [Development environment](development-environment.md#where-the-other-projects-are).
   Two runs on the same commit test against the same code. The dev container reads the same file. To follow a new version of one of
   them, change its reference in a pull request, and see the tests.
 

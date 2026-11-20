@@ -1,7 +1,7 @@
 """Run the rules of Versatile Thermostat that the setting insights port, and keep their results as fixtures for the TypeScript tests.
 
 The functions of `frontend/src/insights/` port code of Versatile Thermostat (see `docs/contributing/setting-insights.md`). This test runs
-that code from `external/` on fixed cases and compares the results to the JSON files of `frontend/test/fixtures/insights/`, which
+that code from the folder of `VTHERM_VERSATILE_THERMOSTAT_DIR` on fixed cases and compares the results to the JSON files of `frontend/test/fixtures/insights/`, which
 `frontend/test/insights-fixtures.test.ts` compares to the TypeScript functions. When this test fails after a change of
 `external-refs.txt`, Versatile Thermostat changed a rule: read the difference, update the ported function, then write the new fixtures
 with `UPDATE_INSIGHTS_FIXTURES=1 pytest tests/test_insights_fixtures.py` and commit them. A missing fixture is written.
@@ -35,7 +35,7 @@ START_MS = 1_767_600_000_000
 
 @pytest.fixture(name="vt", scope="module")
 def vt_fixture():
-    """The modules of Versatile Thermostat of external/, imported without Home Assistant running."""
+    """The modules of Versatile Thermostat of the external folder, imported without Home Assistant running."""
     path = str(EXTERNAL_VTHERM)
     custom_components.__path__.append(path)
     try:

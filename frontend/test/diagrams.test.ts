@@ -1,13 +1,15 @@
 // @vitest-environment happy-dom
 /** The library of the diagrams of the help of the fields: drawn with the values of the draft, in the theme and the language of the user. */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 
 import { DIAGRAM_IDS } from "@vtherm/dashboard-sdk";
 import type { DiagramId } from "@vtherm/dashboard-sdk";
 import { assertCompleteTranslations } from "@vtherm/dashboard-sdk/testing";
 import { render } from "lit";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { locate } from "../../scripts/external-paths.ts";
 
 import { DIAGRAMS, diagramStyles, diagramValue, renderDiagram } from "../src/components/diagrams/index.ts";
 import type { DiagramContext } from "../src/components/diagrams/index.ts";
@@ -16,7 +18,7 @@ import { de, diagramTexts, en, fr } from "../src/components/diagrams/texts.ts";
 
 // The URL of the module is not a file URL under happy-dom: the paths start from the root of the repository, where Vitest runs.
 const DIAGRAMS_DIR = `${resolve(process.cwd(), "frontend/src/components/diagrams")}/`;
-const VT_DIR = `${resolve(process.cwd(), "external/versatile_thermostat/custom_components/versatile_thermostat")}/`;
+const VT_DIR = `${join(locate("versatile_thermostat"), "custom_components/versatile_thermostat")}/`;
 
 /** A formatter of numbers in a language, as the panel gives one. */
 const formatIn =

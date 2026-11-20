@@ -54,7 +54,7 @@ HACS has no public API. The adapter calls the commands of its own interface:
 | `hacs/repositories/add` with `repository` and `category` | Add a repository. |
 | `hacs/repository/download` with `repository` (the identifier of HACS) | Download it. |
 
-The sources are in `external/hacs` (cloned by `.devcontainer/post-create.sh`, `custom_components/hacs/websocket/`). The adapter is
+The sources are in the folder of `VTHERM_HACS_DIR` (fetched by `.devcontainer/post-create.sh` when the variable is not set, `custom_components/hacs/websocket/`). The adapter is
 tested against the answers of this real HACS (see [Tests](#tests)), and the page tests use a fake HACS
 (`frontend/test/support/fake-hacs.ts`) that answers like these commands.
 
@@ -80,7 +80,7 @@ interface of HACS changed: the page shows a message and a link that opens the re
 
 ### The versions
 `MIN_HACS_VERSION` is the oldest version that was checked, the 2.x line. A HACS older than that gets the link to HACS. To support
-another version: set its reference in `external-refs.txt` and fetch it in `external/hacs`, run `pytest tests/test_hacs_contract.py`, which
+another version: set its reference in `external-refs.txt` and fetch it in the folder of `VTHERM_HACS_DIR`, run `pytest tests/test_hacs_contract.py`, which
 fails when the answers changed, check the adapter, record the new answers with `--update-hacs-answers`, then update the fake HACS and
 `MIN_HACS_VERSION`.
 
@@ -106,7 +106,7 @@ sanitizer on a complete DOM (jsdom, since happy-dom does not run DOMPurify), and
 
 The adapter is also checked against the real HACS, in two steps that share `shared/hacs-answers.json`:
 
-1. `tests/test_hacs_contract.py` runs the WebSocket handlers of `external/hacs` in Home Assistant, in the scenarios of the adapter: HACS
+1. `tests/test_hacs_contract.py` runs the WebSocket handlers of HACS (folder of `VTHERM_HACS_DIR`) in Home Assistant, in the scenarios of the adapter: HACS
    absent, ready, disabled, a repository already in HACS, one that is added, one that HACS refuses without an error, a download that fails
    and a command that HACS no longer knows. Only GitHub is replaced: registering and downloading a repository do what HACS does when they
    succeed or fail. The test compares the answers with the file, and fails when HACS changes them.
@@ -114,4 +114,4 @@ The adapter is also checked against the real HACS, in two steps that share `shar
    order, and the adapter must reach the expected state or error.
 
 After a change of HACS, check the adapter, then record the answers with `pytest tests/test_hacs_contract.py --update-hacs-answers`. The
-test is skipped when `external/hacs` is missing.
+test is skipped when the folder of `VTHERM_HACS_DIR` is missing.

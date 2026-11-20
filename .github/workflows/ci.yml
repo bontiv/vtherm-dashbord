@@ -41,7 +41,7 @@ jobs:
           python -m pip install numpy scipy
           python -m pip install "$(python -c 'import json; print(next(r for r in json.load(open("custom_components/vtherm_dashboard/manifest.json"))["requirements"] if r.startswith("vtherm_api")))')"
       - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
-        run: bash scripts/fetch-external.sh
+        run: bash scripts/fetch-external.sh versatile_thermostat hacs
       - name: Test with coverage
         # In parallel, one process per core. CI is set by GitHub Actions, so the event loop of the tests runs in debug mode.
         run: pytest -n auto --cov --cov-report=xml:coverage/python/coverage.xml --cov-report=html:coverage/python/html
@@ -76,9 +76,9 @@ jobs:
         run: npm ci
       - name: Build the SDK and the frontend
         run: npm run build
-      # The diagrams of the help check that each file of Versatile Thermostat they cite exists in external/.
+      # The diagrams of the help check that each file of Versatile Thermostat they cite exists in the folder of VTHERM_VERSATILE_THERMOSTAT_DIR (its default location, here).
       - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
-        run: bash scripts/fetch-external.sh
+        run: bash scripts/fetch-external.sh versatile_thermostat hacs
       - name: Test with coverage
         run: npm test -- --coverage
       - name: Write the coverage in the summary
@@ -170,7 +170,7 @@ jobs:
           python -m pip install "$(python -c 'import json; print(next(r for r in json.load(open("custom_components/vtherm_dashboard/manifest.json"))["requirements"] if r.startswith("vtherm_api")))')"
           npm ci
       - name: Get Versatile Thermostat and HACS at the references of external-refs.txt
-        run: bash scripts/fetch-external.sh
+        run: bash scripts/fetch-external.sh versatile_thermostat hacs
       # The single command of the developers: types, lint, no JavaScript, documentation, SDK reference, catalogs, Black and pylint.
       - name: Check the conventions and the documentation
         run: npm run check

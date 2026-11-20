@@ -10,6 +10,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 
+# shellcheck source=../scripts/external-paths.sh
+source "$ROOT/scripts/external-paths.sh"
+
 DEV_FRONTEND_URL="http://localhost:5198"
 
 for argument in "$@"; do
@@ -37,7 +40,13 @@ link() {
     fi
 }
 
-link "$ROOT/external/versatile_thermostat/custom_components/versatile_thermostat" config/custom_components/versatile_thermostat
+VTHERM_FOLDER="$(external_locate versatile_thermostat)"
+VTHERM_INTEGRATION="$VTHERM_FOLDER/custom_components/versatile_thermostat"
+if [ -d "$VTHERM_INTEGRATION" ]; then
+    ln -sfn "$VTHERM_INTEGRATION" config/custom_components/versatile_thermostat
+else
+    echo "VTHERM_VERSATILE_THERMOSTAT_DIR: $VTHERM_INTEGRATION has no Versatile Thermostat integration, link skipped"
+fi
 # Our integration, once it exists.
 link "$ROOT/custom_components/vtherm_dashboard" config/custom_components/vtherm_dashboard
 

@@ -2,15 +2,17 @@
  * Write the translation catalogs of the native plugins, in `frontend/src/native/catalogs/`.
  *
  * The labels, the help and the names of the options of the fields come from the translations of Versatile Thermostat
- * (`external/versatile_thermostat`, MIT license, Copyright (c) 2022 Jean-Marc Collin), so that the dashboard says what the
+ * (`VTHERM_VERSATILE_THERMOSTAT_DIR`, MIT license, Copyright (c) 2022 Jean-Marc Collin), so that the dashboard says what the
  * screens of Home Assistant say. `native-texts.ts` gives the other texts. Run it with `npm run catalogs:generate` after an update
  * of Versatile Thermostat; `--check` fails when a catalog is not the one that the script would write.
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { NATIVE_TAB_PLUGINS, TAB_DEFINITIONS, fieldsOfPlugin } from "../frontend/src/native/tab-definitions.ts";
+import { locate } from "./external-paths.ts";
 import { COMMON_TEXTS, ERROR_TEXTS, PLUGIN_TEXTS } from "./native-texts.ts";
 import type { Text } from "./native-texts.ts";
 
@@ -18,7 +20,7 @@ const LANGUAGES = ["en", "fr", "de"] as const;
 type Language = (typeof LANGUAGES)[number];
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const VTHERM_TRANSLATIONS = `${ROOT}external/versatile_thermostat/custom_components/versatile_thermostat/translations/`;
+const VTHERM_TRANSLATIONS = `${join(locate("versatile_thermostat"), "custom_components/versatile_thermostat/translations")}/`;
 const OUTPUT = `${ROOT}frontend/src/native/catalogs/`;
 
 interface VthermTranslation {
@@ -185,7 +187,7 @@ export function renderAll(vtherm: Record<Language, VthermTranslation>): { files:
 function main(): number {
   const vtherm = readVthermTranslations();
   if (vtherm === undefined) {
-    console.error(`The translations of Versatile Thermostat are not in ${VTHERM_TRANSLATIONS}. Clone it in external/ first.`);
+    console.error(`VTHERM_VERSATILE_THERMOSTAT_DIR: ${VTHERM_TRANSLATIONS} has no Versatile Thermostat translations`);
     return 1;
   }
   const { files, missing } = renderAll(vtherm);

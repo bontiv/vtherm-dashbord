@@ -7,7 +7,7 @@ How to get the repository running: Home Assistant with Versatile Thermostat and 
 Open the repository in VS Code and "Reopen in Container", or create a Codespace. The container has Python 3.14, Node.js (LTS) and the
 GitHub CLI. Its `postCreateCommand` runs `.devcontainer/post-create.sh`, which:
 
-1. clones the repositories that the dashboard depends on into `external/` (ignored by git): Versatile Thermostat, `vtherm_api` and HACS;
+1. fetches the repositories that the dashboard depends on, with `scripts/fetch-external.sh`: Versatile Thermostat, `vtherm_api` and HACS. A project whose variable is set (see [Where the other projects are](#where-the-other-projects-are)) is not fetched;
 2. installs the Python dependencies (`requirements-dev.txt`) and `vtherm_api` in editable mode, then `numpy` and `scipy`, which
    Versatile Thermostat needs;
 3. installs the packages that the browser of Home Assistant needs at its start (voice assistants, cameras): without them the page stays
@@ -19,7 +19,47 @@ GitHub CLI. Its `postCreateCommand` runs `.devcontainer/post-create.sh`, which:
 Versatile Thermostat and HACS are cloned at the commit of `external-refs.txt`, the one that the continuous integration tests against (`scripts/fetch-external.sh`).
 To use another repository or reference, set `VERSATILE_THERMOSTAT_REPO`, `VERSATILE_THERMOSTAT_REF`, `HACS_REPO` or `HACS_REF` before the container is created.
 `vtherm_api` must have the registry of UI plugins. Until it is published, set `VTHERM_API_REPO` and `VTHERM_API_REF` (a branch or a tag) the same
-way. An existing folder of `external/` is never changed, so to use another branch, check it out there.
+way. An existing folder is never changed, so to use another branch, check it out there.
+
+## Where the other projects are
+The dashboard reads the code of Versatile Thermostat, `vtherm_api` and HACS (tests, catalogs, Home Assistant). The folder of each one is given by an
+environment variable. When the variable is not set, or is empty or only spaces, the default applies. The default folders are fetched by
+`scripts/fetch-external.sh` and ignored by git.
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `VTHERM_VERSATILE_THERMOSTAT_DIR` | The folder of the Versatile Thermostat repository, which the tests, the catalogs and Home Assistant use. | `external/versatile_thermostat` |
+| `VTHERM_API_DIR` | The folder of the `vtherm_api` repository, installed in editable mode by `post-create.sh`. | `external/vtherm_api` |
+| `VTHERM_HACS_DIR` | The folder of the HACS repository, which the contract tests of the HACS adapter run. | `external/hacs` |
+
+A relative value is resolved against the root of the project, whatever the current directory. A value that names a missing folder, or a file, is an
+error that names the variable and the path: there is no fallback to the default. `fetch-external.sh` never fetches, reads or changes the
+folder of a variable that is set.
+
+To set a variable in the dev container, add it to `containerEnv` in `.devcontainer/devcontainer.json`, with an absolute path:
+
+```json
+"containerEnv": {
+  "VTHERM_VERSATILE_THERMOSTAT_DIR": "/workspaces/versatile_thermostat"
+}
+```
+
+To use a copy that is on your computer, mount it into the container and give the path of the mount to the variable. Both entries go together in
+`devcontainer.json` (the source is the folder on the host):
+
+```json
+"mounts": [
+  "type=bind,source=/path/to/versatile_thermostat,target=/mnt/versatile_thermostat"
+],
+"containerEnv": {
+  "VTHERM_VERSATILE_THERMOSTAT_DIR": "/mnt/versatile_thermostat"
+}
+```
+
+Do not commit a path of your computer: keep it in your own copy of `devcontainer.json`. Set the variables before the container is created, then rebuild it.
+
+`npm run check:external` prints one line for each project, with the variable, the absolute folder that it resolves to, and `exists` or `missing`.
+It changes nothing and exits with 1 when a folder is missing, so use it to check a path before you run the tests.
 
 ## Without the container
 You need Python 3.14, Node.js 24 or later, git and bash:
@@ -162,13 +202,13 @@ the container, with any Python 3.
 ## The tests
 | Command | What it runs |
 | --- | --- |
-| `pytest -n auto` | The Python tests, in parallel: the server, the config flow driver (with the real Versatile Thermostat in `external/`), the registry, the catalog of add-ons. `pytest` alone runs them one after the other, which is better for one file or one test. |
+| `pytest -n auto` | The Python tests, in parallel: the server, the config flow driver (with the real Versatile Thermostat of `VTHERM_VERSATILE_THERMOSTAT_DIR`), the registry, the catalog of add-ons. `pytest` alone runs them one after the other, which is better for one file or one test. |
 | `pytest -n auto -m "not vtherm"` | The Python tests without the ones that run the real Versatile Thermostat (marker `vtherm`), for a quick loop while you work. Run the whole suite before a commit: the continuous integration always does. |
 | `npm test` | The TypeScript tests (Vitest): the SDK, the frontend, the scripts and the examples. The sample plugin has its own tests: see below. The checks of the documentation (`frontend/test/docs.test.ts`) are skipped. |
 | `npm run test:docs` | The checks of the documentation: each page that describes the plugins, the theme and the dashboard says what the code does. They are long, so they run apart, in the Vitest mode `docs`. |
 | `npm run check` | Everything that is not a test: types, lint, no JavaScript, documentation, SDK reference, generated catalogs, Python format and pylint. |
 
-Run all of them before a pull request. The tests that need the real Versatile Thermostat are skipped when `external/versatile_thermostat`
+Run all of them before a pull request. The tests that need the real Versatile Thermostat are skipped when the folder of `VTHERM_VERSATILE_THERMOSTAT_DIR`
 is missing. A test file of the frontend runs in `happy-dom` (a comment `// @vitest-environment happy-dom` on its first line), or in `jsdom` when the
 code needs a complete DOM, as the sanitizer of the add-ons does.
 
