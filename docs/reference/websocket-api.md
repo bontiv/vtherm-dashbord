@@ -254,7 +254,7 @@ Each add-on has:
 | `slug`, `url`, `ha_domain` | As the catalog gives them, null when absent. |
 | `repository` | The GitHub repository `owner/name` in lower case, from the `slug` or from a GitHub `url`. |
 | `link` | The address of the repository, else the `url`. |
-| `hacs_category` | The category of HACS to install it: `integration` for an integration, `plugin` for an interface, the `hacs_category` of the catalog when it has one. Null when the dashboard does not install the add-on. |
+| `hacs_category` | The category of the store (the Marketplace or HACS, which have the same categories) to install it: `integration` for an integration, `plugin` for an interface, the `hacs_category` of the catalog when it has one. Null when the dashboard does not install the add-on. |
 | `ha` | `found` (the integration is in `custom_components`), `loaded`, `config_entries` (their number) and `config_flow` (the manifest declares one). |
 
 Error: `catalog_unavailable` when the catalog cannot be read and there is no copy. `unauthorized` for a user who is not an administrator.

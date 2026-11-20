@@ -6,7 +6,7 @@ import pytest
 from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry, MockModule, mock_integration
+from pytest_homeassistant.common import MockConfigEntry, MockModule, mock_integration
 
 from custom_components.vtherm_dashboard import panel as panel_module
 from custom_components.vtherm_dashboard.const import DEV_SERVER_ENV, DOMAIN, FRONTEND_MODULE, PANEL_URL_PATH, STATIC_URL

@@ -1,14 +1,15 @@
 /**
- * What the add-ons pages share: the catalog, what HACS says, the installations that run, and the restart.
+ * What the add-ons pages share: the catalog, what the store says, the installations that run, and the restart.
  *
- * The pages come and go as the user navigates, so this state lives outside them. Nothing is persisted: every state of an add-on is
- * deduced again from Home Assistant and HACS.
+ * The store is the Marketplace of Home Assistant, or HACS on the versions before 2026.11 (`store-client.ts`). The pages come and go as
+ * the user navigates, so this state lives outside them. Nothing is persisted: every state of an add-on is deduced again from Home
+ * Assistant and the store.
  */
 import type { Hass } from "@vtherm/dashboard-sdk";
-import { HacsClient, HacsError } from "./hacs-client.ts";
-import type { HacsStatus, InstallOutcome, InstallStep } from "./hacs-client.ts";
+import { StoreError, detectStore } from "./store-client.ts";
+import type { InstallOutcome, InstallStep, StoreClient, StoreKind, StoreStatus } from "./store-client.ts";
 import { deduceState, updateOf } from "./states.ts";
-import type { Complement, ComplementReadme, ComplementState, ComplementsResponse, HacsRepository, ListCriteria, ReadmeState, UpdateInfo } from "./types.ts";
+import type { Complement, ComplementReadme, ComplementState, ComplementsResponse, ListCriteria, ReadmeState, StoreRepository, UpdateInfo } from "./types.ts";
 
 /** What an installation is doing. */
 export interface InstallProgress {
@@ -40,14 +41,16 @@ export class ComplementsModel {
   /** The code of the error of the last read of the catalog, when it failed. */
   loadError: string | undefined;
   loading = false;
-  /** HACS is being read. The catalog is already shown meanwhile. */
-  hacsLoading = false;
+  /** The store is being read. The catalog is already shown meanwhile. */
+  storeLoading = false;
   /** The last criteria of each list, by page, so that coming back to a list finds it as it was. */
   readonly criteria = new Map<string, ListCriteria>();
-  hacs: HacsStatus = { kind: "absent" };
-  repositories: readonly HacsRepository[] = [];
-  /** The repositories of HACS could not be read, with the reason. */
-  hacsFailure: HacsError | undefined;
+  store: StoreStatus = { kind: "absent" };
+  repositories: readonly StoreRepository[] = [];
+  /** The repositories of the store could not be read, with the reason. */
+  storeFailure: StoreError | undefined;
+  /** The client of the store that was found, undefined without store. */
+  private client: StoreClient | undefined;
   restart: RestartPhase = "idle";
   restartOptions: RestartOptions = DEFAULT_RESTART;
   private hass: Hass | undefined;
@@ -78,11 +81,12 @@ export class ComplementsModel {
     this.response = undefined;
     this.loadError = undefined;
     this.loading = false;
-    this.hacsLoading = false;
+    this.storeLoading = false;
     this.criteria.clear();
-    this.hacs = { kind: "absent" };
+    this.store = { kind: "absent" };
+    this.client = undefined;
     this.repositories = [];
-    this.hacsFailure = undefined;
+    this.storeFailure = undefined;
     this.restart = "idle";
     this.restartOptions = DEFAULT_RESTART;
     this.installs.clear();
@@ -125,7 +129,7 @@ export class ComplementsModel {
   }
 
   /**
-   * Read the catalog and what HACS knows.
+   * Read the catalog and what the store knows.
    *
    * @param refresh - Ask the server of the catalog again, ignoring its cache.
    */
@@ -137,7 +141,7 @@ export class ComplementsModel {
     this.loading = true;
     this.notify();
     try {
-      // The catalog is shown as soon as it answers; HACS has 6 000 repositories to list and comes later.
+      // The catalog is shown as soon as it answers; the store has 6 000 repositories to list and comes later.
       const catalogRead = hass
         .callWS<ComplementsResponse>({ type: "vtherm_dashboard/get_complements", refresh })
         .then(
@@ -153,39 +157,45 @@ export class ComplementsModel {
           this.notify();
         });
       await catalogRead;
-      this.hacsLoading = true;
+      this.storeLoading = true;
       this.notify();
       try {
-        await this.readHacs(hass);
+        await this.readStore(hass);
       } catch (reason) {
-        this.hacs = { kind: "broken", message: String(reason) };
+        this.store = { kind: "broken", store: this.storeKind ?? "marketplace", message: String(reason) };
       }
     } finally {
       this.loading = false;
-      this.hacsLoading = false;
+      this.storeLoading = false;
       this.notify();
     }
   }
 
-  private async readHacs(hass: Hass): Promise<void> {
-    const client = new HacsClient(hass);
-    this.hacs = await client.status();
-    this.hacsFailure = undefined;
+  private async readStore(hass: Hass): Promise<void> {
+    const { status, client } = await detectStore(hass);
+    this.store = status;
+    this.client = client;
+    this.storeFailure = undefined;
     this.repositories = [];
-    if (this.hacs.kind !== "ready") {
+    if (status.kind !== "ready" || client === undefined) {
       return;
     }
     try {
       const wanted = [...new Set((this.response?.complements ?? []).map((complement) => complement.hacs_category).filter((category): category is string => category !== null))];
-      const categories = (wanted.length === 0 ? ["integration", "plugin"] : wanted).filter((category) => (this.hacs as { categories: readonly string[] }).categories.includes(category));
+      const categories = (wanted.length === 0 ? ["integration", "plugin"] : wanted).filter((category) => status.categories.includes(category));
       this.repositories = categories.length === 0 ? [] : await client.list(categories);
     } catch (error) {
-      this.hacsFailure = error instanceof HacsError ? error : new HacsError("hacs_error", String(error));
+      this.storeFailure = error instanceof StoreError ? error : new StoreError("store_error", String(error));
     }
   }
 
-  /** The repository of an add-on in HACS, if HACS knows it. */
-  repositoryOf(complement: Complement): HacsRepository | undefined {
+  /** The store that answered, even when it cannot be used, or undefined when there is none. */
+  get storeKind(): StoreKind | undefined {
+    return this.store.kind === "absent" ? undefined : this.store.store;
+  }
+
+  /** The repository of an add-on in the store, if the store knows it. */
+  repositoryOf(complement: Complement): StoreRepository | undefined {
     return this.repositories.find((repository) => complement.repository !== null && repository.full_name.toLowerCase() === complement.repository);
   }
 
@@ -194,7 +204,7 @@ export class ComplementsModel {
     return deduceState(complement, this.repositoryOf(complement));
   }
 
-  /** The update that HACS offers for an add-on, if any. */
+  /** The update that the store offers for an add-on, if any. */
   updateOf(complement: Complement): UpdateInfo | undefined {
     return updateOf(this.repositoryOf(complement));
   }
@@ -205,9 +215,34 @@ export class ComplementsModel {
     return state === "to_configure" || state === "restart_required" || this.updateOf(complement) !== undefined;
   }
 
-  /** Whether the dashboard can install an add-on now: HACS is read and ready, it is not installed, and the add-on is of an installable kind. */
+  /**
+   * What the Marketplace needs before it installs an add-on that is not installed: the warning accepted by the user, and GitHub connected
+   * when the repository must be added. Undefined when nothing is missing, or when the add-on is not one that the dashboard installs now.
+   */
+  installBlocker(complement: Complement): "warning_not_accepted" | "github_not_connected" | undefined {
+    const store = this.store;
+    if (this.storeLoading || store.kind !== "ready" || complement.hacs_category === null || this.stateOf(complement) !== "not_installed") {
+      return undefined;
+    }
+    if (!store.warningAccepted) {
+      return "warning_not_accepted";
+    }
+    return !store.githubConnected && this.repositoryOf(complement) === undefined ? "github_not_connected" : undefined;
+  }
+
+  /**
+   * Whether the dashboard can install an add-on now: the store is read and ready, it is not installed, the add-on is of an installable
+   * kind, and the Marketplace has what it needs (`installBlocker`).
+   */
   canInstall(complement: Complement): boolean {
-    return !this.hacsLoading && this.hacs.kind === "ready" && this.hacsFailure === undefined && complement.hacs_category !== null && this.stateOf(complement) === "not_installed";
+    return (
+      !this.storeLoading &&
+      this.store.kind === "ready" &&
+      this.storeFailure === undefined &&
+      complement.hacs_category !== null &&
+      this.stateOf(complement) === "not_installed" &&
+      this.installBlocker(complement) === undefined
+    );
   }
 
   /** What the installation of an add-on is doing. */
@@ -216,13 +251,15 @@ export class ComplementsModel {
   }
 
   /**
-   * Install an add-on with HACS. The user has confirmed. Other add-ons can be installed meanwhile.
+   * Install an add-on with the store. The user has confirmed. Other add-ons can be installed meanwhile.
    *
    * @param complement - The add-on, which must come from the catalog.
    */
   async install(complement: Complement): Promise<void> {
     const hass = this.hass;
-    if (hass === undefined || this.hacs.kind !== "ready" || this.progressOf(complement).running) {
+    const client = this.client;
+    const store = this.store;
+    if (hass === undefined || client === undefined || store.kind !== "ready" || this.progressOf(complement).running) {
       return;
     }
     const set = (progress: Partial<InstallProgress>): void => {
@@ -231,13 +268,13 @@ export class ComplementsModel {
     };
     set({ running: true, step: "checking", error: undefined, outcome: undefined });
     try {
-      const outcome = await new HacsClient(hass).install(complement, this.hacs.categories, (step) => set({ step }));
+      const outcome = await client.install(complement, store.categories, (step) => set({ step }));
       set({ running: false, outcome });
     } catch (error) {
-      const failure = error instanceof HacsError ? error : new HacsError("hacs_error", String(error));
+      const failure = error instanceof StoreError ? error : new StoreError("store_error", String(error));
       set({ running: false, error: { code: failure.code, message: failure.message } });
     }
-    // The catalog says what Home Assistant knows now, which changed with the download.
+    // The catalog says what Home Assistant knows now, which changed with the installation.
     this.loading = false;
     await this.load();
   }

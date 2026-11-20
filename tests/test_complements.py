@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry, MockModule, mock_integration
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant.common import MockConfigEntry, MockModule, mock_integration
+from pytest_homeassistant.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.vtherm_dashboard import complements
 from custom_components.vtherm_dashboard.complements import CATALOG_URL, CatalogUnavailableError, ComplementCatalog, normalize_catalog

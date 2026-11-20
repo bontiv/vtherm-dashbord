@@ -9,10 +9,11 @@ import { createFormatters, resolveLocalizedFieldWithLanguage, userLanguage } fro
 import { buildPath } from "../router.ts";
 import { en as english } from "./catalogs.ts";
 import { displayName, isEnglishFallback } from "./display.ts";
-import { HACS_DOCUMENTATION, MIN_HACS_VERSION, hacsLink } from "./hacs-client.ts";
 import { complementsModel } from "./model.ts";
 import { plainText, sanitizeDescription } from "./sanitize.ts";
 import { configFlowPath } from "./states.ts";
+import { HACS_DOCUMENTATION, MARKETPLACE_DOCUMENTATION, MIN_HACS_VERSION, storeLink } from "./store-client.ts";
+import type { InstallStep, StoreKind } from "./store-client.ts";
 import { text } from "./translations.ts";
 import { COMPLEMENT_STATES } from "./types.ts";
 import type { Complement, ComplementState, ListCriteria } from "./types.ts";
@@ -302,15 +303,19 @@ class ComplementsPageBase extends LitElement {
       font-size: 13px;
     }
     .banner {
+      display: block;
       margin: 0 0 12px;
+    }
+    /* fallback: ha-alert draws its own background, bar and outline, so only the div of the fallback needs a border. */
+    div.banner {
       padding: 8px 12px;
       border: 1px solid var(--divider-color);
       border-radius: 4px;
     }
-    .banner.warning {
+    div.banner.warning {
       border-color: var(--warning-color);
     }
-    .banner.error {
+    div.banner.error {
       border-color: var(--error-color);
       color: var(--error-color);
     }
@@ -643,9 +648,9 @@ class ComplementsPageBase extends LitElement {
     return this.sorted(matching);
   }
 
-  /** Whether the add-on waits for the user. The states that HACS decides are not known while HACS is read. */
+  /** Whether the add-on waits for the user. The states that the store decides are not known while the store is read. */
   private toHandle(complement: Complement): boolean {
-    return !complementsModel.hacsLoading && complementsModel.needsAction(complement);
+    return !complementsModel.storeLoading && complementsModel.needsAction(complement);
   }
 
   private sorted(list: Complement[]): Complement[] {
@@ -707,20 +712,51 @@ class ComplementsPageBase extends LitElement {
     ${response !== undefined && response.warnings.some((warning) => warning.startsWith("entry ")) ? renderAlert("info", text("warnings"), "banner") : nothing}`;
   }
 
-  private hacsNotice(): TemplateResult | typeof nothing {
-    const { hacs, hacsFailure, hacsLoading } = complementsModel;
-    if (hacsLoading || (hacs.kind === "ready" && hacsFailure === undefined)) {
+  /** The store that the texts and the links name: the one that answered, or the Marketplace when none did. */
+  private get storeKind(): StoreKind {
+    return complementsModel.storeKind ?? "marketplace";
+  }
+
+  /** A text that depends on the store, from `store.<marketplace|hacs>.<name>`. */
+  private storeText(name: string, params?: Readonly<Record<string, string | number>>): string {
+    return text(`store.${this.storeKind}.${name}`, params);
+  }
+
+  /** The text of a step of an installation. The steps that name the store have a text for each store. */
+  private stepText(step: InstallStep): string {
+    return step === "checking" || step === "adding" || step === "verifying" ? this.storeText(`step.${step}`) : text(`step.${step}`);
+  }
+
+  /** A link that opens a page of the store in Home Assistant. */
+  private storeAnchor(label: string, repository?: { id: string }): TemplateResult {
+    const path = storeLink(this.storeKind, repository);
+    return html`<a class="store-link" href=${path} @click=${(event: MouseEvent) => this.openHomeAssistantLink(event, path)}>${label}</a>`;
+  }
+
+  /** Why the store cannot install, with a link to what helps: the documentation, or the page of the store. */
+  private storeNotice(): TemplateResult | typeof nothing {
+    const { store, storeFailure, storeLoading } = complementsModel;
+    if (storeLoading) {
       return nothing;
     }
+    if (store.kind === "ready" && storeFailure === undefined) {
+      return store.warningAccepted ? nothing : renderAlert("warning", html`${this.storeText("warning_not_accepted")} ${this.storeAnchor(this.storeText("docs"))}`, "banner warning store-notice");
+    }
+    const external = (href: string, label: string) => html`<a href=${href} target="_blank" rel="noopener noreferrer">${label}</a>`;
+    if (store.kind === "absent") {
+      return renderAlert("warning", html`${text("store.none.absent")} ${external(MARKETPLACE_DOCUMENTATION, text("store.none.docs"))}`, "banner warning store-notice");
+    }
     const message =
-      hacs.kind === "absent"
-        ? text("hacs.absent")
-        : hacs.kind === "disabled"
-          ? text("hacs.disabled", { reason: hacs.reason })
-          : hacs.kind === "unsupported"
-            ? text("hacs.unsupported", { version: hacs.version, minimum: MIN_HACS_VERSION })
-            : text("hacs.broken", { message: hacs.kind === "broken" ? hacs.message : (hacsFailure?.message ?? "") });
-    return renderAlert("warning", html`${message} <a href=${HACS_DOCUMENTATION} target="_blank" rel="noopener noreferrer">${text("hacs.docs")}</a>`, "banner warning");
+      store.kind === "not_loaded"
+        ? this.storeText("not_loaded")
+        : store.kind === "disabled"
+          ? this.storeText("disabled", { reason: store.reason })
+          : store.kind === "unsupported"
+            ? this.storeText("unsupported", { version: store.version, minimum: MIN_HACS_VERSION })
+            : this.storeText("broken", { message: store.kind === "broken" ? store.message : (storeFailure?.message ?? "") });
+    // The page of the Marketplace explains a setup that failed; HACS has its documentation.
+    const help = this.storeKind === "marketplace" ? this.storeAnchor(this.storeText("docs")) : external(HACS_DOCUMENTATION, this.storeText("docs"));
+    return renderAlert("warning", html`${message} ${help}`, "banner warning store-notice");
   }
 
   /** The translation of a value of the catalog, or the value itself when the catalog has a new one. */
@@ -847,8 +883,8 @@ class ComplementsPageBase extends LitElement {
   private status(complement: Complement): TemplateResult {
     const model = complementsModel;
     const icon = (name: string) => (isDefined("ha-icon") ? html`<ha-icon icon=${ICONS[name] ?? ICONS["installed"]}></ha-icon>` : nothing);
-    if (model.hacsLoading && complement.hacs_category !== null) {
-      return html`<span class="status reading">${icon("reading")}${text("state.reading")}</span>`;
+    if (model.storeLoading && complement.hacs_category !== null) {
+      return html`<span class="status reading">${icon("reading")}${text("store.reading")}</span>`;
     }
     const state = model.stateOf(complement);
     const update = model.updateOf(complement);
@@ -868,7 +904,7 @@ class ComplementsPageBase extends LitElement {
     if (update !== undefined) {
       return html`<div class="versions">${text("update.versions", { installed: update.installed, available: update.available })}</div>`;
     }
-    const version = complementsModel.hacsLoading ? undefined : complementsModel.repositoryOf(complement)?.installed_version;
+    const version = complementsModel.storeLoading ? undefined : complementsModel.repositoryOf(complement)?.installed_version;
     return version === undefined || version === null || version === "" || !complementsModel.repositoryOf(complement)?.installed ? nothing : html`<div class="versions">${text("update.installed_version", { version })}</div>`;
   }
 
@@ -876,7 +912,7 @@ class ComplementsPageBase extends LitElement {
 
   private summary(): TemplateResult | typeof nothing {
     const model = complementsModel;
-    if (model.hacsLoading) {
+    if (model.storeLoading) {
       return nothing;
     }
     const count = (model.response?.complements ?? []).filter((complement) => model.needsAction(complement)).length;
@@ -911,7 +947,7 @@ class ComplementsPageBase extends LitElement {
 
   private renderCardActions(complement: Complement): TemplateResult | typeof nothing {
     const model = complementsModel;
-    if (model.hacsLoading) {
+    if (model.storeLoading) {
       return nothing;
     }
     const state = model.stateOf(complement);
@@ -921,7 +957,7 @@ class ComplementsPageBase extends LitElement {
         ? renderButton(text("action.configure"), () => openHomeAssistantPage(configFlowPath(complement.ha_domain as string)), { className: "card-action configure", plain: true })
         : nothing,
       state === "restart_required" ? renderButton(text("action.restart"), () => (this.dialog = { kind: "restart" }), { className: "card-action restart", disabled: model.restart === "restarting", plain: true }) : nothing,
-      model.updateOf(complement) !== undefined ? renderButton(text("action.open_hacs"), () => openHomeAssistantPage(hacsLink(repository)), { className: "card-action open-hacs", plain: true }) : nothing,
+      model.updateOf(complement) !== undefined ? renderButton(this.storeText("open"), () => openHomeAssistantPage(storeLink(this.storeKind, repository)), { className: "card-action open-store", plain: true }) : nothing,
     ];
     return buttons.every((button) => button === nothing) ? nothing : html`<div class="actions">${buttons}</div>`;
   }
@@ -972,7 +1008,7 @@ class ComplementsPageBase extends LitElement {
           : renderButton(refresh, () => void model.load(true), { className: "refresh", disabled: model.loading, plain: true })}
         ${model.response === undefined ? nothing : html`<span class="meta">${text("fetched", { date: this.date(model.response.fetched_at) })}</span>`}
       </div>
-      ${this.banners()} ${this.hacsNotice()} ${this.summary()} ${this.renderFilters()}
+      ${this.banners()} ${this.storeNotice()} ${this.summary()} ${this.renderFilters()}
       <div class="bar">
         <span class="count" role="status">${text("count", { count: visible.length })}</span>
         ${this.isFiltered() ? this.clearButton() : nothing}
@@ -1063,13 +1099,14 @@ class ComplementsPageBase extends LitElement {
     return html`${renderAlert("info", text("manual.unknown_type"), "banner")}${source}`;
   }
 
-  private openHacs(event: MouseEvent, repository: { id: string } | undefined): void {
-    this.openHomeAssistantLink(event, hacsLink(repository));
-  }
-
+  /** The message of a failed installation: the text of the store for its code, else the common one, else the message of the store. */
   private installFailure(code: string, message: string): string {
-    const key = `install.${code}`;
-    return key in english ? text(key) : text("install.failed", { message });
+    const own = `store.${this.storeKind}.install.${code}`;
+    if (own in english) {
+      return text(own);
+    }
+    const common = `install.${code}`;
+    return common in english ? text(common) : text("install.failed", { message });
   }
 
   private renderOutcome(complement: Complement, restartRequired: boolean, reloadPage: boolean): TemplateResult {
@@ -1172,11 +1209,13 @@ class ComplementsPageBase extends LitElement {
     const description = this.descriptionOf(complement);
     const installFailure = progress.error === undefined ? undefined : this.installFailure(progress.error.code, progress.error.message);
     const outcome = progress.outcome;
-    const reading = model.hacsLoading && complement.hacs_category !== null;
+    const reading = model.storeLoading && complement.hacs_category !== null;
     const manual = complement.hacs_category === null;
     const update = model.updateOf(complement);
+    // The Marketplace refuses to install without its warning accepted, or to add a repository without GitHub: the button stays, disabled.
+    const blocker = progress.running ? undefined : model.installBlocker(complement);
     const manage = !reading && ["installed", "restart_required", "to_configure", "configured"].includes(state) && repository !== undefined;
-    return html`${this.banners()} ${this.hacsNotice()}
+    return html`${this.banners()} ${this.storeNotice()}
       <div class="detail">
         <header class="head">
           <h2>${name}${experimental ? html`<span class="experimental">${text("badge.experimental")}</span>` : nothing}</h2>
@@ -1192,16 +1231,17 @@ class ComplementsPageBase extends LitElement {
             ${this.versions(complement)}
             ${experimental ? renderAlert("warning", text("experimental.warning"), "banner warning experimental-warning") : nothing}
             ${manual ? this.renderManual(complement) : nothing}
+            ${blocker === "github_not_connected" ? renderAlert("info", html`${this.storeText("github_not_connected")} ${this.storeAnchor(this.storeText("docs"))}`, "banner github-required") : nothing}
             ${progress.running || progress.step !== undefined
-              ? html`<div class="panel steps">${progress.running ? renderProgress(progress.step === undefined ? text("loading") : text(`step.${progress.step}`)) : progress.step === undefined ? nothing : text(`step.${progress.step}`)}</div>`
+              ? html`<div class="panel steps">${progress.running ? renderProgress(progress.step === undefined ? text("loading") : this.stepText(progress.step)) : progress.step === undefined ? nothing : this.stepText(progress.step)}</div>`
               : nothing}
             ${installFailure === undefined
               ? nothing
-              : renderAlert("error", html`${installFailure}<br /><a href=${hacsLink(repository)} @click=${(event: MouseEvent) => this.openHacs(event, repository)}>${text("hacs.open")}</a>`, "banner error")}
+              : renderAlert("error", html`${installFailure}<br />${this.storeAnchor(this.storeText("open"), repository)}`, "banner error")}
             ${outcome === undefined ? nothing : this.renderOutcome(complement, outcome.restartRequired, outcome.reloadPage)}
             <div class="actions">
-              ${!reading && model.canInstall(complement) && !progress.running
-                ? renderButton(text(progress.error === undefined ? "action.install" : "install.retry"), () => (this.dialog = { kind: "install" }), { className: "primary install" })
+              ${!reading && (model.canInstall(complement) || blocker !== undefined) && !progress.running
+                ? renderButton(text(progress.error === undefined ? "action.install" : "install.retry"), () => (this.dialog = { kind: "install" }), { className: "primary install", disabled: blocker !== undefined })
                 : nothing}
               ${!reading && state === "restart_required" && outcome === undefined
                 ? renderButton(text("action.restart"), () => (this.dialog = { kind: "restart" }), { className: "primary restart", disabled: model.restart === "restarting" })
@@ -1209,7 +1249,7 @@ class ComplementsPageBase extends LitElement {
               ${!reading && state === "to_configure" && complement.ha_domain !== null && complement.ha.config_flow
                 ? renderButton(text("action.configure"), () => openHomeAssistantPage(configFlowPath(complement.ha_domain as string)), { className: "primary configure" })
                 : nothing}
-              ${!reading && update !== undefined ? renderButton(text("action.open_hacs"), () => openHomeAssistantPage(hacsLink(repository)), { className: "primary update-hacs" }) : nothing}
+              ${!reading && update !== undefined ? renderButton(this.storeText("open"), () => openHomeAssistantPage(storeLink(this.storeKind, repository)), { className: "primary update-store" }) : nothing}
             </div>
             <dl>
               ${complement.link === null ? nothing : html`<dt>${text("detail.source")}</dt><dd>${this.sourceLink(complement)}</dd>`}
@@ -1218,7 +1258,7 @@ class ComplementsPageBase extends LitElement {
               <dt>${text("filter.family")}</dt><dd>${this.known("family", complement.family)}</dd>
               <dt>${text("filter.certification")}</dt><dd>${this.known("certification", complement.certification)}</dd>
             </dl>
-            ${manage ? html`<p>${text("hacs.manage")} <a href=${hacsLink(repository)} @click=${(event: MouseEvent) => this.openHacs(event, repository)}>${text("action.open_hacs")}</a></p>` : nothing}`,
+            ${manage ? html`<p>${this.storeText("manage")} ${this.storeAnchor(this.storeText("open"), repository)}</p>` : nothing}`,
         )}
         ${this.renderDocumentation(complement)}
       </div>
@@ -1253,7 +1293,7 @@ class ComplementsPageBase extends LitElement {
       title: text("confirm.title", { name }),
       body: html`<dl>
           <dt>${text("confirm.repository")}</dt><dd class="breakable">${complement.repository === null ? "" : html`<a href=${`https://github.com/${complement.repository}`} target="_blank" rel="noopener noreferrer">${complement.repository}</a>`}</dd>
-          <dt>${text("confirm.category")}</dt><dd>${complement.hacs_category === null ? "" : this.known("hacs_category", complement.hacs_category)}</dd>
+          <dt>${this.storeText("category")}</dt><dd>${complement.hacs_category === null ? "" : this.known("hacs_category", complement.hacs_category)}</dd>
           <dt>${text("confirm.certification")}</dt><dd>${this.known("certification", complement.certification)}</dd>
           <dt>${text("confirm.author")}</dt><dd>${complement.author ?? text("confirm.unknown_author")}</dd>
         </dl>

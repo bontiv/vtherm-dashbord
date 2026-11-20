@@ -10,7 +10,7 @@ from homeassistant import loader
 from homeassistant.core import HomeAssistant
 from vtherm_api import VThermAPI
 from vtherm_api.const import DOMAIN as VTHERM_API_DOMAIN
-from pytest_homeassistant_custom_component.common import MockConfigEntry, MockModule, mock_integration
+from pytest_homeassistant.common import MockConfigEntry, MockModule, mock_integration
 
 import custom_components
 from custom_components.vtherm_dashboard import panel
@@ -37,7 +37,7 @@ def asyncio_debug_wanted(environ: Mapping[str, str]) -> bool:
 
 @pytest.fixture(autouse=True)
 async def enable_event_loop_debug() -> None:
-    """Replace the fixture of pytest-homeassistant-custom-component that always turns the debug mode of the event loop on."""
+    """Replace the fixture of pytest-homeassistant that always turns the debug mode of the event loop on."""
     asyncio.get_running_loop().set_debug(asyncio_debug_wanted(os.environ))
 
 
@@ -100,6 +100,9 @@ def pytest_addoption(parser) -> None:
     """Options of the tests of the dashboard."""
     parser.addoption("--update-schemas", action="store_true", default=False, help="Write the description of the forms of Versatile Thermostat in shared/.")
     parser.addoption("--update-hacs-answers", action="store_true", default=False, help="Write the answers of the real HACS in shared/hacs-answers.json.")
+    parser.addoption(
+        "--update-marketplace-answers", action="store_true", default=False, help="Write the answers of the real Marketplace of Home Assistant in shared/marketplace-answers.json."
+    )
 
 
 @pytest.fixture(name="api")

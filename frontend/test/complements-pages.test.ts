@@ -5,8 +5,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { cleanup, find, findAll, mountPanel, plugin, settle } from "./support/dashboard-harness.ts";
 import type { MountOptions } from "./support/dashboard-harness.ts";
-import { catalogAnswer, complement, createFakeHacs } from "./support/fake-hacs.ts";
-import type { FakeHacsOptions } from "./support/fake-hacs.ts";
+import { catalogAnswer, complement, createFakeStore } from "./support/fake-store.ts";
+import type { FakeStoreOptions } from "./support/fake-store.ts";
 import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
 // happy-dom cannot run DOMPurify, which `complements-sanitize.test.ts` checks on a complete DOM. Here the sanitizer only has to be used.
@@ -20,7 +20,7 @@ const CATALOG = `/vtherm/${TAB}/core_complements.page.catalog`;
 const INSTALLED = `/vtherm/${TAB}/core_complements.page.installed`;
 
 let natives: { definition: UiPluginDefinition }[];
-let model: { reset(): void; restartOptions: unknown; hacsLoading: boolean };
+let model: { reset(): void; restartOptions: unknown; storeLoading: boolean; loading: boolean };
 
 beforeAll(async () => {
   const { definitions } = await nativeHost();
@@ -42,7 +42,7 @@ const BLUEPRINT = complement({ id: "https://example.org/bp.yaml", name: "A bluep
 
 interface Setup extends MountOptions {
   complements?: Record<string, unknown>[];
-  hacs?: FakeHacsOptions;
+  hacs?: FakeStoreOptions;
   catalog?: Record<string, unknown>;
   catalogFailure?: { code: string };
   /** Do not wait for HACS: the test looks at the page while HACS is read. */
@@ -54,7 +54,7 @@ interface Setup extends MountOptions {
 }
 
 async function open(path: string, setup: Setup = {}) {
-  const hacs = createFakeHacs(setup.hacs);
+  const hacs = createFakeStore(setup.hacs);
   const calls: Record<string, unknown>[] = [];
   const catalog = async (message: Record<string, unknown>) => {
     if (message["type"] !== "vtherm_dashboard/get_complements") {
@@ -67,7 +67,7 @@ async function open(path: string, setup: Setup = {}) {
     return catalogAnswer(setup.complements ?? [SWITCH, SECOND, BLUEPRINT, card({ name: "Nice card" })], setup.catalog);
   };
   const hacsHandler = async (message: Record<string, unknown>) => {
-    if (setup.holdHacs !== undefined && String(message["type"]).startsWith("hacs/")) {
+    if (setup.holdHacs !== undefined && /^(hacs|marketplace)\//.test(String(message["type"]))) {
       await setup.holdHacs;
     }
     return hacs.handle(message);
@@ -89,8 +89,9 @@ const names = (panel: HTMLElement) => texts(findAll(view(panel), "li.card a.name
 /** Wait until the page shows something other than "loading". */
 async function ready(panel: HTMLElement, hacs = true): Promise<void> {
   await vi.waitFor(() => {
-    if (hacs && model.hacsLoading) {
-      throw new Error("HACS is still read");
+    // The store is read after the catalog answers: between the two, neither flag of the store is set yet, but the load still runs.
+    if (hacs && (model.storeLoading || model.loading)) {
+      throw new Error("the store is still read");
     }
     const element = page(panel) as (HTMLElement & { updateComplete?: Promise<boolean> }) | undefined;
     if (element?.shadowRoot === null || element?.shadowRoot === undefined || (element.shadowRoot.textContent ?? "").includes("Loading the catalog") || (element.shadowRoot.textContent ?? "").includes("Chargement du catalogue")) {
@@ -108,13 +109,19 @@ const redraw = async (panel: HTMLElement) => {
 };
 
 describe("the tab", () => {
-  it("is in the bar after Thermostats, before the gear, and has a catalog and an installed entry", async () => {
+  it("is in the bar after Thermostats, before the gear, and has an installed entry, then a catalog entry", async () => {
     const { panel } = await open(CATALOG);
     const bar = find(root(panel), "vtherm-top-bar") as HTMLElement;
     expect(texts(findAll(bar.shadowRoot as ShadowRoot, "nav.start a"))).toEqual(["Dashboard", "Thermostats", "VT add-ons"]);
     expect(findAll(bar.shadowRoot as ShadowRoot, "nav.end a")).toHaveLength(1);
     const menu = find(root(panel), "vtherm-side-menu") as HTMLElement;
-    expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))).toEqual(["Catalog", "Installed"]);
+    expect(texts(findAll(menu.shadowRoot as ShadowRoot, "a"))).toEqual(["Installed", "Catalog"]);
+  });
+
+  it("opens on the installed add-ons by default", async () => {
+    const { panel } = await open(`/vtherm/${TAB}`);
+    expect(page(panel)?.localName).toBe("core-complements-installed-page");
+    expect(find(view(panel), "h2")?.textContent).toBe("Installed");
   });
 
   it.each([
@@ -128,14 +135,14 @@ describe("the tab", () => {
   });
 
   it("is not shown to a user who is not an administrator", async () => {
-    const { panel } = await mountPanel({ plugins: natives, admin: false, handlers: [createFakeHacs().handle] });
+    const { panel } = await mountPanel({ plugins: natives, admin: false, handlers: [createFakeStore().handle] });
     const bar = find(root(panel), "vtherm-top-bar") as HTMLElement;
     expect(texts(findAll(bar.shadowRoot as ShadowRoot, "nav.start a"))).toEqual(["Dashboard", "Thermostats"]);
   });
 
   it("is hidden by a plugin that removes it", async () => {
     const remover = plugin("remover", { top_tab: [{ id: "remover.hide", placement: { remove: TAB } }] });
-    const { panel } = await mountPanel({ plugins: [...natives, { definition: remover }], handlers: [createFakeHacs().handle] });
+    const { panel } = await mountPanel({ plugins: [...natives, { definition: remover }], handlers: [createFakeStore().handle] });
     const bar = find(root(panel), "vtherm-top-bar") as HTMLElement;
     expect(texts(findAll(bar.shadowRoot as ShadowRoot, "nav.start a"))).toEqual(["Dashboard", "Thermostats"]);
   });
@@ -225,16 +232,16 @@ describe("the catalog", () => {
     expect(catalogCalls[1]).toMatchObject({ refresh: true });
   });
 
-  it("keeps the catalog readable and says why when HACS is absent, disabled, or too old", async () => {
-    for (const [hacs, message] of [
-      [{ absent: true }, "HACS is required"],
-      [{ disabledReason: "rate_limit" }, "HACS is disabled: rate_limit"],
-      [{ version: "1.30.0" }, "older than 2.0.0"],
+  it("keeps the catalog readable and says why when there is no store, or HACS is disabled or too old", async () => {
+    for (const [hacs, message, help] of [
+      [{ absent: true }, "needs the Marketplace of Home Assistant", "https://www.home-assistant.io/integrations/marketplace/"],
+      [{ disabledReason: "rate_limit" }, "HACS is disabled: rate_limit", "https://hacs.xyz/docs/use/"],
+      [{ version: "1.30.0" }, "older than 2.0.0", "https://hacs.xyz/docs/use/"],
     ] as const) {
       const { panel } = await open(CATALOG, { hacs });
       expect(names(panel)).toHaveLength(4);
       expect(find(view(panel), ".banner.warning")?.textContent).toContain(message);
-      expect(find(view(panel), ".banner.warning a")?.getAttribute("href")).toBe("https://hacs.xyz/docs/use/");
+      expect(find(view(panel), ".banner.warning a")?.getAttribute("href")).toBe(help);
       cleanup();
       model.reset();
     }
@@ -423,10 +430,10 @@ describe("the installation", () => {
     expect(find(view(panel), ".status.state-installed")).not.toBeNull();
   });
 
-  it("does not offer to install without HACS", async () => {
+  it("does not offer to install without a store", async () => {
     const { panel } = await open(detail("owner/switch-helper"), { hacs: { absent: true } });
     expect(find(view(panel), "button.install")).toBeNull();
-    expect(find(view(panel), ".banner.warning")?.textContent).toContain("HACS is required");
+    expect(find(view(panel), ".banner.warning")?.textContent).toContain("needs the Marketplace of Home Assistant");
   });
 });
 
@@ -468,7 +475,7 @@ describe("the page before HACS answers", () => {
     const { panel } = await open(`${CATALOG}/${encodeURIComponent("owner/switch-helper")}`, { holdHacs, keepHacsLoading: true });
     expect(find(view(panel), "h2")?.textContent).toBe("Switch helper");
     await vi.waitFor(() => expect(texts(findAll(root(panel), "vtherm-breadcrumb li"))).toEqual(["VT add-ons", "Catalog", "Switch helper"]));
-    expect(find(view(panel), ".status.reading")?.textContent?.trim()).toBe("Reading HACS…");
+    expect(find(view(panel), ".status.reading")?.textContent?.trim()).toBe("Reading the add-on store…");
     expect(find(view(panel), "button.install")).toBeNull();
     release();
     await vi.waitFor(() => expect(find(view(panel), "button.install")).not.toBeNull());
@@ -540,7 +547,7 @@ describe("the status and the cards", () => {
     const item = cardOf(panel, "Done");
     expect(texts(findAll(item, ".status"))).toEqual(["Configured", "Update available"]);
     expect(item.textContent).toContain("1.2.0 → 1.3.0");
-    find<HTMLElement>(item, "button.open-hacs")?.click();
+    find<HTMLElement>(item, "button.open-store")?.click();
     expect(window.location.pathname).toBe("/hacs/repository/1");
     openCard(panel, "Done");
   });
@@ -765,7 +772,7 @@ describe("the layout of the page of an add-on", () => {
     expect(find(card, ".versions")?.textContent).toBe("1.2.0 → 1.3.0");
     expect(find(card, ".status.update")?.textContent?.trim()).toBe("Update available");
     const hacs = vi.fn();
-    find<HTMLElement>(card, "button.update-hacs")?.click();
+    find<HTMLElement>(card, "button.update-store")?.click();
     expect(window.location.pathname).toBe("/hacs/repository/1");
     expect(hacs).not.toHaveBeenCalled();
     expect(update.hacs.commands()).not.toContain("hacs/repository/download");
@@ -872,6 +879,129 @@ describe("the add-ons that the dashboard does not install", () => {
     const { panel } = await withComponents("owner/mystery", [unknown], "my", "hassio");
     expect(find(view(panel), ".action-card")?.textContent).toContain("does not install this kind of add-on");
     expect(find<HTMLAnchorElement>(view(panel), "a.source-link")?.href).toBe("https://github.com/owner/mystery");
+  });
+});
+
+describe("the Marketplace of Home Assistant 2026.11", () => {
+  const detail = (id: string) => `${CATALOG}/${encodeURIComponent(id)}`;
+  /** An integration that declares a config flow: Home Assistant knows it once the Marketplace reloaded the custom components. */
+  const FLOW = complement({ name: "Switch helper", ha: { found: true, loaded: false, config_entries: 0, config_flow: true } });
+  const CARD = card({ name: "Nice card" });
+
+  it("installs through the Marketplace, without restart for a new integration with a config flow", async () => {
+    const { panel, hacs, hass } = await open(detail("owner/switch-helper"), { complements: [FLOW, CARD], hacs: { store: "marketplace", addable: ["owner/switch-helper"] } });
+    click(panel, "button.install");
+    await redraw(panel);
+    expect(find(view(panel), '[role="dialog"]')?.textContent).toContain("Marketplace category");
+    click(panel, ".dialog button.confirm-install");
+    await vi.waitFor(() => expect(find(view(panel), ".status.state-to_configure")).not.toBeNull());
+    expect(hacs.commands()).toContain("marketplace/repositories/add");
+    expect(hacs.commands()).toContain("marketplace/repository/install");
+    expect(hacs.commands().filter((type) => type.startsWith("hacs/"))).toEqual([]);
+    expect(find(view(panel), ".done")?.textContent).not.toContain("Restart Home Assistant");
+    expect(find(view(panel), "button.restart")).toBeNull();
+    expect(find(view(panel), "button.configure")).not.toBeNull();
+    expect(hass.callService).not.toHaveBeenCalled();
+  });
+
+  it("proposes the restart when the Marketplace says that one is pending", async () => {
+    const { panel } = await open(detail("owner/switch-helper"), {
+      complements: [FLOW, CARD],
+      hacs: {
+        store: "marketplace",
+        addable: ["owner/switch-helper"],
+        afterDownload: (repository) => {
+          repository.status = "pending-restart";
+        },
+      },
+    });
+    click(panel, "button.install");
+    await redraw(panel);
+    click(panel, ".dialog button.confirm-install");
+    await vi.waitFor(() => expect(find(view(panel), ".done")?.textContent).toContain("Restart Home Assistant"));
+    expect(find(view(panel), ".status.state-restart_required")).not.toBeNull();
+  });
+
+  it("names the Marketplace and opens the page of the repository in it", async () => {
+    const { panel } = await open(detail("owner/switch-helper"), { complements: [FLOW, CARD], hacs: { store: "marketplace", repositories: [{ id: "42", full_name: "owner/switch-helper", category: "integration", installed: true, status: "pending-upgrade" }] } });
+    const link = find<HTMLAnchorElement>(view(panel), "p a.store-link");
+    expect(link?.getAttribute("href")).toBe("/marketplace/repository/42");
+    expect(link?.textContent).toBe("Open in the Marketplace");
+    expect(link?.parentElement?.textContent).toContain("open it in the Marketplace");
+    expect(find(view(panel), "button.update-store")?.textContent?.trim()).toBe("Open in the Marketplace");
+    find<HTMLElement>(view(panel), "button.update-store")?.click();
+    expect(window.location.pathname).toBe("/marketplace/repository/42");
+  });
+
+  it("offers to open the Marketplace on the card of an add-on with an update", async () => {
+    const { panel } = await open(CATALOG, { complements: [FLOW, CARD], hacs: { store: "marketplace", repositories: [{ id: "42", full_name: "owner/switch-helper", category: "integration", installed: true, status: "pending-upgrade" }] } });
+    expect(find(cardOf(panel, "Switch helper"), "button.open-store")?.textContent?.trim()).toBe("Open in the Marketplace");
+  });
+
+  it("disables the installation until the warning of the Marketplace is accepted, and links to the Marketplace", async () => {
+    const { panel, hacs } = await open(detail("owner/switch-helper"), { complements: [FLOW, CARD], hacs: { store: "marketplace", warningAccepted: false, addable: ["owner/switch-helper"] } });
+    expect(find(view(panel), ".store-notice")?.textContent).toContain("accept its warning");
+    expect(find<HTMLAnchorElement>(view(panel), ".store-notice a")?.getAttribute("href")).toBe("/marketplace");
+    expect(find<HTMLButtonElement>(view(panel), "button.install")?.disabled).toBe(true);
+    click(panel, "button.install");
+    await redraw(panel);
+    expect(find(view(panel), '[role="dialog"]')).toBeNull();
+    expect(hacs.commands().filter((type) => type !== "marketplace/info" && type !== "marketplace/repositories/list")).toEqual([]);
+  });
+
+  it("disables only the add-ons that are not in the Marketplace while GitHub is not connected", async () => {
+    const setup = { complements: [FLOW, CARD], hacs: { store: "marketplace" as const, githubConnected: false, repositories: [{ id: "8", full_name: "owner/nice-card", category: "plugin" }] } };
+    const { panel } = await open(detail("owner/switch-helper"), setup);
+    expect(find<HTMLButtonElement>(view(panel), "button.install")?.disabled).toBe(true);
+    expect(find(view(panel), ".github-required")?.textContent).toContain("connect GitHub in the Marketplace");
+    expect(find<HTMLAnchorElement>(view(panel), ".github-required a")?.getAttribute("href")).toBe("/marketplace");
+    cleanup();
+    model.reset();
+    const known = await open(detail("owner/nice-card"), setup);
+    expect(find<HTMLButtonElement>(view(known.panel), "button.install")?.disabled).toBe(false);
+    expect(find(view(known.panel), ".github-required")).toBeNull();
+  });
+
+  it("says that the Marketplace is not loaded, and does not offer to install", async () => {
+    const { panel, hacs } = await open(detail("owner/switch-helper"), { complements: [FLOW, CARD], hacs: { store: "marketplace", notLoaded: true } });
+    expect(find(view(panel), ".store-notice")?.textContent).toContain("Marketplace of Home Assistant is not loaded");
+    expect(find<HTMLAnchorElement>(view(panel), ".store-notice a")?.getAttribute("href")).toBe("/marketplace");
+    expect(find(view(panel), "button.install")).toBeNull();
+    expect(hacs.commands()).not.toContain("hacs/info");
+  });
+
+  it("gives the reason of the Marketplace when it is disabled", async () => {
+    const { panel } = await open(CATALOG, { complements: [FLOW, CARD], hacs: { store: "marketplace", disabledReason: "rate_limit" } });
+    expect(find(view(panel), ".store-notice")?.textContent).toContain("The Marketplace is disabled: rate_limit");
+  });
+
+  it("shows the message of the Marketplace when it refuses to add the repository", async () => {
+    const { panel } = await open(detail("owner/switch-helper"), { complements: [FLOW, CARD], hacs: { store: "marketplace" } });
+    click(panel, "button.install");
+    await redraw(panel);
+    click(panel, ".dialog button.confirm-install");
+    await vi.waitFor(() => expect(find(view(panel), ".banner.error")).not.toBeNull());
+    expect(find(view(panel), ".banner.error")?.textContent).toContain("Could not add owner/switch-helper");
+    expect(find<HTMLAnchorElement>(view(panel), ".banner.error a")?.getAttribute("href")).toBe("/marketplace");
+    expect(find(view(panel), "button.install")?.textContent).toContain("Try again");
+  });
+});
+
+describe("the banner without the components of Home Assistant", () => {
+  it("draws its border on the div of the fallback only", async () => {
+    const { panel } = await open(CATALOG, { hacs: { absent: true } });
+    const banner = find(view(panel), ".banner.warning") as HTMLElement;
+    expect(banner.tagName).toBe("DIV");
+    const css = ((page(panel)?.constructor as unknown as { styles: { cssText?: string }[] }).styles ?? []).map((style) => style.cssText ?? "").join("\n");
+    expect(css).toMatch(/div\.banner\.warning\s*\{[^}]*border-color: var\(--warning-color\)/);
+    expect(css).toMatch(/div\.banner\s*\{[^}]*border: 1px solid/);
+    // ha-alert draws its own outline: no rule that also matches it adds a border or a padding.
+    for (const rule of css.match(/[^{}]+\{[^}]*\}/g) ?? []) {
+      const selectors = rule.slice(0, rule.indexOf("{")).split(",").map((selector) => selector.trim());
+      if (selectors.some((selector) => /^\.banner(\.[\w-]+)*$/.test(selector))) {
+        expect(rule, rule).not.toMatch(/border|padding/);
+      }
+    }
   });
 });
 

@@ -1,4 +1,4 @@
-/** The native plugin `core_complements`: the tab "VT add-ons", with the catalog and the installed add-ons. */
+/** The native plugin `core_complements`: the tab "VT add-ons", with the installed add-ons (its default page) and the catalog. */
 import { CORE_TOP_TABS, registerUiPlugin } from "@vtherm/dashboard-sdk";
 import type { UiPluginDefinition, VisibilityContext } from "@vtherm/dashboard-sdk";
 import { defineElement } from "../../components/define.ts";
@@ -20,8 +20,8 @@ export const definition: UiPluginDefinition = {
   contributions: {
     top_tab: [{ id: COMPLEMENTS_TOP_TAB, title: "top.complements", icon: "mdi:puzzle-outline", zone: "start", placement: { after: CORE_TOP_TABS.thermostats }, visible: administrator }],
     tab_page: [
-      { id: CATALOG_PAGE, tab: COMPLEMENTS_TOP_TAB, title: "page.catalog", icon: "mdi:store-outline", component: "core-complements-catalog-page" },
-      { id: INSTALLED_PAGE, tab: COMPLEMENTS_TOP_TAB, title: "page.installed", icon: "mdi:check-circle-outline", component: "core-complements-installed-page", placement: { after: CATALOG_PAGE } },
+      { id: INSTALLED_PAGE, tab: COMPLEMENTS_TOP_TAB, title: "page.installed", icon: "mdi:check-circle-outline", component: "core-complements-installed-page" },
+      { id: CATALOG_PAGE, tab: COMPLEMENTS_TOP_TAB, title: "page.catalog", icon: "mdi:store-outline", component: "core-complements-catalog-page", placement: { after: INSTALLED_PAGE } },
     ],
   },
 };

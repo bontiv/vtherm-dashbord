@@ -28,6 +28,7 @@ from homeassistant.core import HomeAssistant
 import custom_components
 
 from .external_paths import LOCATIONS, locate, skip_reason
+from .store_contract import Recorder, repository_in
 
 EXTERNAL_HACS = locate("hacs") / "custom_components"
 """The HACS of the development environment, at the reference of `external-refs.txt`."""
@@ -37,9 +38,7 @@ ANSWERS = Path(__file__).resolve().parent.parent / "shared" / "hacs-answers.json
 HACS_VERSION = "2.0.5"
 """The version that the test gives to HACS. A clone of its repository says `0.0.0`; a release says its own version."""
 
-pytestmark = pytest.mark.skipif(
-    skip_reason("hacs") is not None, reason=f"{LOCATIONS['hacs'].variable}: {locate('hacs')} is not available"
-)
+pytestmark = pytest.mark.skipif(skip_reason("hacs") is not None, reason=f"{LOCATIONS['hacs'].variable}: {locate('hacs')} is not available")
 
 
 @pytest.fixture(name="hacs_modules")
@@ -100,26 +99,6 @@ def _repository(hacs: Any, modules: SimpleNamespace, full_name: str, repository_
     return repository
 
 
-class Recorder:  # pylint: disable=too-few-public-methods
-    """Send the commands of a scenario and keep the answers."""
-
-    def __init__(self, client) -> None:
-        self.client = client
-        self.scenarios: dict[str, list[dict[str, Any]]] = {}
-
-    async def call(self, scenario: str, message: dict[str, Any]) -> dict[str, Any]:
-        """Send a command and record its answer, or its error."""
-        await self.client.send_json_auto_id(dict(message))
-        answer = await self.client.receive_json()
-        exchange: dict[str, Any] = {"request": message}
-        if answer["success"]:
-            exchange["result"] = _normalize(answer["result"])
-        else:
-            exchange["error"] = {"code": answer["error"]["code"], "message": answer["error"]["message"]}
-        self.scenarios.setdefault(scenario, []).append(exchange)
-        return exchange
-
-
 def _normalize(result: Any) -> Any:
     """Make an answer the same at each run: HACS keeps its categories and its repositories in sets."""
     if isinstance(result, dict) and isinstance(result.get("categories"), list):
@@ -131,14 +110,12 @@ def _normalize(result: Any) -> Any:
 
 LIST = {"type": "hacs/repositories/list", "categories": ["integration"]}
 
-
-def _in(exchange: dict[str, Any], full_name: str) -> dict[str, Any] | None:
-    return next((item for item in exchange["result"] if item["full_name"] == full_name), None)
+_in = repository_in
 
 
 async def _record(hass: HomeAssistant, modules: SimpleNamespace, client) -> dict[str, list[dict[str, Any]]]:
     """Run every scenario of the adapter against the real HACS, in the order of the commands that the adapter sends."""
-    recorder = Recorder(client)
+    recorder = Recorder(client, _normalize)
 
     # Without HACS, Home Assistant does not know its commands.
     await recorder.call("absent", {"type": "hacs/info"})

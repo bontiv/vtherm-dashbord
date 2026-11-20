@@ -16,18 +16,21 @@ describe("the documentation of the add-ons", () => {
     }
   });
 
-  it("describes every error of the adapter of HACS and of the catalog", () => {
+  it("describes every error of the adapter of the store and of the catalog", () => {
     const contributing = read("docs/contributing/complements.md");
-    for (const code of ["hacs_error", "interface_changed", "unexpected_response", "add_refused", "category_unsupported"]) {
+    for (const code of ["store_error", "interface_changed", "unexpected_response", "add_refused", "category_unsupported", "not_loaded", "warning_not_accepted", "github_not_connected"]) {
       expect(contributing, code).toContain(`\`${code}\``);
     }
     expect(read("docs/reference/websocket-api.md")).toContain("`catalog_unavailable`");
   });
 
-  it("explains each case of the user guide: HACS missing, disabled and changed, the restart, and the update by HACS", () => {
+  it("explains each case of the user guide: no store, the Marketplace and HACS, disabled and changed, the restart, and the update", () => {
     const page = read("docs/user/complements.md");
-    for (const text of ["HACS is disabled", "Cancel", "Restart Home Assistant", "Later", "Configure", "Update and remove", "When HACS changes", "five minutes"]) {
-      expect(page, text).toContain(text.replace("HACS is disabled", "When HACS is disabled"));
+    for (const text of ["Marketplace or HACS\nis disabled", "accept its warning", "GitHub connected", "not loaded", "Cancel", "Restart Home Assistant", "Later", "Configure", "Update and remove", "When the store changes", "five minutes"]) {
+      expect(page, text).toContain(text);
+    }
+    for (const key of ["store.marketplace.open", "store.hacs.open", "store.reading"] as const) {
+      expect(page, key).toContain(en[key]);
     }
   });
 
@@ -40,7 +43,7 @@ describe("the documentation of the add-ons", () => {
 
   it("describes the new behaviours of the pages: update, filters, summary, manual install and documentation", () => {
     const page = read("docs/user/complements.md");
-    for (const text of [en["update.available"], "1.2.0 → 1.3.0", "Reading HACS…", "To handle", "Clear filters", "Filters (1)", "(EN)", "Experimental", "Manual install", "Import into Home Assistant", "Copy", "Documentation", "address of the page"]) {
+    for (const text of [en["update.available"], "1.2.0 → 1.3.0", "To handle", "Clear filters", "Filters (1)", "(EN)", "Experimental", "Manual install", "Import into Home Assistant", "Copy", "Documentation", "address of the page"]) {
       expect(page, text).toContain(text);
     }
     expect(page).not.toContain("Link only");

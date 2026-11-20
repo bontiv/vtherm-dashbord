@@ -1,13 +1,19 @@
 /**
- * A fake HACS and a fake server of the catalog, for the tests of the add-ons.
+ * A fake store of add-ons (the Marketplace of Home Assistant or HACS) and a fake server of the catalog, for the tests of the add-ons.
  *
- * It answers the commands the way `external/hacs/custom_components/hacs/websocket/` does: `hacs/info`, `hacs/repositories/list`, `hacs/repositories/add`
- * (which answers without error even when it refuses the repository) and `hacs/repository/download` (which answers with an error and a message).
- * Without HACS, Home Assistant rejects every command of HACS as `unknown_command`.
+ * HACS answers the way `external/hacs/custom_components/hacs/websocket/` does: `hacs/info`, `hacs/repositories/list`,
+ * `hacs/repositories/add` (which answers without error even when it refuses the repository) and `hacs/repository/download` (which answers
+ * with an error and a message).
+ *
+ * The Marketplace answers the way `homeassistant/components/marketplace/websocket/` of Home Assistant 2026.11 does: the same answers under
+ * `marketplace/info`, `marketplace/repositories/list`, `marketplace/repositories/add` (which answers with an error when it refuses) and
+ * `marketplace/repository/install`, with its guards: `not_loaded`, `warning_not_accepted` and `github_not_connected`.
+ *
+ * Home Assistant rejects every command of a store that is not there as `unknown_command`.
  */
 import { vi } from "vitest";
 
-/** A repository that HACS knows. */
+/** A repository that the store knows. */
 export interface FakeRepository {
   id: string;
   full_name: string;
@@ -16,28 +22,40 @@ export interface FakeRepository {
   status?: string;
 }
 
-export interface FakeHacsOptions {
-  /** HACS is not installed: its commands are unknown. */
+export interface FakeStoreOptions {
+  /** The store that Home Assistant offers. HACS by default, as on Home Assistant 2026.10 and before. */
+  store?: "hacs" | "marketplace";
+  /** No store: the commands of both are unknown. */
   absent?: boolean;
+  /** The Marketplace is in Home Assistant but its entry is not loaded. */
+  notLoaded?: boolean;
+  /** The user accepted the warning of the Marketplace. True by default. */
+  warningAccepted?: boolean;
+  /** GitHub is connected to the Marketplace. True by default. */
+  githubConnected?: boolean;
   version?: string;
   disabledReason?: string | null;
   categories?: string[];
   repositories?: FakeRepository[];
-  /** The repositories that `hacs/repositories/add` accepts. Another one is silently refused. */
+  /** The repositories that the add command accepts. HACS refuses another one silently, the Marketplace with an error. */
   addable?: string[];
-  /** The repositories whose download fails, with the message of HACS. */
+  /** The repositories that the Marketplace knows but does not list yet: adding them answers `repository_exists`. */
+  unlisted?: FakeRepository[];
+  /** The repositories whose installation fails, with the message of the store. */
   downloadErrors?: Record<string, string>;
-  /** The commands that HACS no longer knows. */
+  /** The commands that the store no longer knows. */
   unknownCommands?: string[];
-  /** The answer of `hacs/repositories/list`, when it must not be a list. */
+  /** The answer of the list command, when it must not be a list. */
   listAnswer?: unknown;
-  /** What a download does to a repository, so that tests can choose `pending-restart` or `installed`. */
+  /** What an installation does to a repository, so that tests can choose `pending-restart` or `installed`. */
   afterDownload?: (repository: FakeRepository) => void;
 }
 
 /** The commands received, in order, and the answer function. */
-export function createFakeHacs(options: FakeHacsOptions = {}) {
+export function createFakeStore(options: FakeStoreOptions = {}) {
+  const store = options.store ?? "hacs";
   const repositories: FakeRepository[] = (options.repositories ?? []).map((repository) => ({ ...repository }));
+  const unlisted: FakeRepository[] = (options.unlisted ?? []).map((repository) => ({ ...repository }));
   const received: Record<string, unknown>[] = [];
   let nextId = 1000;
   const reject = (code: string, message: string): never => {
@@ -45,17 +63,30 @@ export function createFakeHacs(options: FakeHacsOptions = {}) {
   };
   const handle = async (message: Record<string, unknown>): Promise<unknown | undefined> => {
     const type = String(message["type"]);
-    if (!type.startsWith("hacs/")) {
+    const prefix = type.split("/")[0];
+    if (prefix !== "hacs" && prefix !== "marketplace") {
       return undefined;
     }
     received.push(message);
-    if (options.absent === true || (options.unknownCommands ?? []).includes(type)) {
+    if (options.absent === true || prefix !== store || (options.unknownCommands ?? []).includes(type)) {
       return reject("unknown_command", "Unknown command.");
     }
-    switch (type) {
-      case "hacs/info":
-        return { version: options.version ?? "2.0.5", disabled_reason: options.disabledReason ?? null, categories: options.categories ?? ["integration", "plugin", "theme"] };
-      case "hacs/repositories/list": {
+    const marketplace = store === "marketplace";
+    if (marketplace && options.notLoaded === true) {
+      return reject("not_loaded", "The Marketplace is not loaded.");
+    }
+    const command = type.slice(prefix.length + 1);
+    const accepted = options.warningAccepted !== false;
+    const github = options.githubConnected !== false;
+    switch (command) {
+      case "info":
+        return {
+          version: options.version ?? (marketplace ? "2026.11.0" : "2.0.5"),
+          disabled_reason: options.disabledReason ?? null,
+          categories: options.categories ?? ["integration", "plugin", "theme"],
+          ...(marketplace ? { warning_accepted: accepted, github_connected: github } : {}),
+        };
+      case "repositories/list": {
         if (options.listAnswer !== undefined) {
           return options.listAnswer;
         }
@@ -64,19 +95,39 @@ export function createFakeHacs(options: FakeHacsOptions = {}) {
           .filter((repository) => categories.includes(repository.category))
           .map((repository) => ({ installed_version: repository.installed === true ? "1.0.0" : null, available_version: "1.0.0", config_flow: true, status: repository.status ?? (repository.installed === true ? "installed" : "default"), ...repository }));
       }
-      case "hacs/repositories/add": {
-        // HACS answers without error whatever happens: a refusal only reaches an internal event.
+      case "repositories/add": {
         const repository = String(message["repository"]);
+        if (marketplace && !accepted) {
+          return reject("warning_not_accepted", "Accept the warning of the Marketplace first.");
+        }
+        if (marketplace && !github) {
+          return reject("github_not_connected", "Connect GitHub first.");
+        }
+        const known = unlisted.findIndex((candidate) => candidate.full_name === repository);
+        if (marketplace && known !== -1) {
+          // Read meanwhile: the list shows it from now on.
+          repositories.push(...unlisted.splice(known, 1));
+          return reject("repository_exists", `${repository} is already in the Marketplace.`);
+        }
         if ((options.addable ?? []).includes(repository) && !repositories.some((candidate) => candidate.full_name === repository)) {
           nextId += 1;
           repositories.push({ id: String(nextId), full_name: repository, category: String(message["category"]) });
+          return marketplace ? null : {};
         }
-        return {};
+        // HACS answers without error whatever happens: a refusal only reaches an internal event.
+        return marketplace ? reject("add_failed", `Could not add ${repository}: the repository is not valid.`) : {};
       }
-      case "hacs/repository/download": {
+      case "repository/download":
+      case "repository/install": {
+        if ((command === "repository/install") !== marketplace) {
+          return reject("unknown_command", "Unknown command.");
+        }
+        if (marketplace && !accepted) {
+          return reject("warning_not_accepted", "Accept the warning of the Marketplace first.");
+        }
         const repository = repositories.find((candidate) => candidate.id === message["repository"]);
         if (repository === undefined) {
-          return reject("error", "Repository not found.");
+          return reject(marketplace ? "repository_not_found" : "error", "Repository not found.");
         }
         const failure = options.downloadErrors?.[repository.full_name];
         if (failure !== undefined) {
@@ -85,7 +136,7 @@ export function createFakeHacs(options: FakeHacsOptions = {}) {
         repository.installed = true;
         repository.status = "installed";
         options.afterDownload?.(repository);
-        return {};
+        return marketplace ? null : {};
       }
       default:
         return reject("unknown_command", "Unknown command.");

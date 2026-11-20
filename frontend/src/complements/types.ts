@@ -1,4 +1,4 @@
-/** The types of the add-ons feature: the catalog that the server gives, and what HACS says. */
+/** The types of the add-ons feature: the catalog that the server gives, and what the store says. */
 
 /** What Home Assistant knows about the integration of an add-on. */
 export interface ComplementHa {
@@ -32,7 +32,7 @@ export interface Complement {
   readonly repository: string | null;
   /** Where the add-on is described. */
   readonly link: string | null;
-  /** The category of HACS to install it, or null when the dashboard does not install it. */
+  /** The category of the store (the same for the Marketplace and HACS) to install it, or null when the dashboard does not install it. */
   readonly hacs_category: string | null;
   readonly ha: ComplementHa;
 }
@@ -46,17 +46,17 @@ export interface ComplementsResponse {
   readonly catalog_url: string;
 }
 
-/** The states of an add-on, deduced from Home Assistant and HACS. */
+/** The states of an add-on, deduced from Home Assistant and the store. */
 export type ComplementState = "not_installed" | "installed" | "restart_required" | "to_configure" | "configured" | "link_only";
 
 /** The states, in the order of the filter. */
 export const COMPLEMENT_STATES: readonly ComplementState[] = ["not_installed", "installed", "restart_required", "to_configure", "configured", "link_only"];
 
-/** A repository of HACS, as far as the dashboard reads it. */
-export interface HacsRepository {
-  /** The identifier of HACS, which `hacs/repository/download` takes. */
+/** A repository of the store (the Marketplace or HACS), as far as the dashboard reads it. */
+export interface StoreRepository {
+  /** The identifier in the store, which the command that installs takes. */
   readonly id: string;
-  /** The `owner/name`, as HACS writes it. */
+  /** The `owner/name`, as the store writes it. */
   readonly full_name: string;
   readonly category: string;
   readonly installed: boolean;
@@ -78,7 +78,7 @@ export interface ListCriteria {
   sort: string;
 }
 
-/** An update that HACS offers for an installed repository. */
+/** An update that the store offers for an installed repository. */
 export interface UpdateInfo {
   readonly installed: string;
   readonly available: string;

@@ -13,7 +13,7 @@ import pytest
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.vtherm_dashboard import websocket_api
 from custom_components.vtherm_dashboard.config_flow_driver import ConfigWriter, FieldError, SaveResult

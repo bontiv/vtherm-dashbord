@@ -27,6 +27,9 @@ Tags do not start `ci.yml`: `release.yml` calls it, so a tag does not run the sa
 The jobs are independent and run in parallel. The sample plugin is not a workspace of `package.json`: it depends on the SDK like the plugin of an author, and an SDK whose version is not published yet would make `npm ci` fail for the whole repository. When `sample-plugin` fails, the run stays green and shows the warning "Sample plugin" and a note in its summary. Do not require this job in the branch protection, and `release.yml` does not wait for it separately: it waits for `ci`, which is green. The same commands run on your computer, so a red job is reproduced with the command of its name.
 
 ### What the tests read
+- Home Assistant comes from its package index, at the exact version of `requirements-dev.txt` (2026.11.0, as Versatile Thermostat),
+  with `pytest-homeassistant`, its test helpers for that version. The contract test of the Marketplace reads the Marketplace of this
+  Home Assistant.
 - `vtherm_api` comes from its package index, at the version that `manifest.json` requires.
 - Versatile Thermostat and HACS are cloned at the commit or tag of `external-refs.txt` by `scripts/fetch-external.sh`, into the default folder of
   `VTHERM_VERSATILE_THERMOSTAT_DIR` and `VTHERM_HACS_DIR`. The workflow sets none of the variables of

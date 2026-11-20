@@ -8,6 +8,21 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+### Changed
+- The tab **VT add-ons** opens on **Installed**, which is now the first entry of its menu, before **Catalog**.
+
+### Fixed
+- The add-ons pages work on Home Assistant 2026.11, where HACS is built into Home Assistant as the **Marketplace** and the commands
+  `hacs/*` are unknown. The dashboard finds the Marketplace and installs, lists and follows the add-ons with its commands
+  (`marketplace/*`), and keeps HACS on Home Assistant 2026.10 and older. The texts, the buttons ("Open in the Marketplace") and the links
+  (`/marketplace/repository/<id>`) name the store that Home Assistant has. Without a store, the message names the Marketplace and links
+  to its documentation instead of the installation of HACS (issue #1).
+- With the Marketplace, the installation is off until the user accepted the warning of the Marketplace, and an add-on that is not in the
+  Marketplace yet cannot be added until GitHub is connected there. The page says so and links to the Marketplace. A new integration with
+  a config flow that the Marketplace loads at once is "To configure" without a restart.
+- The warning banner of the add-ons pages has a single outline: the border and the padding are drawn only by the fallback without
+  `ha-alert`, which draws its own.
+
 ## [0.1.0-beta3]
 The third beta.
 

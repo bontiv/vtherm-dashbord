@@ -234,7 +234,7 @@ thousands of files of `node_modules` through it made each file of Vitest tests s
   sources stay on the host. After this change, rebuild the container ("Rebuild Container"): `post-create.sh` gives the volumes to
   the user of the container and runs `npm ci`. The old `node_modules` folders of the host are hidden in the container: you can delete
   them on the host.
-- The plugin `pytest-homeassistant-custom-component` turns on the debug mode of the event loop in every test: every future then
+- The plugin `pytest-homeassistant` turns on the debug mode of the event loop in every test: every future then
   records the stack that created it, and reads each file of the stack. `tests/conftest.py` keeps the debug mode in the continuous
   integration (variable `CI`) and when `VTHERM_ASYNCIO_DEBUG=1`, and turns it off otherwise. Set the variable to see what the debug
   mode reports (slow callbacks, coroutines never awaited): `VTHERM_ASYNCIO_DEBUG=1 pytest`.
@@ -251,6 +251,7 @@ thousands of files of `node_modules` through it made each file of Vitest tests s
 | `npm run catalogs:generate` | The catalogs of the native tabs, from the translations of Versatile Thermostat. |
 | `pytest tests/test_schema_drift.py --update-schemas` | `shared/vtherm-config-schemas.json`. |
 | `pytest tests/test_hacs_contract.py --update-hacs-answers` | `shared/hacs-answers.json`, the answers of the real HACS that the adapter is tested against. |
+| `pytest tests/test_marketplace_contract.py --update-marketplace-answers` | `shared/marketplace-answers.json`, the answers of the real Marketplace of Home Assistant that the adapter is tested against. |
 | `UPDATE_NATIVE_DOCS=1 npx vitest run frontend/test/native-docs.test.ts` | The table of the contributions in [Native plugins](../plugins/native-plugins.md). |
 
 ### The preview

@@ -6,7 +6,7 @@ import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from pytest_homeassistant_custom_component.common import MockConfigEntry, MockModule, mock_integration
+from pytest_homeassistant.common import MockConfigEntry, MockModule, mock_integration
 
 from custom_components.vtherm_dashboard import panel
 from custom_components.vtherm_dashboard.const import DOMAIN

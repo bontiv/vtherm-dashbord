@@ -2,7 +2,7 @@
 
 The catalog is a JSON file of the project. It is read by the server of Home Assistant, kept in memory for an hour, and the last valid
 copy is kept in the storage of Home Assistant, so that the page works offline. Each entry is normalized, then given what Home Assistant
-knows about its integration. What HACS knows is read by the browser.
+knows about its integration. What the store of add-ons (the Marketplace of Home Assistant, or HACS) knows is read by the browser.
 """
 
 from __future__ import annotations
@@ -39,9 +39,9 @@ STORAGE_VERSION = 1
 KNOWN_TYPES = ("integration", "interface", "blueprint", "addon")
 """The types of add-on that the dashboard knows. An entry of another type is shown as a link."""
 INSTALLABLE_TYPES = ("integration", "interface")
-"""The types that HACS installs for the dashboard."""
+"""The types that the store (the Marketplace or HACS) installs for the dashboard."""
 DEFAULT_HACS_CATEGORY = {"integration": "integration", "interface": "plugin"}
-"""The category of HACS of each installable type, unless the entry gives `hacs_category`."""
+"""The category of the store of each installable type, unless the entry gives `hacs_category`. The Marketplace has the categories of HACS."""
 
 README_MAX_BYTES = 512 * 1024
 """The largest README that is read. A larger one is refused."""
@@ -93,7 +93,7 @@ class Complement:  # pylint: disable=too-many-instance-attributes
 
     @property
     def repository(self) -> str | None:
-        """The `owner/name` of the GitHub repository, from the slug or from a GitHub `url`. It is lower case, as HACS names it."""
+        """The `owner/name` of the GitHub repository, from the slug or from a GitHub `url`. It is lower case, as the store names it."""
         if self.slug is not None and _REPOSITORY.match(self.slug):
             return self.slug.lower()
         match = _GITHUB.match(self.url or "")
@@ -107,7 +107,7 @@ class Complement:  # pylint: disable=too-many-instance-attributes
 
     @property
     def category(self) -> str | None:
-        """The category of HACS, or None for an add-on that the dashboard does not install."""
+        """The category of the store, or None for an add-on that the dashboard does not install."""
         if self.type not in INSTALLABLE_TYPES or self.repository is None:
             return None
         return self.hacs_category or DEFAULT_HACS_CATEGORY[self.type]

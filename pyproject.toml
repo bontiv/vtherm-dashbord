@@ -7,6 +7,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = ["-p", "no:respx"]
 markers = ["vtherm: the test runs the code of the real Versatile Thermostat of the folder of VTHERM_VERSATILE_THERMOSTAT_DIR (deselect with -m \"not vtherm\")"]
 
 [tool.coverage.run]

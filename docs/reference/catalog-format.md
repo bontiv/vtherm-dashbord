@@ -18,12 +18,12 @@ not an option. Read by the server, the entries are normalized and given to the p
 | `family` | no | `interface`, `device-helper`, `feature` or `algorithm`. `other` by default. |
 | `ha_domain` | no | The domain of the integration in Home Assistant. It gives its state: loaded, entries, config flow. |
 | `author` | no | The author. |
-| `hacs_category` | no | The category of HACS used to install the add-on. It wins over the default. |
+| `hacs_category` | no | The category of the store used to install the add-on: the Marketplace of Home Assistant and HACS have the same categories. It wins over the default. |
 
 An entry is identified by `slug`, else `url`, else `name`. An identifier that appeared before is ignored with a warning.
 
 ## The category of HACS
-Without `hacs_category`, an `integration` is installed in the HACS category `integration`, and an `interface` in `plugin` (a card).
+Without `hacs_category`, an `integration` is installed in the category `integration` of the store, and an `interface` in `plugin` (a card).
 An `interface` entry can also be a theme, so it has to say `"hacs_category": "theme"`. The field is an extension of the format to propose
 to the repository of the web site `bontiv/vtherm-website`.
 

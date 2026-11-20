@@ -7,8 +7,8 @@ import type { MockHaElement } from "@vtherm/dashboard-sdk/testing";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { cleanup, find, findAll, mountPanel, settle } from "./support/dashboard-harness.ts";
-import { catalogAnswer, complement, createFakeHacs } from "./support/fake-hacs.ts";
-import type { FakeHacsOptions } from "./support/fake-hacs.ts";
+import { catalogAnswer, complement, createFakeStore } from "./support/fake-store.ts";
+import type { FakeStoreOptions } from "./support/fake-store.ts";
 import { NATIVE_LOAD_ORDER, nativeHost } from "./support/native-host.ts";
 
 // happy-dom cannot run DOMPurify, which `complements-sanitize.test.ts` checks on a complete DOM.
@@ -45,8 +45,8 @@ const redraw = async (panel: HTMLElement) => {
   await settle(panel as never);
 };
 
-async function openCatalog(path: string, hacs: FakeHacsOptions = {}) {
-  const fake = createFakeHacs(hacs);
+async function openCatalog(path: string, hacs: FakeStoreOptions = {}) {
+  const fake = createFakeStore(hacs);
   const catalog = async (message: Record<string, unknown>) => (message["type"] === "vtherm_dashboard/get_complements" ? catalogAnswer([HELPER]) : undefined);
   const mounted = await mountPanel({ plugins: natives, path, handlers: [catalog, fake.handle] });
   await vi.waitFor(() => expect(view(mounted.panel)?.querySelector("ha-card, .actions")).not.toBeNull());

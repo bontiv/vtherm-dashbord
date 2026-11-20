@@ -1,12 +1,12 @@
-# Home Assistant (Python 3.14 required). The exact version is pinned by
-# pytest-homeassistant-custom-component, which keeps tests aligned with the core.
-homeassistant
+# Home Assistant (Python 3.14 required), at the version that the tests run against, as Versatile Thermostat does.
+homeassistant==2026.11.0
 home-assistant-frontend
 
 # Tests
 pytest
 pytest-asyncio
-pytest-homeassistant-custom-component
+# The test helpers of the core of Home Assistant, for its version: pytest-homeassistant-custom-component stops at 2026.10.
+pytest-homeassistant
 pytest-cov
 # The tests in parallel: pytest -n auto.
 pytest-xdist

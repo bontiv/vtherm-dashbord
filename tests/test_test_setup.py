@@ -18,7 +18,7 @@ def test_the_debug_mode_follows_the_environment(environ: dict[str, str], wanted:
 
 
 async def test_the_event_loop_of_a_test_follows_the_environment() -> None:
-    """The fixture of the conftest replaces the one of pytest-homeassistant-custom-component."""
+    """The fixture of the conftest replaces the one of pytest-homeassistant."""
     assert asyncio.get_running_loop().get_debug() is asyncio_debug_wanted(os.environ)
 
 

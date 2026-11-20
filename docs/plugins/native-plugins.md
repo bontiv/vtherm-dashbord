@@ -164,8 +164,8 @@ calls "Advanced parameters".
 | `core_heating_failure` | `core_heating_failure.general.main` | `general_config` | Heating failure detection |
 | `core_heating_failure` | `core_heating_failure.widget.failure` | `thermostat_widget` | Heating failure |
 | `core_complements` | `core_complements.top.complements` | `top_tab` | VT add-ons |
-| `core_complements` | `core_complements.page.catalog` | `tab_page` | Catalog |
 | `core_complements` | `core_complements.page.installed` | `tab_page` | Installed |
+| `core_complements` | `core_complements.page.catalog` | `tab_page` | Catalog |
 <!-- /native-ids -->
 
 ## The tabs and their values

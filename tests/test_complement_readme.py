@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.vtherm_dashboard.complements import (
     CATALOG_URL,
