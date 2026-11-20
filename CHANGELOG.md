@@ -8,6 +8,9 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
 
 ## [Unreleased]
 
+## [0.1.0-beta3]
+The third beta.
+
 ### Added
 - The page of an add-on shows the README of its repository in a **Documentation** card, in the language of the user when the
   repository has one, else the main README marked **(EN)**, with its relative links and images made absolute. The new administrator
@@ -122,6 +125,11 @@ WebSocket command that lists the plugins) and what to change in a plugin to foll
   the section while the feature is on, and the save actions are at the foot of its card while the feature is off, so a feature turned off
   in place is saved there. A value of the features that a save refuses puts the section of that feature in error. The values are saved in the
   step "features" of Versatile Thermostat, as before.
+
+### Fixed
+- The configuration flow of the dashboard no longer fails with "Invalid handler specified" when Home Assistant still runs a
+  `vtherm_api` older than 0.11.0 after an update, since it only loads the new version at a restart. The dashboard now stays loadable
+  and raises a repair that offers to restart Home Assistant.
 
 ### For contributors
 - The tests are much faster in the dev container: `node_modules` is on volumes of the container (rebuild the container), the Python
